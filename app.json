@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dustindoan.aiquotesapp"
+      "bundleIdentifier": "com.dustindoan.aiquotesapp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow AI Quotes to access your camera for taking photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,6 +33,12 @@
     "plugins": [
       "expo-router",
       "expo-dev-client",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for taking photos."
+        }
+      ],
       [
         "expo-splash-screen",
         {
