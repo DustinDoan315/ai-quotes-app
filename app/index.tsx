@@ -1,10 +1,10 @@
-import { Redirect } from 'expo-router';
-import { useUserStore } from '@/appState/userStore';
+import { useUserStore } from "@/appState/userStore";
+import { Redirect } from "expo-router";
 
 export default function Index() {
   const { persona } = useUserStore();
 
-  if (persona) {
+  if (!persona) {
     return <Redirect href="/(tabs)" />;
   }
 

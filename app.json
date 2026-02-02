@@ -42,7 +42,13 @@
           }
         }
       ],
-      "@sentry/react-native"
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "ai-quotes",
+          "project": "ai-quotes"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
