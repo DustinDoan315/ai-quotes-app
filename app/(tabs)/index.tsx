@@ -1,8 +1,11 @@
+import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import * as Haptics from "expo-haptics";
+import { MotiView } from "moti";
 import { useRef, useState } from "react";
 import {
   ActivityIndicator,
+  LayoutAnimation,
   Pressable,
   Text,
   View,
@@ -10,12 +13,30 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCameraPermission } from "../../hooks/useCameraPermission";
 
+type CameraOrientation = "portrait" | "landscape";
+
 export default function HomeScreen() {
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [orientation, setOrientation] = useState<CameraOrientation>("portrait");
+  const [orientationTransitioning, setOrientationTransitioning] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const insets = useSafeAreaInsets();
+
+  const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleToggleOrientation() {
+    if (orientationTimeoutRef.current) clearTimeout(orientationTimeoutRef.current);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setOrientationTransitioning(true);
+    setOrientation((prev) => (prev === "portrait" ? "landscape" : "portrait"));
+    orientationTimeoutRef.current = setTimeout(() => {
+      setOrientationTransitioning(false);
+      orientationTimeoutRef.current = null;
+    }, 320);
+  }
 
   if (isLoading) {
     return (
@@ -54,17 +75,43 @@ export default function HomeScreen() {
     }
   }
 
+  const isPortrait = orientation === "portrait";
+
   return (
     <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
       <View className="flex-1 items-center justify-center px-4 py-6">
-        <View className="aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-black">
+        <MotiView
+          animate={{ opacity: orientationTransitioning ? 0.88 : 1 }}
+          transition={{ type: "timing", duration: 200 }}
+          className={
+            isPortrait
+              ? "aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-black"
+              : "aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-2xl bg-black"
+          }
+        >
           <CameraView
             ref={cameraRef}
             style={{ flex: 1 }}
             facing="back"
             onCameraReady={() => setCameraReady(true)}
           />
-        </View>
+        </MotiView>
+      </View>
+      <View
+        className="absolute right-4 top-0 flex-row items-center gap-3"
+        style={{ paddingTop: insets.top + 12 }}
+      >
+        <Pressable
+          onPress={handleToggleOrientation}
+          className="h-12 w-12 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+        >
+          <Ionicons
+            name={isPortrait ? "phone-portrait-outline" : "phone-landscape-outline"}
+            size={24}
+            color="#fff"
+          />
+        </Pressable>
       </View>
       <View
         className="items-center pb-8"
