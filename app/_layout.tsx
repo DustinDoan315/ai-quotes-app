@@ -2,9 +2,11 @@ import { initializeRevenueCat } from '../services/revenuecat';
 import { initPostHog } from '@/services/analytics/posthog';
 import { initSentry } from '@/services/analytics/sentry';
 import { Stack } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { supabase } from '../config/supabase';
 import { syncUserProfile } from '@/features/auth/authService';
 import { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
 import '../global.css';
 
 
@@ -45,5 +47,13 @@ export default function RootLayout() {
     };
   }, []);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </GestureHandlerRootView>
+  );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});
