@@ -1,18 +1,18 @@
-import * as Haptics from 'expo-haptics';
-import { CameraView } from 'expo-camera';
-import { Easing } from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { MotiView } from 'moti';
-import { scheduleOnRN } from 'react-native-worklets';
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState
-  } from 'react';
-import { useCameraPermission } from '../../hooks/useCameraPermission';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+/* eslint-disable import/namespace */
+import { useStreakStore } from "@/appState/streakStore";
+import { useUIStore } from "@/appState/uiStore";
+import { Ionicons } from "@expo/vector-icons";
+import { CameraView } from "expo-camera";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { MotiView } from "moti";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Easing } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { scheduleOnRN } from "react-native-worklets";
+import { useCameraPermission } from "../../hooks/useCameraPermission";
 
 import {
   ActivityIndicator,
@@ -21,7 +21,6 @@ import {
   Text,
   View,
 } from "react-native";
-
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.3;
@@ -57,6 +56,7 @@ export default function HomeScreen() {
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [orientation, setOrientation] = useState<CameraOrientation>("portrait");
   const [orientationTransitioning, setOrientationTransitioning] =
     useState(false);
@@ -65,6 +65,8 @@ export default function HomeScreen() {
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
   const insets = useSafeAreaInsets();
+  const { currentStreak } = useStreakStore();
+  const { showToast } = useUIStore();
 
   const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -151,12 +153,44 @@ export default function HomeScreen() {
     setIsCapturing(true);
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      await cameraRef.current.takePictureAsync({
+      const photo = await cameraRef.current.takePictureAsync({
         quality: 0.9,
       });
+      setSelectedImageUri(photo.uri);
+      showToast("Photo captured", "success");
     } finally {
       setIsCapturing(false);
     }
+  }
+
+  async function handleGenerateAI() {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    showToast("Gen AI coming soon", "info");
+  }
+
+  async function handleOpenGallery() {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      showToast("We need gallery access to pick photos.", "error");
+      return;
+    }
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      quality: 0.9,
+      selectionLimit: 1,
+    });
+
+    if (result.canceled || !result.assets.length) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    setSelectedImageUri(asset.uri);
+    showToast("Photo selected", "success");
   }
 
   const isPortrait = orientation === "portrait";
@@ -165,6 +199,23 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-gray-500" style={{ paddingTop: insets.top }}>
+      <View className="px-4">
+        <View className="flex-row items-center justify-between">
+          <Pressable
+            className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
+          </Pressable>
+          <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
+            <Ionicons name="flame-outline" size={20} color="#ffb100" />
+            <Text className="ml-1.5 text-sm font-semibold text-white">
+              {currentStreak}
+            </Text>
+          </View>
+        </View>
+      </View>
       <View className="flex-1 items-center justify-center px-4 py-6">
         <GestureDetector gesture={pinchGesture}>
           <MotiView
@@ -192,70 +243,102 @@ export default function HomeScreen() {
           </MotiView>
         </GestureDetector>
       </View>
-      <View
-        className="absolute right-4 top-0 flex-row items-center gap-3"
-        style={{ paddingTop: insets.top + 12 }}>
-        <Pressable
-          onPress={handleToggleOrientation}
-          className="h-12 w-12 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
-          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-          <Ionicons
-            name={
-              isPortrait ? "phone-portrait-outline" : "phone-landscape-outline"
-            }
-            size={24}
-            color="#fff"
-          />
-        </Pressable>
-      </View>
+
       <View
         className="items-center pb-8"
         style={{ paddingBottom: Math.max(insets.bottom, 32) }}>
-        <View className="mb-4 items-center gap-2">
+        <Text className="mb-3 text-xs font-medium text-white/70">
+          Capture your moment
+        </Text>
+        <View className="mb-4 w-full items-center gap-2">
           <Text
             className="text-sm font-medium text-white"
             style={{ opacity: 0.9 }}>
+            ``
             {zoomFactor % 1 === 0
               ? `${zoomFactor}×`
               : `${zoomFactor.toFixed(1)}×`}
           </Text>
-          <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
-            {ZOOM_PRESETS.map((preset) => {
-              const isActive = activePreset === preset;
-              return (
-                <Pressable
-                  key={preset}
-                  onPress={() => handleZoomPreset(preset)}
-                  className="min-w-[44px] items-center justify-center rounded-full px-3 py-2"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.8 : 1,
-                    backgroundColor: isActive
-                      ? "rgba(255, 204, 0, 0.35)"
-                      : "transparent",
-                  })}>
-                  <Text
-                    className="text-sm font-semibold"
-                    style={{ color: isActive ? "#FFCC00" : "#fff" }}>
-                    {preset}×
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View className="mt-1 w-full justify-center items-center">
+            <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
+              {ZOOM_PRESETS.map((preset) => {
+                const isActive = activePreset === preset;
+                return (
+                  <Pressable
+                    key={preset}
+                    onPress={() => handleZoomPreset(preset)}
+                    className="min-w-[44px] items-center justify-center rounded-full px-3 py-2"
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.8 : 1,
+                      backgroundColor: isActive
+                        ? "rgba(255, 204, 0, 0.35)"
+                        : "transparent",
+                    })}>
+                    <Text
+                      className="text-sm font-semibold"
+                      style={{ color: isActive ? "#FFCC00" : "#fff" }}>
+                      {preset}×
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable
+              onPress={handleToggleOrientation}
+              className="absolute right-10 h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+              <Ionicons
+                name={
+                  isPortrait
+                    ? "phone-portrait-outline"
+                    : "phone-landscape-outline"
+                }
+                size={20}
+                color="#fff"
+              />
+            </Pressable>
           </View>
         </View>
-        <Pressable
-          onPress={handleCapture}
-          disabled={!cameraReady || isCapturing}
-          className="h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-white/20"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.8 : 1,
-          })}>
-          {isCapturing ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <View className="h-14 w-14 rounded-full bg-white" />
-          )}
-        </Pressable>
+
+        <View className="flex-row items-center justify-center gap-10">
+          <Pressable
+            onPress={handleGenerateAI}
+            className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            <Ionicons name="star-outline" size={26} color="#ffffff" />
+          </Pressable>
+          <Pressable
+            onPress={handleCapture}
+            disabled={!cameraReady || isCapturing}
+            className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/80 bg-white/10"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            {isCapturing ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <View className="h-14 w-14 rounded-full bg-white" />
+            )}
+          </Pressable>
+          <Pressable
+            onPress={handleOpenGallery}
+            className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            {selectedImageUri ? (
+              <Image
+                source={{ uri: selectedImageUri }}
+                className="h-12 w-12 rounded-full"
+                contentFit="cover"
+              />
+            ) : (
+              <Ionicons name="images-outline" size={24} color="#ffffff" />
+            )}
+          </Pressable>
+        </View>
       </View>
     </View>
   );
