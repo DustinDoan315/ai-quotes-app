@@ -1,4 +1,3 @@
-/* eslint-disable import/namespace */
 import { useStreakStore } from "@/appState/streakStore";
 import { useUIStore } from "@/appState/uiStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -262,10 +261,11 @@ export default function HomeScreen() {
           <Text
             className="text-sm font-medium text-white"
             style={{ opacity: 0.9 }}>
-            ``
+            `
             {zoomFactor % 1 === 0
               ? `${zoomFactor}×`
               : `${zoomFactor.toFixed(1)}×`}
+            `
           </Text>
           <View className="mt-1 w-full justify-center items-center">
             <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
