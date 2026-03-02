@@ -233,13 +233,21 @@ export default function HomeScreen() {
                 ? "aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-black"
                 : "aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-2xl bg-black"
             }>
-            <CameraView
-              ref={cameraRef}
-              style={{ flex: 1 }}
-              facing="back"
-              zoom={zoom}
-              onCameraReady={() => setCameraReady(true)}
-            />
+            {selectedImageUri ? (
+              <Image
+                source={{ uri: selectedImageUri }}
+                style={{ flex: 1 }}
+                contentFit="cover"
+              />
+            ) : (
+              <CameraView
+                ref={cameraRef}
+                style={{ flex: 1 }}
+                facing="back"
+                zoom={zoom}
+                onCameraReady={() => setCameraReady(true)}
+              />
+            )}
           </MotiView>
         </GestureDetector>
       </View>
@@ -309,34 +317,37 @@ export default function HomeScreen() {
             })}>
             <Ionicons name="star-outline" size={26} color="#ffffff" />
           </Pressable>
-          <Pressable
-            onPress={handleCapture}
-            disabled={!cameraReady || isCapturing}
-            className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/80 bg-white/10"
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.8 : 1,
-            })}>
-            {isCapturing ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <View className="h-14 w-14 rounded-full bg-white" />
-            )}
-          </Pressable>
+          {selectedImageUri ? (
+            <Pressable
+              onPress={() => setSelectedImageUri(null)}
+              className="h-14 px-6 items-center justify-center rounded-full border-2 border-white/80 bg-white/10"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.8 : 1,
+              })}>
+              <Text className="text-sm font-semibold text-white">Retake</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={handleCapture}
+              disabled={!cameraReady || isCapturing}
+              className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/80 bg-white/10"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.8 : 1,
+              })}>
+              {isCapturing ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <View className="h-14 w-14 rounded-full bg-white" />
+              )}
+            </Pressable>
+          )}
           <Pressable
             onPress={handleOpenGallery}
             className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
             })}>
-            {selectedImageUri ? (
-              <Image
-                source={{ uri: selectedImageUri }}
-                className="h-12 w-12 rounded-full"
-                contentFit="cover"
-              />
-            ) : (
-              <Ionicons name="images-outline" size={24} color="#ffffff" />
-            )}
+            <Ionicons name="images-outline" size={24} color="#ffffff" />
           </Pressable>
         </View>
       </View>
