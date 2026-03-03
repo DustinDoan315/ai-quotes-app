@@ -38,13 +38,9 @@ export const validateQuote = (
 };
 
 export const sanitizeQuote = (quote: string): string => {
-  let sanitized = quote.trim();
-
-  sanitized = sanitized.replace(/[^\w\s.,!?'"-]/g, "");
-
-  if (sanitized.length > 180) {
-    sanitized = sanitized.substring(0, 177) + "...";
+  const trimmed = quote.trim();
+  if (trimmed.length > 180) {
+    return `${trimmed.substring(0, 177)}...`;
   }
-
-  return sanitized;
+  return trimmed;
 };

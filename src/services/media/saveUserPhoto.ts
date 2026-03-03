@@ -4,6 +4,7 @@ type SaveUserPhotoParams = {
   localUri: string;
   userId: string | null;
   guestId: string | null;
+  quote?: string | null;
 };
 
 type SaveUserPhotoResult = {
@@ -24,7 +25,7 @@ const createOwnerFolder = (userId: string | null, guestId: string | null) => {
 export const saveUserPhoto = async (
   params: SaveUserPhotoParams,
 ): Promise<SaveUserPhotoResult | null> => {
-  const { localUri, userId, guestId } = params;
+  const { localUri, userId, guestId, quote } = params;
 
   if (!localUri) {
     return null;
@@ -78,6 +79,7 @@ export const saveUserPhoto = async (
     guest_id: guestId,
     image_url: publicUrl,
     storage_path: path,
+    quote: quote ?? null,
   });
 
   if (insertError) {

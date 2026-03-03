@@ -1,34 +1,45 @@
-import { useQuoteStore } from "@/appState/quoteStore";
-import { useStreakStore } from "@/appState/streakStore";
-import { useUIStore } from "@/appState/uiStore";
-import { useUserStore } from "@/appState/userStore";
-import { CameraActionsBar } from "@/components/CameraActionsBar";
-import { HomeHeader } from "@/components/HomeHeader";
-import { QuoteCard } from "@/components/QuoteCard";
-import { useAIStore } from "@/features/ai/aiStore";
-import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
-import { saveUserPhoto } from "@/services/media/saveUserPhoto";
-import { Ionicons } from "@expo/vector-icons";
-import { CameraView } from "expo-camera";
-import * as Haptics from "expo-haptics";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
-import { MotiView } from "moti";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { Easing } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { scheduleOnRN } from "react-native-worklets";
-import { useCameraPermission } from "../../hooks/useCameraPermission";
+import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
+import { CameraActionsBar } from '@/components/CameraActionsBar';
+import { CameraView } from 'expo-camera';
+import { Easing } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { HomeHeader } from '@/components/HomeHeader';
+import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
+import { MotiView } from 'moti';
+import { QuoteCard } from '@/components/QuoteCard';
+import { saveUserPhoto } from '@/services/media/saveUserPhoto';
+import { scheduleOnRN } from 'react-native-worklets';
+import { useAIStore } from '@/features/ai/aiStore';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState
+  } from 'react';
+import { useCameraPermission } from '../../hooks/useCameraPermission';
+import { useGenerateQuote } from '@/features/ai/useGenerateQuote';
+import { useQuotePhotoFeed } from '@/features/quotes/useQuotePhotoFeed';
+import { useQuoteStore } from '@/appState/quoteStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useStreakStore } from '@/appState/streakStore';
+import { useUIStore } from '@/appState/uiStore';
+import { useUserStore } from '@/appState/userStore';
 
 import {
   ActivityIndicator,
+  Dimensions,
   LayoutAnimation,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
 } from "react-native";
+
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
@@ -36,6 +47,7 @@ const ZOOM_SENSITIVITY = 0.25;
 const ZOOM_PRESETS = [0.5, 1, 2] as const;
 const DISPLAY_FACTOR_MIN = 0.5;
 const DISPLAY_FACTOR_MAX = 2;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 function zoomToFactor(expoZoom: number): number {
   const t = (expoZoom - EXPO_ZOOM_MIN) / (EXPO_ZOOM_MAX - EXPO_ZOOM_MIN);
@@ -74,8 +86,11 @@ export default function HomeScreen() {
     useState(false);
   const [zoom, setZoom] = useState(() => factorToZoom(1));
   const cameraRef = useRef<CameraView>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
+  const [feedOffsetY, setFeedOffsetY] = useState(0);
+  const scrollStartOffsetRef = useRef(0);
   const insets = useSafeAreaInsets();
   const { currentStreak } = useStreakStore();
   const { showToast } = useUIStore();
@@ -83,6 +98,11 @@ export default function HomeScreen() {
   const { profile, ensureGuestId } = useUserStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
+  const {
+    items: feedItems,
+    isRefreshing: isFeedRefreshing,
+    refresh: refreshFeed,
+  } = useQuotePhotoFeed();
 
   const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -139,6 +159,33 @@ export default function HomeScreen() {
       setOrientationTransitioning(false);
       orientationTimeoutRef.current = null;
     }, 300);
+  }
+
+  function handleScrollBeginDrag(
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) {
+    scrollStartOffsetRef.current = event.nativeEvent.contentOffset.y;
+  }
+
+  function handleScrollEndDrag(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    const endOffsetY = event.nativeEvent.contentOffset.y;
+    const startOffsetY = scrollStartOffsetRef.current;
+    const delta = endOffsetY - startOffsetY;
+    const threshold = SCREEN_HEIGHT * 0.2;
+
+    if (Math.abs(delta) < threshold) {
+      return;
+    }
+
+    if (!scrollRef.current || feedOffsetY <= 0) {
+      return;
+    }
+    const target = delta > 0 ? feedOffsetY : 0;
+
+    scrollRef.current.scrollTo({
+      y: target,
+      animated: true,
+    });
   }
 
   if (isLoading) {
@@ -222,10 +269,16 @@ export default function HomeScreen() {
     try {
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
+      const quoteText = dailyQuote?.text ?? null;
+      console.log("Saving photo with quote", {
+        hasQuote: !!quoteText,
+        quote: quoteText,
+      });
       const result = await saveUserPhoto({
         localUri: selectedImageUri,
         userId,
         guestId,
+        quote: quoteText,
       });
 
       if (!result) {
@@ -276,11 +329,21 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-gray-500">
       <ScrollView
+        ref={scrollRef}
         className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={isFeedRefreshing}
+            onRefresh={refreshFeed}
+            tintColor="#ffffff"
+          />
+        }
         contentContainerStyle={{
           paddingTop: insets.top,
           paddingBottom: 24,
-        }}>
+        }}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}>
         <HomeHeader currentStreak={currentStreak} />
 
         <View className="items-center justify-center px-4 py-6">
@@ -393,6 +456,54 @@ export default function HomeScreen() {
               </View>
             </View>
           ) : null}
+        </View>
+
+        <View
+          className="mt-2 px-4"
+          onLayout={(event) => {
+            setFeedOffsetY(event.nativeEvent.layout.y);
+          }}>
+          <Text className="mb-2 text-xs font-medium text-white/70">
+            Your moments feed
+          </Text>
+          {feedItems.length === 0 ? (
+            <Text className="text-xs text-white/60">
+              Save a photo with a quote to see it here.
+            </Text>
+          ) : (
+            <View className="gap-4">
+              {feedItems.map((item) => (
+                <View
+                  key={item.id}
+                  className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-lg shadow-black/40">
+                  <View className="relative">
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={{ width: "100%", aspectRatio: 3 / 4 }}
+                      contentFit="cover"
+                    />
+                    <View className="absolute inset-x-0 bottom-0 px-4 py-3 bg-black/60">
+                      <View className="mb-1 flex-row items-center">
+                        <Ionicons
+                          name="sparkles-outline"
+                          size={14}
+                          color="#FFCC00"
+                        />
+                        <Text className="ml-1 text-[10px] font-semibold text-white/70">
+                          Shared moment
+                        </Text>
+                      </View>
+                      <Text
+                        className="text-xs font-medium text-white"
+                        numberOfLines={3}>
+                        {item.quote}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

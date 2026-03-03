@@ -91,12 +91,17 @@ export const generateQuote = async (
 
     const data: { quote: string } = await response.json();
 
-    console.log("AI Supabase quote response", {
-      hasQuote: !!data.quote,
-      quoteLength: data.quote?.length ?? 0,
+    console.log("AI Supabase quote RAW", {
+      raw: data.quote,
+      length: data.quote?.length ?? 0,
     });
 
     const sanitized = sanitizeQuote(data.quote);
+
+    console.log("AI Supabase quote sanitized", {
+      sanitized,
+      length: sanitized.length,
+    });
     const validation = validateQuote(sanitized);
 
     if (!validation.isValid) {

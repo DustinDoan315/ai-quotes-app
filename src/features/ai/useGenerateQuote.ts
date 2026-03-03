@@ -62,6 +62,11 @@ export const useGenerateQuote = () => {
         createdAt: Date.now(),
       };
 
+      console.log("AI quote stored RAW", {
+        text: quote.text,
+        length: quote.text.length,
+      });
+
       setDailyQuote(quote);
       addToHistory(quote);
       setLastGeneratedAt(Date.now());
