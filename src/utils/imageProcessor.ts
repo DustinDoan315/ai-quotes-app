@@ -1,9 +1,8 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import { GPT_CONFIG } from '@/services/ai/config';
 
-
-const TARGET_MAX_DIMENSION = 512;
-const TARGET_QUALITY = 0.7;
+const TARGET_MAX_DIMENSION = 256;
+const TARGET_QUALITY = 0.4;
 
 export const downscaleImageForGPT = async (
   imageUri: string,

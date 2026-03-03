@@ -1,7 +1,4 @@
-import { apiClient } from '../api/client';
-import { buildQuotePrompt } from './prompts';
 import { downscaleImageForGPT } from '@/utils/imageProcessor';
-import { GPT_CONFIG } from './config';
 import { sanitizeQuote, validateQuote } from './safety';
 import type { GenerateQuoteRequest, GenerateQuoteResponse } from "./types";
 
@@ -26,32 +23,80 @@ const checkCooldown = (): void => {
 export const generateQuote = async (
   request: GenerateQuoteRequest,
 ): Promise<GenerateQuoteResponse> => {
+  console.log("AI generateQuote called", {
+    personaId: request.personaId,
+    traitsCount: request.personaTraits.length,
+    hasImageUri: !!request.imageUri,
+    hasImageContext: !!request.imageContext,
+  });
+
   checkCooldown();
+
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl) {
+    return {
+      quote: "",
+      isValid: false,
+      reason: "Missing Supabase URL configuration",
+    };
+  }
+
+  if (!supabaseAnonKey) {
+    return {
+      quote: "",
+      isValid: false,
+      reason: "Missing Supabase anon key configuration",
+    };
+  }
 
   try {
     let processedImageContext = request.imageContext;
 
     if (request.imageUri && !request.imageContext) {
+      console.log("AI downscaling image for GPT");
       processedImageContext = await downscaleImageForGPT(request.imageUri);
     }
 
-    const prompt = buildQuotePrompt({
-      ...request,
-      imageContext: processedImageContext,
+    console.log("AI calling Supabase quote function", {
+      url: `${supabaseUrl}/functions/v1/quote`,
+      hasImageContext: !!processedImageContext,
     });
 
-    const response = await apiClient.post<{ quote: string }>(
-      "/ai/generate-quote",
-      {
-        prompt,
-        personaId: request.personaId,
+    const response = await fetch(`${supabaseUrl}/functions/v1/quote`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({
         personaTraits: request.personaTraits,
         imageContext: processedImageContext,
-        model: request.model || GPT_CONFIG.model,
-      },
-    );
+      }),
+    });
 
-    const sanitized = sanitizeQuote(response.quote);
+    if (!response.ok) {
+      console.error("AI Supabase quote error status", response.status);
+      const errorData: { error?: string } = await response
+        .json()
+        .catch(() => ({}));
+
+      return {
+        quote: "",
+        isValid: false,
+        reason: errorData.error || `HTTP ${response.status}`,
+      };
+    }
+
+    const data: { quote: string } = await response.json();
+
+    console.log("AI Supabase quote response", {
+      hasQuote: !!data.quote,
+      quoteLength: data.quote?.length ?? 0,
+    });
+
+    const sanitized = sanitizeQuote(data.quote);
     const validation = validateQuote(sanitized);
 
     if (!validation.isValid) {
@@ -67,6 +112,7 @@ export const generateQuote = async (
       isValid: true,
     };
   } catch (error) {
+    console.error("AI generateQuote unexpected error", error);
     return {
       quote: "",
       isValid: false,

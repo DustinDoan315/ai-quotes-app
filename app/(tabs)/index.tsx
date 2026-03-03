@@ -1,5 +1,9 @@
 import { useStreakStore } from "@/appState/streakStore";
 import { useUIStore } from "@/appState/uiStore";
+import { useQuoteStore } from "@/appState/quoteStore";
+import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
+import { useAIStore } from "@/features/ai/aiStore";
+import { QuoteCard } from "@/components/QuoteCard";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import * as Haptics from "expo-haptics";
@@ -17,13 +21,14 @@ import {
   ActivityIndicator,
   LayoutAnimation,
   Pressable,
+  ScrollView,
   Text,
   View,
 } from "react-native";
 
 const EXPO_ZOOM_MIN = 0;
-const EXPO_ZOOM_MAX = 0.3;
-const ZOOM_SENSITIVITY = 0.7;
+const EXPO_ZOOM_MAX = 0.5;
+const ZOOM_SENSITIVITY = 0.25;
 const ZOOM_PRESETS = [0.5, 1, 2] as const;
 const DISPLAY_FACTOR_MIN = 0.5;
 const DISPLAY_FACTOR_MAX = 2;
@@ -66,6 +71,9 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { currentStreak } = useStreakStore();
   const { showToast } = useUIStore();
+  const { dailyQuote } = useQuoteStore();
+  const { generate } = useGenerateQuote();
+  const { isGenerating } = useAIStore();
 
   const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -163,8 +171,18 @@ export default function HomeScreen() {
   }
 
   async function handleGenerateAI() {
+    console.log("AI handleGenerateAI tapped", {
+      selectedImageUri,
+    });
+
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    showToast("Gen AI coming soon", "info");
+    const quote = await generate(undefined, selectedImageUri ?? undefined);
+
+    if (!quote) {
+      return;
+    }
+
+    showToast("Quote generated", "success");
   }
 
   async function handleOpenGallery() {
@@ -197,8 +215,14 @@ export default function HomeScreen() {
   const activePreset = activePresetForFactor(zoomFactor);
 
   return (
-    <View className="flex-1 bg-gray-500" style={{ paddingTop: insets.top }}>
-      <View className="px-4">
+    <ScrollView
+      className="flex-1 bg-gray-500"
+      contentContainerStyle={{
+        paddingTop: insets.top,
+        paddingBottom: Math.max(insets.bottom, 32),
+        flexGrow: 1,
+      }}>
+      <View className="px-4 pt-2">
         <View className="flex-row items-center justify-between">
           <Pressable
             className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
@@ -215,7 +239,8 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
-      <View className="flex-1 items-center justify-center px-4 py-6">
+
+      <View className="items-center justify-center px-4 py-6">
         <GestureDetector gesture={pinchGesture}>
           <MotiView
             animate={{
@@ -251,12 +276,11 @@ export default function HomeScreen() {
         </GestureDetector>
       </View>
 
-      <View
-        className="items-center pb-8"
-        style={{ paddingBottom: Math.max(insets.bottom, 32) }}>
+      <View className="items-center pb-8">
         <Text className="mb-3 text-xs font-medium text-white/70">
           Capture your moment
         </Text>
+        {dailyQuote && <QuoteCard text={dailyQuote.text} />}
         <View className="mb-4 w-full items-center gap-2">
           <Text
             className="text-sm font-medium text-white"
@@ -311,11 +335,16 @@ export default function HomeScreen() {
         <View className="flex-row items-center justify-center gap-10">
           <Pressable
             onPress={handleGenerateAI}
+            disabled={isGenerating}
             className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
             style={({ pressed }) => ({
-              opacity: pressed ? 0.8 : 1,
+              opacity: pressed || isGenerating ? 0.8 : 1,
             })}>
-            <Ionicons name="star-outline" size={26} color="#ffffff" />
+            {isGenerating ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <Ionicons name="star-outline" size={26} color="#ffffff" />
+            )}
           </Pressable>
           {selectedImageUri ? (
             <Pressable
@@ -351,6 +380,6 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
