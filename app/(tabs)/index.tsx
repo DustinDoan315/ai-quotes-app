@@ -1,9 +1,13 @@
+import { useQuoteStore } from "@/appState/quoteStore";
 import { useStreakStore } from "@/appState/streakStore";
 import { useUIStore } from "@/appState/uiStore";
-import { useQuoteStore } from "@/appState/quoteStore";
-import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
-import { useAIStore } from "@/features/ai/aiStore";
+import { useUserStore } from "@/appState/userStore";
+import { CameraActionsBar } from "@/components/CameraActionsBar";
+import { HomeHeader } from "@/components/HomeHeader";
 import { QuoteCard } from "@/components/QuoteCard";
+import { useAIStore } from "@/features/ai/aiStore";
+import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
+import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import * as Haptics from "expo-haptics";
@@ -61,6 +65,10 @@ export default function HomeScreen() {
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [imageContextUrl, setImageContextUrl] = useState<string | null>(null);
+  const [hideQuote, setHideQuote] = useState(false);
+  const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   const [orientation, setOrientation] = useState<CameraOrientation>("portrait");
   const [orientationTransitioning, setOrientationTransitioning] =
     useState(false);
@@ -72,6 +80,7 @@ export default function HomeScreen() {
   const { currentStreak } = useStreakStore();
   const { showToast } = useUIStore();
   const { dailyQuote } = useQuoteStore();
+  const { profile, ensureGuestId } = useUserStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
 
@@ -164,6 +173,9 @@ export default function HomeScreen() {
         quality: 0.9,
       });
       setSelectedImageUri(photo.uri);
+      setImageContextUrl(null);
+      setHideQuote(true);
+      setHasSavedCurrentPhoto(false);
       showToast("Photo captured", "success");
     } finally {
       setIsCapturing(false);
@@ -173,16 +185,60 @@ export default function HomeScreen() {
   async function handleGenerateAI() {
     console.log("AI handleGenerateAI tapped", {
       selectedImageUri,
+      imageContextUrl,
     });
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const quote = await generate(undefined, selectedImageUri ?? undefined);
+    const quote = await generate(
+      imageContextUrl ?? undefined,
+      imageContextUrl ? undefined : (selectedImageUri ?? undefined),
+    );
 
     if (!quote) {
       return;
     }
 
+    setHideQuote(false);
     showToast("Quote generated", "success");
+  }
+
+  async function handleSavePhoto() {
+    if (!selectedImageUri) {
+      showToast("No photo to save", "error");
+      return;
+    }
+
+    if (isSavingPhoto) {
+      return;
+    }
+
+    if (hasSavedCurrentPhoto) {
+      showToast("Photo already saved", "info");
+      return;
+    }
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsSavingPhoto(true);
+    try {
+      const userId = profile?.user_id ?? null;
+      const guestId = userId ? null : ensureGuestId();
+      const result = await saveUserPhoto({
+        localUri: selectedImageUri,
+        userId,
+        guestId,
+      });
+
+      if (!result) {
+        showToast("Failed to save photo", "error");
+        return;
+      }
+
+      setImageContextUrl(result.publicUrl);
+      setHasSavedCurrentPhoto(true);
+      showToast("Photo saved", "success");
+    } finally {
+      setIsSavingPhoto(false);
+    }
   }
 
   async function handleOpenGallery() {
@@ -207,6 +263,9 @@ export default function HomeScreen() {
 
     const asset = result.assets[0];
     setSelectedImageUri(asset.uri);
+    setImageContextUrl(null);
+    setHideQuote(true);
+    setHasSavedCurrentPhoto(false);
     showToast("Photo selected", "success");
   }
 
@@ -215,171 +274,144 @@ export default function HomeScreen() {
   const activePreset = activePresetForFactor(zoomFactor);
 
   return (
-    <ScrollView
-      className="flex-1 bg-gray-500"
-      contentContainerStyle={{
-        paddingTop: insets.top,
-        paddingBottom: Math.max(insets.bottom, 32),
-        flexGrow: 1,
-      }}>
-      <View className="px-4 pt-2">
-        <View className="flex-row items-center justify-between">
-          <Pressable
-            className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.8 : 1,
-            })}>
-            <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
-          </Pressable>
-          <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
-            <Ionicons name="flame-outline" size={20} color="#ffb100" />
-            <Text className="ml-1.5 text-sm font-semibold text-white">
-              {currentStreak}
-            </Text>
-          </View>
-        </View>
-      </View>
+    <View className="flex-1 bg-gray-500">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingTop: insets.top,
+          paddingBottom: 24,
+        }}>
+        <HomeHeader currentStreak={currentStreak} />
 
-      <View className="items-center justify-center px-4 py-6">
-        <GestureDetector gesture={pinchGesture}>
-          <MotiView
-            animate={{
-              opacity: orientationTransitioning ? 0.6 : 1,
-              scale: orientationTransitioning ? 0.96 : 1,
-            }}
-            transition={{
-              type: "timing",
-              duration: 300,
-              easing: Easing.linear,
-            }}
-            className={
-              isPortrait
-                ? "aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-black"
-                : "aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-2xl bg-black"
-            }>
-            {selectedImageUri ? (
-              <Image
-                source={{ uri: selectedImageUri }}
-                style={{ flex: 1 }}
-                contentFit="cover"
-              />
-            ) : (
-              <CameraView
-                ref={cameraRef}
-                style={{ flex: 1 }}
-                facing="back"
-                zoom={zoom}
-                onCameraReady={() => setCameraReady(true)}
-              />
-            )}
-          </MotiView>
-        </GestureDetector>
-      </View>
-
-      <View className="items-center pb-8">
-        <Text className="mb-3 text-xs font-medium text-white/70">
-          Capture your moment
-        </Text>
-        {dailyQuote && <QuoteCard text={dailyQuote.text} />}
-        <View className="mb-4 w-full items-center gap-2">
-          <Text
-            className="text-sm font-medium text-white"
-            style={{ opacity: 0.9 }}>
-            `
-            {zoomFactor % 1 === 0
-              ? `${zoomFactor}×`
-              : `${zoomFactor.toFixed(1)}×`}
-            `
-          </Text>
-          <View className="mt-1 w-full justify-center items-center">
-            <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
-              {ZOOM_PRESETS.map((preset) => {
-                const isActive = activePreset === preset;
-                return (
+        <View className="items-center justify-center px-4 py-6">
+          <GestureDetector gesture={pinchGesture}>
+            <MotiView
+              animate={{
+                opacity: orientationTransitioning ? 0.6 : 1,
+                scale: orientationTransitioning ? 0.96 : 1,
+              }}
+              transition={{
+                type: "timing",
+                duration: 300,
+                easing: Easing.linear,
+              }}
+              className={
+                isPortrait
+                  ? "aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-black"
+                  : "aspect-[4/3] w-full max-w-2xl overflow-hidden rounded-2xl bg-black"
+              }>
+              {selectedImageUri ? (
+                <View className="flex-1">
+                  <Image
+                    source={{ uri: selectedImageUri }}
+                    style={{ flex: 1 }}
+                    contentFit="cover"
+                  />
                   <Pressable
-                    key={preset}
-                    onPress={() => handleZoomPreset(preset)}
-                    className="min-w-[44px] items-center justify-center rounded-full px-3 py-2"
+                    onPress={() => {
+                      setSelectedImageUri(null);
+                      setImageContextUrl(null);
+                      setHideQuote(false);
+                      setHasSavedCurrentPhoto(false);
+                    }}
+                    className="absolute right-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-black/60"
                     style={({ pressed }) => ({
                       opacity: pressed ? 0.8 : 1,
-                      backgroundColor: isActive
-                        ? "rgba(255, 204, 0, 0.35)"
-                        : "transparent",
                     })}>
-                    <Text
-                      className="text-sm font-semibold"
-                      style={{ color: isActive ? "#FFCC00" : "#fff" }}>
-                      {preset}×
-                    </Text>
+                    <Ionicons name="trash-outline" size={18} color="#ffffff" />
                   </Pressable>
-                );
-              })}
-            </View>
-            <Pressable
-              onPress={handleToggleOrientation}
-              className="absolute right-10 h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-              <Ionicons
-                name={
-                  isPortrait
-                    ? "phone-portrait-outline"
-                    : "phone-landscape-outline"
-                }
-                size={20}
-                color="#fff"
-              />
-            </Pressable>
-          </View>
+                </View>
+              ) : (
+                <CameraView
+                  ref={cameraRef}
+                  style={{ flex: 1 }}
+                  facing="back"
+                  zoom={zoom}
+                  onCameraReady={() => setCameraReady(true)}
+                />
+              )}
+            </MotiView>
+          </GestureDetector>
         </View>
 
-        <View className="flex-row items-center justify-center gap-10">
-          <Pressable
-            onPress={handleGenerateAI}
-            disabled={isGenerating}
-            className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
-            style={({ pressed }) => ({
-              opacity: pressed || isGenerating ? 0.8 : 1,
-            })}>
-            {isGenerating ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <Ionicons name="star-outline" size={26} color="#ffffff" />
-            )}
-          </Pressable>
-          {selectedImageUri ? (
-            <Pressable
-              onPress={() => setSelectedImageUri(null)}
-              className="h-14 px-6 items-center justify-center rounded-full border-2 border-white/80 bg-white/10"
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.8 : 1,
-              })}>
-              <Text className="text-sm font-semibold text-white">Retake</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={handleCapture}
-              disabled={!cameraReady || isCapturing}
-              className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/80 bg-white/10"
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.8 : 1,
-              })}>
-              {isCapturing ? (
-                <ActivityIndicator size="small" color="#ffffff" />
-              ) : (
-                <View className="h-14 w-14 rounded-full bg-white" />
-              )}
-            </Pressable>
-          )}
-          <Pressable
-            onPress={handleOpenGallery}
-            className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.8 : 1,
-            })}>
-            <Ionicons name="images-outline" size={24} color="#ffffff" />
-          </Pressable>
+        <View className="items-center pb-4">
+          <Text className="mb-3 text-xs font-medium text-white/70">
+            Capture your moment
+          </Text>
+          {hideQuote
+            ? null
+            : dailyQuote && <QuoteCard text={dailyQuote.text} />}
+          {!selectedImageUri ? (
+            <View className="mb-4 w-full items-center gap-2">
+              <Text
+                className="text-sm font-medium text-white"
+                style={{ opacity: 0.9 }}>
+                `
+                {zoomFactor % 1 === 0
+                  ? `${zoomFactor}×`
+                  : `${zoomFactor.toFixed(1)}×`}
+                `
+              </Text>
+              <View className="mt-1 w-full justify-center items-center">
+                <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
+                  {ZOOM_PRESETS.map((preset) => {
+                    const isActive = activePreset === preset;
+                    return (
+                      <Pressable
+                        key={preset}
+                        onPress={() => handleZoomPreset(preset)}
+                        className="min-w-[44px] items-center justify-center rounded-full px-3 py-2"
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.8 : 1,
+                          backgroundColor: isActive
+                            ? "rgba(255, 204, 0, 0.35)"
+                            : "transparent",
+                        })}>
+                        <Text
+                          className="text-sm font-semibold"
+                          style={{ color: isActive ? "#FFCC00" : "#fff" }}>
+                          {preset}×
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Pressable
+                  onPress={handleToggleOrientation}
+                  className="absolute right-10 h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                  <Ionicons
+                    name={
+                      isPortrait
+                        ? "phone-portrait-outline"
+                        : "phone-landscape-outline"
+                    }
+                    size={20}
+                    color="#fff"
+                  />
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
         </View>
+      </ScrollView>
+
+      <View
+        className="border-t border-white/10 px-4 pt-3"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
+        <CameraActionsBar
+          onGenerate={handleGenerateAI}
+          onCapture={handleCapture}
+          onOpenGallery={handleOpenGallery}
+          onSave={handleSavePhoto}
+          isGenerating={isGenerating}
+          isCapturing={isCapturing}
+          cameraReady={cameraReady}
+          hasImage={!!selectedImageUri}
+          canSave={!hasSavedCurrentPhoto}
+          isSaving={isSavingPhoto}
+        />
       </View>
-    </ScrollView>
+    </View>
   );
 }

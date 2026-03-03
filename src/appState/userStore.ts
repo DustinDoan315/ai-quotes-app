@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-
 type Persona = {
   id: string;
   traits: string[];
@@ -26,31 +25,47 @@ type UserState = {
   persona: Persona | null;
   profile: UserProfile | null;
   authState: AuthState;
+  guestId: string | null;
   setPersona: (persona: Persona) => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
   clearUser: () => void;
+  ensureGuestId: () => string;
 };
 
-const initialState = {
-  persona: null,
-  profile: null,
-  authState: "guest" as AuthState,
-};
+const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "clearUser" | "ensureGuestId"> =
+  {
+    persona: null,
+    profile: null,
+    authState: "guest",
+    guestId: null,
+  };
+
+const createGuestId = () =>
+  `guest-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       setPersona: (persona) => set({ persona }),
       setProfile: (profile) => set({ profile }),
       setAuthState: (authState) => set({ authState }),
       clearUser: () => set(initialState),
+      ensureGuestId: () => {
+        const current = get().guestId;
+        if (current) {
+          return current;
+        }
+        const next = createGuestId();
+        set({ guestId: next });
+        return next;
+      },
     }),
     {
       name: "user-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ persona: state.persona }),
+      partialize: (state) => ({ persona: state.persona, guestId: state.guestId }),
     },
   ),
 );

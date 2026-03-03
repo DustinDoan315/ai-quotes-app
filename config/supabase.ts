@@ -52,6 +52,32 @@ export type Database = {
           updated_at?: string;
         };
       };
+      user_photos: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          guest_id: string | null;
+          image_url: string;
+          storage_path: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          guest_id?: string | null;
+          image_url: string;
+          storage_path: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          guest_id?: string | null;
+          image_url?: string;
+          storage_path?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 };
