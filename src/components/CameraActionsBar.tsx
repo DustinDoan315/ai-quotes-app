@@ -60,9 +60,7 @@ export function CameraActionsBar({
                 </Text>
               </>
             ) : (
-              <Text className="text-sm font-semibold text-white">
-                {canSave ? "Save" : "Saved"}
-              </Text>
+              <Text className="text-sm font-semibold text-white">Save</Text>
             )}
           </Pressable>
         ) : (
