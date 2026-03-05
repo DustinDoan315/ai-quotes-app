@@ -22,6 +22,7 @@ type QuoteState = {
   saveQuote: (quote: Quote) => void;
   removeSavedQuote: (quoteId: string) => void;
   swapDailyQuote: (quote: Quote) => void;
+  clearDailyQuote: () => void;
 };
 
 const initialState = {
@@ -54,6 +55,7 @@ export const useQuoteStore = create<QuoteState>()(
           dailyQuote: quote,
           history: [quote, ...state.history].slice(0, 100),
         })),
+      clearDailyQuote: () => set({ dailyQuote: null }),
     }),
     {
       name: "quote-storage",

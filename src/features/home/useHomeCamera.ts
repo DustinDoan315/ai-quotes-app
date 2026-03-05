@@ -8,9 +8,12 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useCameraPermission } from "@/hooks/useCameraPermission";
 import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
 import { useQuoteStore } from "@/appState/quoteStore";
+import { useStreakStore } from "@/appState/streakStore";
 import { useUIStore } from "@/appState/uiStore";
+import { analyticsEvents } from "@/services/analytics/events";
 import { useUserStore } from "@/appState/userStore";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
+import { isStreakMilestone } from "@/utils/streakMilestones";
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
@@ -44,7 +47,14 @@ export type CameraOrientation = "portrait" | "landscape";
 
 export type PinchGesture = ReturnType<typeof Gesture.Pinch>;
 
-export const useHomeCamera = () => {
+type UseHomeCameraOptions = {
+  onPhotoSaved?: () => void;
+  onMilestoneReached?: (streak: number) => void;
+};
+
+export const useHomeCamera = (options?: UseHomeCameraOptions) => {
+  const onPhotoSaved = options?.onPhotoSaved;
+  const onMilestoneReached = options?.onMilestoneReached;
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -63,7 +73,7 @@ export const useHomeCamera = () => {
   const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const { dailyQuote } = useQuoteStore();
+  const { dailyQuote, clearDailyQuote } = useQuoteStore();
   const { profile, ensureGuestId } = useUserStore();
   const { showToast } = useUIStore();
   const { generate } = useGenerateQuote();
@@ -190,11 +200,21 @@ export const useHomeCamera = () => {
         showToast("Failed to save photo", "error");
         return;
       }
+      clearDailyQuote();
+      useStreakStore.getState().incrementStreak();
+      const newStreak = useStreakStore.getState().currentStreak;
+      if (newStreak > 0) {
+        analyticsEvents.streakIncremented(newStreak);
+      }
+      if (isStreakMilestone(newStreak)) {
+        onMilestoneReached?.(newStreak);
+      }
       setSelectedImageUri(null);
       setImageContextUrl(null);
       setHideQuote(false);
       setHasSavedCurrentPhoto(false);
       showToast("Photo saved", "success");
+      onPhotoSaved?.();
     } finally {
       setIsSavingPhoto(false);
     }

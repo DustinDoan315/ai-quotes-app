@@ -14,6 +14,27 @@ type StreakState = {
 
 const getTodayString = () => new Date().toISOString().split("T")[0];
 
+function getYesterdayString() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split("T")[0];
+}
+
+export function getDisplayStreak(state: {
+  currentStreak: number;
+  lastQuoteDate: string | null;
+}): number {
+  const today = getTodayString();
+  const yesterday = getYesterdayString();
+  if (
+    state.lastQuoteDate === today ||
+    state.lastQuoteDate === yesterday
+  ) {
+    return state.currentStreak;
+  }
+  return 0;
+}
+
 export const useStreakStore = create<StreakState>()(
   persist(
     (set, get) => ({
@@ -28,10 +49,7 @@ export const useStreakStore = create<StreakState>()(
           return;
         }
 
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayString = yesterday.toISOString().split("T")[0];
-
+        const yesterdayString = getYesterdayString();
         const newStreak =
           state.lastQuoteDate === yesterdayString ? state.currentStreak + 1 : 1;
 
@@ -51,6 +69,11 @@ export const useStreakStore = create<StreakState>()(
     {
       name: "streak-storage",
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        currentStreak: state.currentStreak,
+        longestStreak: state.longestStreak,
+        lastQuoteDate: state.lastQuoteDate,
+      }),
     },
   ),
 );

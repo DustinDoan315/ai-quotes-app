@@ -10,6 +10,7 @@ type QuotePhotoFeedState = {
   isLoading: boolean;
   isRefreshing: boolean;
   refresh: () => Promise<void>;
+  refreshSilently: () => Promise<void>;
 };
 
 export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
@@ -43,10 +44,19 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
     }
   }, [load]);
 
+  const refreshSilently = useCallback(async () => {
+    try {
+      const userId = profile?.user_id ?? null;
+      const guestId = userId ? null : ensureGuestId();
+      const data = await listQuotePhotoCards({ userId, guestId, limit: 30 });
+      setItems(data);
+    } catch {}
+  }, [profile, ensureGuestId]);
+
   useEffect(() => {
     load();
   }, [load]);
 
-  return { items, isLoading, isRefreshing, refresh };
+  return { items, isLoading, isRefreshing, refresh, refreshSilently };
 };
 

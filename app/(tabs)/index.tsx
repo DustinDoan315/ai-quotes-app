@@ -1,7 +1,11 @@
-import { useStreakStore } from "@/appState/streakStore";
+import {
+  getDisplayStreak,
+  useStreakStore,
+} from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { CameraActionsBar } from "@/components/CameraActionsBar";
 import { HomeHeader } from "@/components/HomeHeader";
+import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { HomeCameraSection } from "@/features/home/HomeCameraSection";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
@@ -27,9 +31,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const scrollRef = useRef<ScrollView | null>(null);
   const [feedOffsetY, setFeedOffsetY] = useState(0);
+  const [milestone, setMilestone] = useState<number | null>(null);
   const scrollStartOffsetRef = useRef(0);
   const insets = useSafeAreaInsets();
-  const { currentStreak } = useStreakStore();
+  const displayStreak = useStreakStore((s) => getDisplayStreak(s));
   const profile = useUserStore((s) => s.profile);
   const persona = useUserStore((s) => s.persona);
   const inviteNudgeDismissed = useUserStore((s) => s.inviteNudgeDismissed);
@@ -41,6 +46,7 @@ export default function HomeScreen() {
     items: feedItems,
     isRefreshing: isFeedRefreshing,
     refresh: refreshFeed,
+    refreshSilently,
   } = useQuotePhotoFeed();
   const {
     isLoading,
@@ -69,7 +75,10 @@ export default function HomeScreen() {
     clearSelectedImage,
     isGenerating,
     dailyQuoteText,
-  } = useHomeCamera();
+  } = useHomeCamera({
+    onPhotoSaved: refreshSilently,
+    onMilestoneReached: setMilestone,
+  });
 
   function handleScrollBeginDrag(
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -124,6 +133,10 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-gray-500">
+      <MilestoneCelebration
+        milestone={milestone}
+        onDismiss={() => setMilestone(null)}
+      />
       <ScrollView
         ref={scrollRef}
         className="flex-1"
@@ -150,7 +163,7 @@ export default function HomeScreen() {
             paddingBottom: 100,
           }}>
           <HomeHeader
-            currentStreak={currentStreak}
+            currentStreak={displayStreak}
             onPressProfile={() => router.push("/(tabs)/friends" as never)}
           />
           {showInviteNudge && (

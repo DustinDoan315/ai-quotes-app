@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getStreakTier } from "@/utils/streakMilestones";
 
 interface HomeHeaderProps {
   currentStreak: number;
@@ -7,6 +8,7 @@ interface HomeHeaderProps {
 }
 
 export function HomeHeader({ currentStreak, onPressProfile }: HomeHeaderProps) {
+  const tier = getStreakTier(currentStreak);
   return (
     <View className="px-4 pt-2">
       <View className="flex-row items-center justify-between">
@@ -19,7 +21,11 @@ export function HomeHeader({ currentStreak, onPressProfile }: HomeHeaderProps) {
           <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
         </Pressable>
         <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
-          <Ionicons name="flame-outline" size={20} color="#ffb100" />
+          <Ionicons
+            name={tier.icon}
+            size={tier.size}
+            color={tier.color}
+          />
           <Text className="ml-1.5 text-sm font-semibold text-white">
             {currentStreak}
           </Text>
