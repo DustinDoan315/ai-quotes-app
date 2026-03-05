@@ -18,8 +18,16 @@ export default function RootLayout() {
 
     supabase.auth
       .getSession()
-      .then(({ data: { session } }) => {
-        syncUserProfile(session?.user ?? null);
+      .then(async ({ data: { session } }) => {
+        if (!session) {
+          const { signInAnonymously } = await import("../services/supabase-auth");
+          const { user, error } = await signInAnonymously();
+          if (!error && user) {
+            syncUserProfile(user);
+          }
+        } else {
+          syncUserProfile(session.user);
+        }
       })
       .catch((error) => {
         console.error("Failed to get Supabase session:", error);

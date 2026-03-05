@@ -77,15 +77,19 @@ export const generateQuote = async (
     });
 
     if (!response.ok) {
-      console.error("AI Supabase quote error status", response.status);
       const errorData: { error?: string } = await response
         .json()
         .catch(() => ({}));
-
+      const serverMessage = errorData.error?.trim();
+      const reason =
+        serverMessage ||
+        (response.status >= 500
+          ? "Quote service is temporarily unavailable. Try again in a moment."
+          : `Request failed (${response.status})`);
       return {
         quote: "",
         isValid: false,
-        reason: errorData.error || `HTTP ${response.status}`,
+        reason,
       };
     }
 

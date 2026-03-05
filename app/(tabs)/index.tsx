@@ -1,12 +1,13 @@
-import { CameraActionsBar } from '@/components/CameraActionsBar';
-import { HomeCameraSection } from '@/features/home/HomeCameraSection';
-import { HomeHeader } from '@/components/HomeHeader';
-import { QuoteMomentsFeed } from '@/features/quotes/QuoteMomentsFeed';
-import { useHomeCamera } from '@/features/home/useHomeCamera';
-import { useQuotePhotoFeed } from '@/features/quotes/useQuotePhotoFeed';
-import { useRef, useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStreakStore } from '@/appState/streakStore';
+import { useStreakStore } from "@/appState/streakStore";
+import { useUserStore } from "@/appState/userStore";
+import { CameraActionsBar } from "@/components/CameraActionsBar";
+import { HomeHeader } from "@/components/HomeHeader";
+import { HomeCameraSection } from "@/features/home/HomeCameraSection";
+import { useHomeCamera } from "@/features/home/useHomeCamera";
+import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
+import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
+import { useRouter } from "expo-router";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -18,16 +19,24 @@ import {
   Text,
   View,
 } from "react-native";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function HomeScreen() {
+  const router = useRouter();
   const scrollRef = useRef<ScrollView | null>(null);
   const [feedOffsetY, setFeedOffsetY] = useState(0);
   const scrollStartOffsetRef = useRef(0);
   const insets = useSafeAreaInsets();
   const { currentStreak } = useStreakStore();
+  const profile = useUserStore((s) => s.profile);
+  const persona = useUserStore((s) => s.persona);
+  const inviteNudgeDismissed = useUserStore((s) => s.inviteNudgeDismissed);
+  const setInviteNudgeDismissed = useUserStore(
+    (s) => s.setInviteNudgeDismissed,
+  );
+  const showInviteNudge = Boolean(profile && persona && !inviteNudgeDismissed);
   const {
     items: feedItems,
     isRefreshing: isFeedRefreshing,
@@ -138,9 +147,39 @@ export default function HomeScreen() {
           style={{
             height: SCREEN_HEIGHT,
             paddingTop: insets.top,
+            paddingBottom: 100,
           }}>
-          <HomeHeader currentStreak={currentStreak} />
-          <View className="flex-1">
+          <HomeHeader
+            currentStreak={currentStreak}
+            onPressProfile={() => router.push("/(tabs)/friends" as never)}
+          />
+          {showInviteNudge && (
+            <View className="mx-4 mb-2 flex-row items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3">
+              <Text className="flex-1 text-sm text-white" numberOfLines={2}>
+                Invite friends to share quotes with
+              </Text>
+              <View className="ml-2 flex-row gap-2">
+                <Pressable
+                  onPress={() => setInviteNudgeDismissed(true)}
+                  className="rounded-lg bg-white/20 px-3 py-2"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                  <Text className="text-xs font-medium text-white">Skip</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setInviteNudgeDismissed(true);
+                    router.push("/(tabs)/friends" as never);
+                  }}
+                  className="rounded-lg bg-amber-400 px-3 py-2"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                  <Text className="text-xs font-semibold text-black">
+                    Invite
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+          <View className="flex-1 w-full">
             <HomeCameraSection
               cameraRef={cameraRef}
               pinchGesture={pinchGesture}

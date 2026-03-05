@@ -52,6 +52,19 @@ export async function signIn(email: string, password: string): Promise<{
   };
 }
 
+export async function signInAnonymously(): Promise<{
+  user: User | null;
+  session: Session | null;
+  error: AuthError | null;
+}> {
+  const { data, error } = await supabase.auth.signInAnonymously();
+  return {
+    user: data.user,
+    session: data.session,
+    error,
+  };
+}
+
 export async function signOut(): Promise<{ error: AuthError | null }> {
   const { error } = await supabase.auth.signOut();
   return { error };
@@ -86,6 +99,22 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const user = await getCurrentUser();
   if (!user) return null;
   return getUserProfile(user.id);
+}
+
+export async function ensureUserProfile(userId: string): Promise<UserProfile | null> {
+  const { data: existing } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (existing) return existing;
+  const { data: inserted, error } = await supabase
+    .from('user_profiles')
+    .insert({ user_id: userId })
+    .select()
+    .single();
+  if (error) return null;
+  return inserted;
 }
 
 export async function updateUserProfile(
