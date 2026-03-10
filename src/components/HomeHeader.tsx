@@ -1,6 +1,7 @@
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getStreakTier } from "@/utils/streakMilestones";
+import { useUserStore } from "@/appState/userStore";
 
 interface HomeHeaderProps {
   currentStreak: number;
@@ -9,6 +10,8 @@ interface HomeHeaderProps {
 
 export function HomeHeader({ currentStreak, onPressProfile }: HomeHeaderProps) {
   const tier = getStreakTier(currentStreak);
+  const profile = useUserStore((state) => state.profile);
+  const avatarUrl = profile?.avatar_url ?? null;
   return (
     <View className="px-4 pt-2">
       <View className="flex-row items-center justify-between">
@@ -18,7 +21,14 @@ export function HomeHeader({ currentStreak, onPressProfile }: HomeHeaderProps) {
           style={({ pressed }) => ({
             opacity: pressed ? 0.8 : 1,
           })}>
-          <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              className="h-10 w-10 rounded-full"
+            />
+          ) : (
+            <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
+          )}
         </Pressable>
         <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
           <Ionicons
