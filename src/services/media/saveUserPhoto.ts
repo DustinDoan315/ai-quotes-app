@@ -1,5 +1,5 @@
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-import { supabase } from "../../../config/supabase";
+import { supabase } from "@/config/supabase";
 
 type SaveUserPhotoParams = {
   localUri: string;

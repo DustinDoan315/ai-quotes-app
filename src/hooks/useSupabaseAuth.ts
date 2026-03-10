@@ -1,24 +1,39 @@
-import { supabase } from '../config/supabase';
-import { useEffect, useState } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import { useUserStore } from "@/appState/userStore";
+import { syncUserProfile } from "@/features/auth/authService";
+import { supabase } from "@/config/supabase";
 import {
-    getCurrentUserProfile,
-    signIn,
-    signOut,
-    signUp,
-    updateUserProfile,
-    type UserProfile,
-} from '../services/supabase-auth';
+  getCurrentUserProfile,
+  signIn,
+  signInWithPhoneOtp as signInWithPhoneOtpApi,
+  signOut,
+  signUp,
+  updateUserProfile,
+  verifyPhoneOtp as verifyPhoneOtpApi,
+  type UserProfile,
+} from "@/services/supabase-auth";
+import type { Session, User } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 
 export interface UseAuthReturn {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (email: string, password: string, metadata?: { username?: string; display_name?: string }) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
-  updateProfile: (updates: { username?: string; display_name?: string; avatar_url?: string; bio?: string }) => Promise<{ error: any }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata?: { username?: string; display_name?: string },
+  ) => Promise<{ error: unknown }>;
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signOut: () => Promise<{ error: unknown }>;
+  signInWithPhoneOtp: (phone: string) => Promise<{ error: unknown }>;
+  verifyPhoneOtp: (phone: string, token: string) => Promise<{ error: unknown }>;
+  updateProfile: (updates: {
+    username?: string;
+    display_name?: string;
+    avatar_url?: string;
+    bio?: string;
+  }) => Promise<{ error: unknown }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -40,14 +55,12 @@ export function useAuth(): UseAuthReturn {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
       if (session?.user) {
         const userProfile = await getCurrentUserProfile();
         setProfile(userProfile);
       } else {
         setProfile(null);
       }
-      
       setLoading(false);
     });
 
@@ -63,7 +76,7 @@ export function useAuth(): UseAuthReturn {
   const handleSignUp = async (
     email: string,
     password: string,
-    metadata?: { username?: string; display_name?: string }
+    metadata?: { username?: string; display_name?: string },
   ) => {
     const { error } = await signUp(email, password, metadata);
     return { error };
@@ -80,6 +93,23 @@ export function useAuth(): UseAuthReturn {
     return { error };
   };
 
+  const handleSignInWithPhoneOtp = async (phone: string) => {
+    const { error } = await signInWithPhoneOtpApi(phone);
+    return { error };
+  };
+
+  const handleVerifyPhoneOtp = async (phone: string, token: string) => {
+    const { session: newSession, user: newUser, error } = await verifyPhoneOtpApi(phone, token);
+    if (!error && newSession && newUser) {
+      await syncUserProfile(newUser);
+      const userProfile = await getCurrentUserProfile();
+      setProfile(userProfile);
+      setUser(newUser);
+      setSession(newSession);
+    }
+    return { error };
+  };
+
   const handleUpdateProfile = async (updates: {
     username?: string;
     display_name?: string;
@@ -87,13 +117,13 @@ export function useAuth(): UseAuthReturn {
     bio?: string;
   }) => {
     if (!user) {
-      return { error: { message: 'No user logged in' } };
+      return { error: { message: "No user logged in" } };
     }
-    
     const { error } = await updateUserProfile(user.id, updates);
     if (!error) {
       const updatedProfile = await getCurrentUserProfile();
       setProfile(updatedProfile);
+      if (updatedProfile) useUserStore.getState().setProfile(updatedProfile);
     }
     return { error };
   };
@@ -102,6 +132,7 @@ export function useAuth(): UseAuthReturn {
     if (user) {
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
+      if (userProfile) useUserStore.getState().setProfile(userProfile);
     }
   };
 
@@ -113,7 +144,10 @@ export function useAuth(): UseAuthReturn {
     signUp: handleSignUp,
     signIn: handleSignIn,
     signOut: handleSignOut,
+    signInWithPhoneOtp: handleSignInWithPhoneOtp,
+    verifyPhoneOtp: handleVerifyPhoneOtp,
     updateProfile: handleUpdateProfile,
     refreshProfile,
   };
 }
+

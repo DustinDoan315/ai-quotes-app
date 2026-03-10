@@ -1,4 +1,4 @@
-import { supabase } from "../../config/supabase";
+import { supabase } from "@/config/supabase";
 
 const CODE_LENGTH = 8;
 const CODE_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";

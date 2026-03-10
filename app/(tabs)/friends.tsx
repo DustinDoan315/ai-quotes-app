@@ -70,9 +70,15 @@ export default function FriendsScreen() {
       <View
         className="flex-1 items-center justify-center bg-black px-6"
         style={{ paddingTop: insets.top }}>
-        <Text className="text-center text-white/80">
+        <Text className="mb-6 text-center text-white/80">
           Sign in to add and invite friends.
         </Text>
+        <Pressable
+          onPress={() => router.push({ pathname: "/login", params: { returnTo: "/(tabs)/friends" } } as never)}
+          className="rounded-xl bg-white px-8 py-3"
+          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
+          <Text className="text-base font-semibold text-black">Sign in with phone</Text>
+        </Pressable>
       </View>
     );
   }

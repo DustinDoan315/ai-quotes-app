@@ -2,10 +2,10 @@ import { useUserStore } from "@/appState/userStore";
 import { addFriend, resolveInviteCode } from "@/services/inviteApi";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type InviteStatus = "loading" | "success" | "error" | "invalid";
+type InviteStatus = "loading" | "success" | "error" | "invalid" | "need_login";
 
 async function processInviteCode(
   rawCode: string,
@@ -34,7 +34,7 @@ export default function InviteByCodeScreen() {
     }
     const myUserId = profile?.user_id ?? null;
     if (!myUserId) {
-      setStatus("error");
+      setStatus("need_login");
       return;
     }
     processInviteCode(rawCode, myUserId).then((result) => {
@@ -55,6 +55,8 @@ export default function InviteByCodeScreen() {
       return () => clearTimeout(t);
     }
   }, [status, router]);
+
+  const returnTo = code ? `/invite/${code}` : "/(tabs)";
 
   return (
     <View
@@ -80,6 +82,19 @@ export default function InviteByCodeScreen() {
         <Text className="text-center text-white/80">
           Something went wrong. Going back home…
         </Text>
+      )}
+      {status === "need_login" && (
+        <>
+          <Text className="mb-6 text-center text-white/80">
+            Sign in to accept this invite and connect with your friend.
+          </Text>
+          <Pressable
+            onPress={() => router.push({ pathname: "/login", params: { returnTo } } as never)}
+            className="rounded-xl bg-white px-8 py-3"
+            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
+            <Text className="text-base font-semibold text-black">Sign in with phone</Text>
+          </Pressable>
+        </>
       )}
     </View>
   );

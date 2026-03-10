@@ -3,7 +3,7 @@ import { initPostHog } from '@/services/analytics/posthog';
 import { initSentry } from '@/services/analytics/sentry';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { supabase } from '../config/supabase';
+import { supabase } from '@/config/supabase';
 import { syncUserProfile } from '@/features/auth/authService';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
@@ -20,7 +20,7 @@ export default function RootLayout() {
       .getSession()
       .then(async ({ data: { session } }) => {
         if (!session) {
-          const { signInAnonymously } = await import("../services/supabase-auth");
+          const { signInAnonymously } = await import("@/services/supabase-auth");
           const { user, error } = await signInAnonymously();
           if (!error && user) {
             syncUserProfile(user);

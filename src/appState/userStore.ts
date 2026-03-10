@@ -26,21 +26,24 @@ type UserState = {
   profile: UserProfile | null;
   authState: AuthState;
   guestId: string | null;
+  guestDisplayName: string | null;
   inviteNudgeDismissed: boolean;
   setPersona: (persona: Persona) => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
+  setGuestDisplayName: (name: string | null) => void;
   setInviteNudgeDismissed: (dismissed: boolean) => void;
   clearUser: () => void;
   ensureGuestId: () => string;
 };
 
-const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setInviteNudgeDismissed" | "clearUser" | "ensureGuestId"> =
+const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "clearUser" | "ensureGuestId"> =
   {
     persona: null,
     profile: null,
     authState: "guest",
     guestId: null,
+    guestDisplayName: null,
     inviteNudgeDismissed: false,
   };
 
@@ -54,6 +57,7 @@ export const useUserStore = create<UserState>()(
       setPersona: (persona) => set({ persona }),
       setProfile: (profile) => set({ profile }),
       setAuthState: (authState) => set({ authState }),
+      setGuestDisplayName: (guestDisplayName) => set({ guestDisplayName }),
       setInviteNudgeDismissed: (inviteNudgeDismissed) => set({ inviteNudgeDismissed }),
       clearUser: () => set(initialState),
       ensureGuestId: () => {
@@ -69,7 +73,7 @@ export const useUserStore = create<UserState>()(
     {
       name: "user-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ persona: state.persona, guestId: state.guestId, inviteNudgeDismissed: state.inviteNudgeDismissed }),
+      partialize: (state) => ({ persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed }),
     },
   ),
 );

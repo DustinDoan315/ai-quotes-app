@@ -164,7 +164,7 @@ export default function HomeScreen() {
           }}>
           <HomeHeader
             currentStreak={displayStreak}
-            onPressProfile={() => router.push("/(tabs)/friends" as never)}
+            onPressProfile={() => router.push("/(tabs)/profile" as never)}
           />
           {showInviteNudge && (
             <View className="mx-4 mb-2 flex-row items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3">
