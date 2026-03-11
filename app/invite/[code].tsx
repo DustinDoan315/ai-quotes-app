@@ -70,7 +70,7 @@ export default function InviteByCodeScreen() {
       )}
       {status === "success" && (
         <Text className="text-center text-lg text-white">
-          You're now connected. Taking you to Friends…
+          You’re now connected. Taking you to Friends…
         </Text>
       )}
       {status === "invalid" && (

@@ -18,7 +18,7 @@ import { isStreakMilestone } from "@/utils/streakMilestones";
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
 const ZOOM_SENSITIVITY = 0.25;
-const ZOOM_PRESETS = [0.5, 1, 2] as const;
+type ZoomPreset = 0.5 | 1 | 2;
 const DISPLAY_FACTOR_MIN = 0.5;
 const DISPLAY_FACTOR_MAX = 2;
 
@@ -37,7 +37,7 @@ function factorToZoom(factor: number): number {
   return EXPO_ZOOM_MIN + t * (EXPO_ZOOM_MAX - EXPO_ZOOM_MIN);
 }
 
-function activePresetForFactor(factor: number): (typeof ZOOM_PRESETS)[number] {
+function activePresetForFactor(factor: number): ZoomPreset {
   if (factor < 0.75) return 0.5;
   if (factor < 1.25) return 1;
   return 2;
@@ -108,7 +108,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     [captureZoomStart, applyZoom],
   );
 
-  function handleZoomPreset(preset: (typeof ZOOM_PRESETS)[number]) {
+  function handleZoomPreset(preset: ZoomPreset) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setZoom(factorToZoom(preset));
   }
