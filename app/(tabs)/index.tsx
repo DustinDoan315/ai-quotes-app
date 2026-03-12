@@ -10,14 +10,16 @@ import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
+  KeyboardAvoidingView,
   Pressable,
   RefreshControl,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -34,6 +36,7 @@ type EmojiBurst = {
 export default function HomeScreen() {
   const router = useRouter();
   const [milestone, setMilestone] = useState<number | null>(null);
+  const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((s) => getDisplayStreak(s));
   const profile = useUserStore((s) => s.profile);
@@ -83,17 +86,45 @@ export default function HomeScreen() {
     onMilestoneReached: setMilestone,
   });
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
+  const [isOnFeed, setIsOnFeed] = useState(false);
 
   const authorName =
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
   const actionBarBottomPadding = Math.max(insets.bottom, 24);
   const actionBarHeight = 56 + actionBarBottomPadding + 12;
+  const currentPhotoId =
+    feedItems.length > 0 ? (feedItems[currentFeedIndex]?.id ?? null) : null;
+  const viewabilityConfig = useRef({
+    viewAreaCoveragePercentThreshold: 60,
+  }).current;
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: { index: number | null }[] }) => {
+      const hasItems = viewableItems.length > 0;
+      setIsOnFeed(hasItems);
+      if (!hasItems) {
+        return;
+      }
+      const first = viewableItems[0];
+      if (first.index == null) {
+        return;
+      }
+      setCurrentFeedIndex(first.index);
+    },
+  ).current;
 
-  async function handleReact(photoId: string, type: "love" | "clap" | "fire") {
+  const [composerText, setComposerText] = useState("");
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
+
+  async function handleReact(type: "love" | "clap" | "fire") {
+    if (!currentPhotoId) {
+      return;
+    }
     const userId = profile?.user_id ?? null;
     const success = await sendUserPhotoReaction({
-      photoId,
+      photoId: currentPhotoId,
       userId,
       guestId: userId ? null : (guestId ?? null),
       type,
@@ -122,6 +153,35 @@ export default function HomeScreen() {
     setTimeout(() => {
       setEmojiBursts((prev) => prev.filter((b) => !idsToRemove.includes(b.id)));
     }, removeAfter);
+  }
+
+  async function handleSendMessage() {
+    const trimmed = composerText.trim();
+    if (!currentPhotoId || !trimmed) {
+      return;
+    }
+    if (isSendingMessage) {
+      return;
+    }
+    setIsSendingMessage(true);
+    const userId = profile?.user_id ?? null;
+    const success = await sendUserPhotoReaction({
+      photoId: currentPhotoId,
+      userId,
+      guestId: userId ? null : (guestId ?? null),
+      type: "love",
+      comment: trimmed,
+    });
+    setIsSendingMessage(false);
+    if (!success) {
+      return;
+    }
+    setComposerText("");
+    setIsComposerOpen(false);
+    setLastSentLabel("Message sent");
+    setTimeout(() => {
+      setLastSentLabel((label) => (label === "Message sent" ? null : label));
+    }, 1200);
   }
 
   if (isLoading) {
@@ -171,6 +231,8 @@ export default function HomeScreen() {
         initialNumToRender={3}
         maxToRenderPerBatch={4}
         windowSize={9}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={onViewableItemsChanged}
         ListHeaderComponent={
           <View
             style={{
@@ -237,9 +299,6 @@ export default function HomeScreen() {
             onFeedLayoutYChange={() => {}}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
-            currentUserId={profile?.user_id ?? null}
-            currentGuestId={guestId ?? null}
-            onReact={handleReact}
           />
         }
         renderItem={({ item }) => (
@@ -249,31 +308,112 @@ export default function HomeScreen() {
             onFeedLayoutYChange={() => {}}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
-            currentUserId={profile?.user_id ?? null}
-            currentGuestId={guestId ?? null}
-            onReact={handleReact}
           />
         )}
         contentContainerStyle={{ paddingBottom: actionBarHeight }}
       />
 
-      <View
-        className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-black/20 px-4 pt-3"
-        style={{ paddingBottom: actionBarBottomPadding }}
-        pointerEvents="box-none">
-        <CameraActionsBar
-          onGenerate={handleGenerateAI}
-          onCapture={handleCapture}
-          onOpenGallery={handleOpenGallery}
-          onSave={handleSavePhoto}
-          isGenerating={isGenerating}
-          isCapturing={isCapturing}
-          cameraReady={cameraReady}
-          hasImage={!!selectedImageUri}
-          canSave={!hasSavedCurrentPhoto}
-          isSaving={isSavingPhoto}
-        />
-      </View>
+      {!isComposerOpen && (
+        <View
+          className="border-t border-white/10 bg-black/20 px-4 pt-2"
+          style={{ paddingBottom: actionBarBottomPadding }}
+          pointerEvents="box-none">
+          {isOnFeed && currentPhotoId && (
+            <View className="mb-2 flex-row items-center justify-between rounded-full bg-white/10 px-3 py-2">
+              <Pressable
+                onPress={() => setIsComposerOpen(true)}
+                className="flex-1">
+                <Text className="text-xs text-white/70">Send a message…</Text>
+              </Pressable>
+              <View className="ml-2 flex-row items-center gap-2">
+                <Pressable
+                  onPress={() => handleReact("love")}
+                  className="rounded-full bg-white/15 px-3 py-1">
+                  <Text className="text-base">❤️</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => handleReact("fire")}
+                  className="rounded-full bg-white/15 px-3 py-1">
+                  <Text className="text-base">🔥</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => handleReact("clap")}
+                  className="rounded-full bg-white/15 px-3 py-1">
+                  <Text className="text-base">😍</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+          <CameraActionsBar
+            onGenerate={handleGenerateAI}
+            onCapture={handleCapture}
+            onOpenGallery={handleOpenGallery}
+            onSave={handleSavePhoto}
+            isGenerating={isGenerating}
+            isCapturing={isCapturing}
+            cameraReady={cameraReady}
+            hasImage={!!selectedImageUri}
+            canSave={!hasSavedCurrentPhoto}
+            isSaving={isSavingPhoto}
+          />
+        </View>
+      )}
+      {isComposerOpen && (
+        <>
+          <Pressable
+            className="absolute inset-0 bg-black/60"
+            onPress={() => setIsComposerOpen(false)}
+          />
+          <KeyboardAvoidingView
+            behavior="padding"
+            keyboardVerticalOffset={insets.bottom}
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}>
+            <View
+              className="px-4 pt-2"
+              style={{ paddingBottom: insets.bottom }}
+              pointerEvents="box-none">
+              {isOnFeed && currentPhotoId && (
+                <View className="flex-row items-center justify-between rounded-full bg-gray-500/90 px-3 py-2">
+                  <TextInput
+                    autoFocus
+                    placeholder="Reply…"
+                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    value={composerText}
+                    onChangeText={setComposerText}
+                    onSubmitEditing={handleSendMessage}
+                    onBlur={() => setIsComposerOpen(false)}
+                    className="flex-1 text-xs text-white"
+                    returnKeyType="send"
+                  />
+                  <Pressable
+                    onPress={handleSendMessage}
+                    disabled={isSendingMessage}
+                    className="ml-2 rounded-full bg-white px-3 py-1"
+                    style={{ opacity: isSendingMessage ? 0.6 : 1 }}>
+                    <Text className="text-xs font-semibold text-black">
+                      {isSendingMessage ? "Sending…" : "Send"}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          </KeyboardAvoidingView>
+        </>
+      )}
+      {lastSentLabel && !isComposerOpen && (
+        <View className="absolute inset-x-0 bottom-[72px] items-center">
+          <View className="rounded-full bg-black/80 px-3 py-1">
+            <Text className="text-[10px] font-medium text-white/80">
+              {lastSentLabel}
+            </Text>
+          </View>
+        </View>
+      )}
       <View className="pointer-events-none absolute inset-0">
         {emojiBursts.map((burst) => (
           <MotiView

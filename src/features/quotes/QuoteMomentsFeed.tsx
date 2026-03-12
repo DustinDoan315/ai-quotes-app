@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
-import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
+import { LayoutChangeEvent, Text, View } from "react-native";
 
 type Props = {
   items: QuotePhotoCard[];
@@ -8,9 +8,6 @@ type Props = {
   onFeedLayoutYChange: (y: number) => void;
   authorName: string;
   authorAvatarUrl: string | null;
-  currentUserId: string | null;
-  currentGuestId: string | null;
-  onReact: (photoId: string, type: "love" | "clap" | "fire") => void;
 };
 
 export const QuoteMomentsFeed = ({
@@ -19,9 +16,6 @@ export const QuoteMomentsFeed = ({
   onFeedLayoutYChange,
   authorName,
   authorAvatarUrl,
-  currentUserId,
-  currentGuestId,
-  onReact,
 }: Props) => {
   function handleLayout(event: LayoutChangeEvent) {
     onFeedLayoutYChange(event.nativeEvent.layout.y);
@@ -41,8 +35,6 @@ export const QuoteMomentsFeed = ({
       ) : (
         <>
           {items.map((item) => {
-            const isOwn =
-              item.userId === currentUserId || item.guestId === currentGuestId;
             return (
               <View
                 key={item.id}
@@ -85,28 +77,6 @@ export const QuoteMomentsFeed = ({
                       >
                         {item.quote}
                       </Text>
-                      <View className="flex-row items-center justify-end gap-3">
-                          <Pressable
-                            onPress={() => onReact(item.id, "love")}
-                            className="rounded-full bg-white/10 px-3 py-1">
-                            <Text className="text-sm">❤️</Text>
-                          </Pressable>
-                          <Pressable
-                            onPress={() => onReact(item.id, "clap")}
-                            className="rounded-full bg-white/10 px-3 py-1">
-                            <Text className="text-sm">👏</Text>
-                          </Pressable>
-                          <Pressable
-                            onPress={() => onReact(item.id, "fire")}
-                            className="rounded-full bg-white/10 px-3 py-1">
-                            <Text className="text-sm">🔥</Text>
-                          </Pressable>
-                        {isOwn && (
-                          <Text className="ml-1 text-[10px] text-white/60">
-                            Dev: reacting to your own moment
-                          </Text>
-                        )}
-                      </View>
                     </View>
                   </View>
                 </View>
