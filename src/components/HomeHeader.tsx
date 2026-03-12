@@ -6,9 +6,14 @@ import { useUserStore } from "@/appState/userStore";
 interface HomeHeaderProps {
   currentStreak: number;
   onPressProfile?: () => void;
+  onPressFriends?: () => void;
 }
 
-export function HomeHeader({ currentStreak, onPressProfile }: HomeHeaderProps) {
+export function HomeHeader({
+  currentStreak,
+  onPressProfile,
+  onPressFriends,
+}: HomeHeaderProps) {
   const tier = getStreakTier(currentStreak);
   const profile = useUserStore((state) => state.profile);
   const avatarUrl = profile?.avatar_url ?? null;
@@ -30,15 +35,23 @@ export function HomeHeader({ currentStreak, onPressProfile }: HomeHeaderProps) {
             <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
           )}
         </Pressable>
-        <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
-          <Ionicons
-            name={tier.icon}
-            size={tier.size}
-            color={tier.color}
-          />
-          <Text className="ml-1.5 text-sm font-semibold text-white">
-            {currentStreak}
-          </Text>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={onPressFriends}
+            disabled={!onPressFriends}
+            className="h-10 flex-row items-center rounded-full bg-black/40 px-3"
+            style={({ pressed }) => ({
+              opacity: onPressFriends ? (pressed ? 0.8 : 1) : 0.5,
+            })}>
+            <Ionicons name="share-social-outline" size={18} color="#ffffff" />
+            <Text className="ml-2 text-sm font-semibold text-white">Invite</Text>
+          </Pressable>
+          <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
+            <Ionicons name={tier.icon} size={tier.size} color={tier.color} />
+            <Text className="ml-1.5 text-sm font-semibold text-white">
+              {currentStreak}
+            </Text>
+          </View>
         </View>
       </View>
     </View>

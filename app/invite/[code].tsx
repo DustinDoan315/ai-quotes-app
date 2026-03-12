@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type InviteStatus = "loading" | "success" | "error" | "invalid" | "need_login";
+type InviteStatus = "loading" | "success" | "error" | "invalid" | "need_login" | "self";
 
 async function processInviteCode(
   rawCode: string,
@@ -13,7 +13,7 @@ async function processInviteCode(
 ): Promise<InviteStatus> {
   const inviterId = await resolveInviteCode(rawCode);
   if (!inviterId) return "invalid";
-  if (inviterId === myUserId) return "invalid";
+  if (inviterId === myUserId) return "self";
   const ok = await addFriend(myUserId, inviterId);
   return ok ? "success" : "error";
 }
@@ -46,7 +46,7 @@ export default function InviteByCodeScreen() {
   }, [code, profile?.user_id]);
 
   useEffect(() => {
-    if (status === "success" || status === "invalid") {
+    if (status === "success" || status === "invalid" || status === "self") {
       const t = setTimeout(() => router.replace("/(tabs)/friends" as never), 1500);
       return () => clearTimeout(t);
     }
@@ -76,6 +76,11 @@ export default function InviteByCodeScreen() {
       {status === "invalid" && (
         <Text className="text-center text-white/80">
           Invalid or expired invite. Going to Friends…
+        </Text>
+      )}
+      {status === "self" && (
+        <Text className="text-center text-white/80">
+          That’s your invite code. Share it with a friend to connect.
         </Text>
       )}
       {status === "error" && (

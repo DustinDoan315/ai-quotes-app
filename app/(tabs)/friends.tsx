@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   Share,
@@ -14,18 +15,21 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import QRCode from "react-native-qrcode-svg";
 
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const params = useLocalSearchParams<{ autoShare?: string }>();
   const profile = useUserStore((s) => s.profile);
   const [friends, setFriends] = useState<FriendWithProfile[]>([]);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [autoShareConsumed, setAutoShareConsumed] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
   const userId = profile?.user_id ?? null;
 
@@ -65,6 +69,17 @@ export default function FriendsScreen() {
     }
   }, [inviteUrl]);
 
+  useEffect(() => {
+    if (params.autoShare !== "1") return;
+    if (autoShareConsumed) return;
+    if (!inviteUrl) return;
+    if (loading) return;
+    setAutoShareConsumed(true);
+    handleInviteShare().finally(() => {
+      router.setParams({ autoShare: undefined } as never);
+    });
+  }, [autoShareConsumed, handleInviteShare, inviteUrl, loading, params.autoShare, router]);
+
   if (!userId) {
     return (
       <View
@@ -74,7 +89,12 @@ export default function FriendsScreen() {
           Sign in to add and invite friends.
         </Text>
         <Pressable
-          onPress={() => router.push({ pathname: "/login", params: { returnTo: "/(tabs)/friends" } } as never)}
+          onPress={() =>
+            router.push({
+              pathname: "/login",
+              params: { returnTo: "/(tabs)/friends?autoShare=1" },
+            } as never)
+          }
           className="rounded-xl bg-white px-8 py-3"
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
           <Text className="text-base font-semibold text-black">Sign in with phone</Text>
@@ -109,27 +129,45 @@ export default function FriendsScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4 py-4">
-        <Pressable
-          onPress={handleInviteShare}
-          disabled={sharing || !inviteUrl}
-          className="mb-6 flex-row items-center justify-center rounded-2xl border border-white/20 bg-white/5 py-4"
-          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-          <Ionicons name="share-social-outline" size={22} color="#fff" />
-          <Text className="ml-2 text-base font-medium text-white">
-            {sharing ? "Opening share…" : "Invite friends"}
-          </Text>
-        </Pressable>
-
-        {inviteUrl ? (
-          <View className="mb-6 items-center rounded-2xl border border-white/20 bg-white/5 py-4">
-            <Text className="mb-2 text-sm font-medium text-white/70">
-              Or show this QR in person
+        <View className="mb-6 overflow-hidden rounded-2xl border border-white/20 bg-white/5">
+          <View className="px-4 pt-4">
+            <Text className="text-base font-semibold text-white">Invite friends</Text>
+            <Text className="mt-1 text-sm text-white/60">
+              Share your link so friends can add you and trade quotes.
             </Text>
-            <View className="rounded-xl bg-white p-2">
-              <QRCode value={inviteUrl} size={160} />
-            </View>
           </View>
-        ) : null}
+          <View className="mt-4 flex-row gap-3 px-4 pb-4">
+            <Pressable
+              onPress={handleInviteShare}
+              disabled={sharing || !inviteUrl}
+              className="flex-1 flex-row items-center justify-center rounded-2xl bg-white py-3"
+              style={({ pressed }) => ({
+                opacity: sharing || !inviteUrl ? 0.5 : pressed ? 0.9 : 1,
+              })}>
+              <Ionicons name="share-social-outline" size={20} color="#000" />
+              <Text className="ml-2 text-base font-semibold text-black">
+                {sharing ? "Sharing…" : "Share link"}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/modal/scan-qr" as never)}
+              className="h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/5"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.8 : 1,
+              })}>
+              <Ionicons name="scan-outline" size={20} color="#fff" />
+            </Pressable>
+            <Pressable
+              onPress={() => setQrOpen(true)}
+              disabled={!inviteUrl}
+              className="h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/5"
+              style={({ pressed }) => ({
+                opacity: inviteUrl ? (pressed ? 0.8 : 1) : 0.5,
+              })}>
+              <Ionicons name="qr-code-outline" size={20} color="#fff" />
+            </Pressable>
+          </View>
+        </View>
 
         <View className="mb-2 flex-row items-center">
           <Ionicons name="people-outline" size={18} color="rgba(255,255,255,0.7)" />
@@ -162,6 +200,49 @@ export default function FriendsScreen() {
           ))
         )}
       </ScrollView>
+
+      <Modal
+        visible={qrOpen && !!inviteUrl}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQrOpen(false)}>
+        <View className="flex-1 items-center justify-center bg-black/70 px-4">
+          <Pressable onPress={() => setQrOpen(false)} className="absolute inset-0" />
+          {inviteUrl ? (
+            <View className="w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-zinc-950">
+              <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
+                <Text className="text-base font-semibold text-white">Your invite QR</Text>
+                <Pressable
+                  onPress={() => setQrOpen(false)}
+                  className="h-9 w-9 items-center justify-center rounded-full bg-white/10"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                  <Ionicons name="close" size={18} color="#fff" />
+                </Pressable>
+              </View>
+              <View className="items-center px-6 py-6">
+                <View className="rounded-2xl bg-white p-3">
+                  <QRCode value={inviteUrl} size={220} />
+                </View>
+                <Text className="mt-4 text-center text-sm text-white/60">
+                  Let a friend scan this to connect.
+                </Text>
+                <Pressable
+                  onPress={handleInviteShare}
+                  disabled={sharing}
+                  className="mt-5 w-full flex-row items-center justify-center rounded-2xl bg-white py-3"
+                  style={({ pressed }) => ({
+                    opacity: sharing ? 0.5 : pressed ? 0.9 : 1,
+                  })}>
+                  <Ionicons name="share-social-outline" size={20} color="#000" />
+                  <Text className="ml-2 text-base font-semibold text-black">
+                    {sharing ? "Sharing…" : "Share link"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+        </View>
+      </Modal>
     </View>
   );
 }

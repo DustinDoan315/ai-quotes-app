@@ -21,7 +21,7 @@ export default function ProfileScreen() {
           onLogin={() =>
             router.push({
               pathname: "/login",
-              params: { returnTo: "/(tabs)/friends" },
+              params: { returnTo: "/(tabs)/friends?autoShare=1" },
             } as never)
           }
           onInviteFriends={() => router.push("/(tabs)/friends" as never)}
