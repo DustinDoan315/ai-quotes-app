@@ -1,5 +1,6 @@
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { supabase } from "@/config/supabase";
+import { signInAnonymously } from "@/services/supabase-auth";
 
 type SaveUserPhotoParams = {
   localUri: string;
@@ -32,23 +33,25 @@ export const saveUserPhoto = async (
     return null;
   }
 
+  const sessionResult = await supabase.auth.getSession();
+  if (!sessionResult.data.session) {
+    const { error } = await signInAnonymously();
+    if (error) {
+      console.error("Failed to start anonymous session", error);
+      return null;
+    }
+  }
+
   let uploadUri = localUri;
   try {
-    const manipulated = await manipulateAsync(
-      localUri,
-      [
-        {
-          resize: {
-            width: 720,
-          },
-        },
-      ],
-      {
-        compress: 0.6,
-        format: SaveFormat.JPEG,
-      },
-    );
-    uploadUri = manipulated.uri;
+    const context = ImageManipulator.manipulate(localUri);
+    context.resize({ width: 720 });
+    const rendered = await context.renderAsync();
+    const saved = await rendered.saveAsync({
+      compress: 0.6,
+      format: SaveFormat.JPEG,
+    });
+    uploadUri = saved.uri;
   } catch (error) {
     console.error("Failed to preprocess image for upload", error);
   }
@@ -98,11 +101,12 @@ export const saveUserPhoto = async (
     guest_id: guestId,
     image_url: publicUrl,
     storage_path: path,
-    quote: quote ?? null,
+    quote: quote ?? "",
   });
 
   if (insertError) {
     console.error("Failed to insert user_photos row", insertError);
+    return null;
   }
 
   return {

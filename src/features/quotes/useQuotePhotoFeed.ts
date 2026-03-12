@@ -24,11 +24,7 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
     try {
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
-      const data = await listQuotePhotoCards({ userId, guestId, limit: 30 });
-      console.log("Quote photo feed loaded", {
-        count: data.length,
-        quotes: data.map((item) => item.quote),
-      });
+      const data = await listQuotePhotoCards({ userId, guestId, limit: 60 });
       setItems(data);
     } finally {
       setIsLoading(false);
@@ -48,7 +44,7 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
     try {
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
-      const data = await listQuotePhotoCards({ userId, guestId, limit: 30 });
+      const data = await listQuotePhotoCards({ userId, guestId, limit: 60 });
       setItems(data);
     } catch {}
   }, [profile, ensureGuestId]);

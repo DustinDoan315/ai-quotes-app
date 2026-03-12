@@ -1,17 +1,23 @@
 import { z } from "zod";
+import { supabase } from "@/config/supabase";
 
-const quotePhotoSchema = z.object({
+const quotePhotoRowSchema = z.object({
   id: z.string(),
-  imageUrl: z.string().url(),
-  quote: z.string().max(180),
-  createdAt: z.string(),
+  image_url: z.string().url(),
+  created_at: z.string(),
+  quote: z.string().max(180).nullable().optional(),
+  user_id: z.string().nullable().optional(),
+  guest_id: z.string().nullable().optional(),
 });
 
-const listResponseSchema = z.object({
-  items: z.array(quotePhotoSchema),
-});
-
-export type QuotePhotoCard = z.infer<typeof quotePhotoSchema>;
+export type QuotePhotoCard = {
+  id: string;
+  imageUrl: string;
+  quote: string;
+  createdAt: string;
+  userId: string | null;
+  guestId: string | null;
+};
 
 type ListQuotePhotoCardsParams = {
   guestId?: string | null;
@@ -19,61 +25,47 @@ type ListQuotePhotoCardsParams = {
   limit?: number;
 };
 
-const getSupabaseConfig = () => {
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return null;
-  }
-
-  return { supabaseUrl, supabaseAnonKey };
-};
-
 export const listQuotePhotoCards = async (
   params: ListQuotePhotoCardsParams,
 ): Promise<QuotePhotoCard[]> => {
-  const config = getSupabaseConfig();
-
-  if (!config) {
-    return [];
-  }
-
-  const { supabaseUrl, supabaseAnonKey } = config;
-
-  const url = new URL(`${supabaseUrl}/functions/v1/user-photos`);
-
-  if (params.guestId) {
-    url.searchParams.set("guestId", params.guestId);
-  }
+  let query = supabase
+    .from("user_photos")
+    .select("id, image_url, created_at, quote, user_id, guest_id")
+    .order("created_at", { ascending: false });
 
   if (params.userId) {
-    url.searchParams.set("userId", params.userId);
+    query = query.eq("user_id", params.userId);
+  } else if (params.guestId) {
+    query = query.eq("guest_id", params.guestId);
   }
 
   if (params.limit) {
-    url.searchParams.set("limit", String(params.limit));
+    query = query.limit(params.limit);
   }
 
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${supabaseAnonKey}`,
-    },
-  });
+  const { data, error } = await query;
 
-  if (!response.ok) {
+  if (error || !data) {
+    console.error("Failed to load quote photo feed", { error });
     return [];
   }
 
-  const data = await response.json();
-  const parsed = listResponseSchema.safeParse(data);
+  const parsed = z.array(quotePhotoRowSchema).safeParse(data);
 
   if (!parsed.success) {
+    console.error("Failed to parse quote photo feed rows", {
+      issues: parsed.error.issues,
+    });
     return [];
   }
 
-  return parsed.data.items;
+  return parsed.data.map((row) => ({
+    id: row.id,
+    imageUrl: row.image_url,
+    createdAt: row.created_at,
+    quote: row.quote ?? "",
+    userId: row.user_id ?? null,
+    guestId: row.guest_id ?? null,
+  }));
 };
 
