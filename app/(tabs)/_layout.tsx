@@ -1,15 +1,20 @@
 import { Tabs } from "expo-router";
 
+const screenOptions = {
+  headerShown: false,
+  tabBarStyle: { display: "none" as const },
+};
+
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { display: "none" },
-      }}>
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
-      <Tabs.Screen name="friends" options={{ title: "Friends" }} />
+    <Tabs screenOptions={screenOptions}>
+      <Tabs.Screen name="index" options={INDEX_OPTIONS} />
+      <Tabs.Screen name="profile" options={PROFILE_OPTIONS} />
+      <Tabs.Screen name="friends" options={FRIENDS_OPTIONS} />
     </Tabs>
   );
 }
+
+const INDEX_OPTIONS = { title: "Home" };
+const PROFILE_OPTIONS = { title: "Profile" };
+const FRIENDS_OPTIONS = { title: "Friends" };

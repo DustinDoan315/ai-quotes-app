@@ -1,4 +1,6 @@
 import { useMemoryStore } from "@/appState";
+import type { MemoryState } from "@/appState/memoryStore";
+import type { QuoteMemory } from "@/types/memory";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { CameraActionsBar } from "@/components/CameraActionsBar";
@@ -10,8 +12,9 @@ import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
 import { useRouter } from "expo-router";
+import { strings } from "@/theme/strings";
 import { MotiView } from "moti";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -76,22 +79,43 @@ export default function HomeScreen() {
     handleZoomPreset,
     handleToggleOrientation,
     handleCapture,
-    handleGenerateAI,
     handleSavePhoto,
     handleOpenGallery,
     clearSelectedImage,
     isGenerating,
+    generationProgress,
     dailyQuoteText,
+    handleClearQuote,
+    handleGenerateAI,
   } = useHomeCamera({
-    onPhotoSaved: refreshSilently,
+    onPhotoSaved: () => {
+      refreshSilently();
+      setJustSavedMemory(true);
+      setTimeout(() => {
+        setJustSavedMemory(false);
+      }, 1800);
+    },
     onMilestoneReached: setMilestone,
   });
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
   const [isOnFeed, setIsOnFeed] = useState(false);
   const today = new Date().toISOString().split("T")[0];
-  const pastMemories = useMemoryStore
-    .getState()
-    .getMemoriesOnSameDayPastYears(today);
+  const memories = useMemoryStore((s: MemoryState) => s.memories);
+  const pastMemories = useMemo(() => {
+    const target = new Date(today);
+    const day = target.getDate();
+    const month = target.getMonth();
+    return memories
+      .filter((m: QuoteMemory) => {
+        const d = new Date(m.date);
+        return (
+          d.getDate() === day && d.getMonth() === month && m.date !== today
+        );
+      })
+      .sort((a: QuoteMemory, b: QuoteMemory) =>
+        a.createdAt > b.createdAt ? -1 : 1,
+      );
+  }, [memories, today]);
 
   const authorName =
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
@@ -120,9 +144,19 @@ export default function HomeScreen() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
+  const [justSavedMemory, setJustSavedMemory] = useState(false);
   const shouldShowMessageBar = isOnFeed && currentPhotoId;
   const actionBarBottomPadding = insets.bottom;
   const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
+  const isCaptureFlowActive =
+    isCapturing ||
+    isSavingPhoto ||
+    isGenerating ||
+    (!!selectedImageUri && !hasSavedCurrentPhoto);
+
+  function handleOpenMemories() {
+    router.push("/memories" as never);
+  }
 
   async function handleReact(type: "love" | "clap" | "fire") {
     if (!currentPhotoId) {
@@ -184,7 +218,7 @@ export default function HomeScreen() {
     }
     setComposerText("");
     setIsComposerOpen(false);
-    setLastSentLabel("Message sent");
+    setLastSentLabel(strings.home.messageSent);
     setTimeout(() => {
       setLastSentLabel((label) => (label === "Message sent" ? null : label));
     }, 1200);
@@ -202,7 +236,7 @@ export default function HomeScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-black px-8">
         <Text className="mb-4 text-center text-white">
-          We need camera access to take photos.
+          {strings.home.cameraPermissionRequired}
         </Text>
         <Pressable
           onPress={requestPermission}
@@ -219,9 +253,19 @@ export default function HomeScreen() {
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
       />
+      {justSavedMemory && (
+        <View className="absolute left-0 right-0 top-10 z-10 items-center">
+          <View className="rounded-full bg-black/85 px-4 py-2">
+            <Text className="text-xs font-semibold text-white">
+              {strings.home.savedToMemories}
+            </Text>
+          </View>
+        </View>
+      )}
       <FlatList
         className="flex-1"
         showsVerticalScrollIndicator={false}
+        scrollEnabled={!isCaptureFlowActive}
         snapToInterval={viewportHeight}
         snapToAlignment="center"
         decelerationRate="fast"
@@ -260,9 +304,9 @@ export default function HomeScreen() {
                 }
                 className="mx-4 mb-3 rounded-xl border border-white/15 bg-white/8 px-4 py-3"
                 style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
-                <Text className="text-xs font-semibold uppercase tracking-wide text-amber-300">
-                  This day in memories
-                </Text>
+            <Text className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+              {strings.memories.thisDayInMemoriesLabel}
+            </Text>
                 <Text
                   className="mt-1 text-sm font-medium text-white"
                   numberOfLines={2}>
@@ -273,14 +317,16 @@ export default function HomeScreen() {
             {showInviteNudge && (
               <View className="mx-4 mb-2 flex-row items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3">
                 <Text className="flex-1 text-sm text-white" numberOfLines={2}>
-                  Invite friends to share quotes with
+                  {strings.home.inviteFriendsTitle}
                 </Text>
                 <View className="ml-2 flex-row gap-2">
                   <Pressable
                     onPress={() => setInviteNudgeDismissed(true)}
                     className="rounded-lg bg-white/20 px-3 py-2"
                     style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                    <Text className="text-xs font-medium text-white">Skip</Text>
+                    <Text className="text-xs font-medium text-white">
+                      {strings.home.inviteSkip}
+                    </Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -290,7 +336,7 @@ export default function HomeScreen() {
                     className="rounded-lg bg-amber-400 px-3 py-2"
                     style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
                     <Text className="text-xs font-semibold text-black">
-                      Invite
+                      {strings.home.inviteCta}
                     </Text>
                   </Pressable>
                 </View>
@@ -309,10 +355,14 @@ export default function HomeScreen() {
                 activePreset={activePreset}
                 hideQuote={hideQuote}
                 dailyQuoteText={dailyQuoteText}
+                isGenerating={isGenerating}
+                generationProgress={generationProgress}
                 onCameraReady={handleCameraReady}
                 onZoomPresetPress={handleZoomPreset}
                 onToggleOrientation={handleToggleOrientation}
                 onClearImage={clearSelectedImage}
+                onClearQuote={handleClearQuote}
+                onRegenerateQuote={handleGenerateAI}
               />
             </View>
           </View>
@@ -347,7 +397,9 @@ export default function HomeScreen() {
               <Pressable
                 onPress={() => setIsComposerOpen(true)}
                 className="flex-1">
-                <Text className="text-xs text-white/70">Send a message…</Text>
+                <Text className="text-xs text-white/70">
+                  {strings.home.messagePlaceholder}
+                </Text>
               </Pressable>
               <View className="ml-2 flex-row items-center gap-2">
                 <Pressable
@@ -369,7 +421,7 @@ export default function HomeScreen() {
             </View>
           )}
           <CameraActionsBar
-            onGenerate={handleGenerateAI}
+            onGenerate={handleOpenMemories}
             onCapture={handleCapture}
             onOpenGallery={handleOpenGallery}
             onSave={handleSavePhoto}

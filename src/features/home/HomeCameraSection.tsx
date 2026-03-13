@@ -19,10 +19,14 @@ type Props = {
   activePreset: number;
   hideQuote: boolean;
   dailyQuoteText: string | null;
+  isGenerating: boolean;
+  generationProgress: number;
   onCameraReady: () => void;
   onZoomPresetPress: (preset: 0.5 | 1 | 2) => void;
   onToggleOrientation: () => void;
   onClearImage: () => void;
+  onClearQuote: () => void;
+  onRegenerateQuote: () => void;
 };
 
 export const HomeCameraSection = ({
@@ -37,10 +41,14 @@ export const HomeCameraSection = ({
   activePreset,
   hideQuote,
   dailyQuoteText,
+  isGenerating,
+  generationProgress,
   onCameraReady,
   onZoomPresetPress,
   onToggleOrientation,
   onClearImage,
+  onClearQuote,
+  onRegenerateQuote,
 }: Props) => {
   return (
     <View className="flex-1 w-full flex-col px-2 py-6">
@@ -93,10 +101,61 @@ export const HomeCameraSection = ({
       </View>
 
       <View className="items-center">
-        {!hideQuote && dailyQuoteText ? (
-          <Text className="my-3 text-center text-base font-semibold text-white">
-            {dailyQuoteText}
-          </Text>
+        {isGenerating || generationProgress > 0 ? (
+          <MotiView
+            from={{ opacity: 0.6, scale: 0.98 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            transition={{
+              type: "timing",
+              duration: 700,
+            }}
+            className="my-3 w-full max-w-md self-center rounded-2xl bg-white/10 px-5 py-4">
+            <View className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+              <MotiView
+                style={{
+                  height: "100%",
+                  borderRadius: 999,
+                  backgroundColor: "#F97316",
+                }}
+                from={{ width: "0%" }}
+                animate={{
+                  width: `${Math.min(100, Math.max(8, generationProgress * 100))}%`,
+                }}
+                transition={{
+                  type: "timing",
+                  duration: 350,
+                }}
+              />
+            </View>
+            <View className="mt-2 space-y-2">
+              <View className="h-3 w-full rounded-full bg-amber-400/40" />
+              <View className="h-3 w-5/6 rounded-full bg-pink-400/40" />
+              <View className="h-3 w-3/4 rounded-full bg-sky-400/40" />
+            </View>
+          </MotiView>
+        ) : !hideQuote && dailyQuoteText ? (
+          <View className="my-3 w-full max-w-md self-center rounded-2xl bg-white/5 px-4 py-3">
+            <Text className="text-center text-base font-semibold text-white">
+              {dailyQuoteText}
+            </Text>
+            <View className="mt-3 flex-row justify-center gap-6">
+              <Pressable
+                onPress={onClearQuote}
+                className="h-8 w-8 items-center justify-center rounded-full bg-white/10"
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                <Ionicons name="trash-outline" size={16} color="#ffffff" />
+              </Pressable>
+              <Pressable
+                onPress={onRegenerateQuote}
+                className="h-8 w-8 items-center justify-center rounded-full bg-amber-400"
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                <Ionicons name="refresh-outline" size={16} color="#000000" />
+              </Pressable>
+            </View>
+          </View>
         ) : null}
         {selectedImageUri === null ? (
           <View className="my-4 w-full max-w-md items-center gap-2 self-center">

@@ -3,7 +3,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { QuoteMemory, QuoteVisibility } from "../types/memory";
 
-type MemoryState = {
+export type MemoryState = {
+  _hasHydrated: boolean;
   memories: QuoteMemory[];
   addMemory: (memory: QuoteMemory) => void;
   toggleFavorite: (id: string) => void;
@@ -11,6 +12,7 @@ type MemoryState = {
   getMemoriesForDate: (date: string) => QuoteMemory[];
   getCalendarSummaryForMonth: (monthKey: string) => Record<string, { hasMine: boolean; hasFavorite: boolean }>;
   getMemoriesOnSameDayPastYears: (date: string) => QuoteMemory[];
+  setHasHydrated: (value: boolean) => void;
 };
 
 const byCreatedAtDesc = (a: QuoteMemory, b: QuoteMemory) => (a.createdAt > b.createdAt ? -1 : 1);
@@ -20,7 +22,9 @@ const getMonthKeyFromDate = (date: string) => date.slice(0, 7);
 export const useMemoryStore = create<MemoryState>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       memories: [],
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
       addMemory: (memory) =>
         set((state) => ({
           memories: [memory, ...state.memories].sort(byCreatedAtDesc).slice(0, 365 * 3),
@@ -81,6 +85,10 @@ export const useMemoryStore = create<MemoryState>()(
       partialize: (state) => ({
         memories: state.memories,
       }),
+      onRehydrateStorage: () => (state, err) => {
+        if (err) return;
+        useMemoryStore.getState().setHasHydrated(true);
+      },
     },
   ),
 );

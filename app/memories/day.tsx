@@ -1,8 +1,15 @@
 import { useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, View, Pressable } from "react-native";
 import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useMemoryStore } from "@/appState";
 import { MemoryCard } from "@/components/MemoryCard";
+import { strings } from "@/theme/strings";
 
 type Layer = "mine" | "friends" | "public";
 
@@ -14,6 +21,7 @@ export default function MemoriesDayScreen() {
       ? dateParam
       : new Date().toISOString().split("T")[0];
   const [layer, setLayer] = useState<Layer>("mine");
+  const hasHydrated = useMemoryStore((s) => s._hasHydrated);
   const mineMemories = useMemoryStore((s) => s.getMemoriesForDate(dateKey));
   const title = new Date(dateKey).toLocaleDateString(undefined, {
     month: "long",
@@ -22,6 +30,14 @@ export default function MemoriesDayScreen() {
   });
 
   const activeMemories = layer === "mine" ? mineMemories : [];
+
+  if (!hasHydrated) {
+    return (
+      <View className="flex-1 items-center justify-center bg-black">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-black px-4 pt-12">
@@ -58,14 +74,14 @@ export default function MemoriesDayScreen() {
           <View className="mt-12 items-center">
             <Text className="text-sm text-white/70">
               {layer === "friends"
-                ? "Friends' memories will appear here."
-                : "Public memories will appear here."}
+                ? strings.memories.friendsPlaceholder
+                : strings.memories.publicPlaceholder}
             </Text>
           </View>
         ) : activeMemories.length === 0 ? (
           <View className="mt-12 items-center">
             <Text className="text-sm text-white/70">
-              No memories for this day yet.
+              {strings.memories.emptyForDay}
             </Text>
           </View>
         ) : (

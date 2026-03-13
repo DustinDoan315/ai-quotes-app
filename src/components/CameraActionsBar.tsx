@@ -31,16 +31,11 @@ export function CameraActionsBar({
       <View className="w-20 items-center">
         <Pressable
           onPress={onGenerate}
-          disabled={isGenerating}
           className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
           style={({ pressed }) => ({
-            opacity: pressed || isGenerating ? 0.8 : 1,
+            opacity: pressed ? 0.8 : 1,
           })}>
-          {isGenerating ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <Ionicons name="star-outline" size={26} color="#ffffff" />
-          )}
+          <Ionicons name="calendar-outline" size={26} color="#ffffff" />
         </Pressable>
       </View>
       <View className="w-32 items-center">

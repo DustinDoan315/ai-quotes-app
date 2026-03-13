@@ -16,6 +16,7 @@ import { useMemoryStore } from "@/appState";
 import { QuoteVisibility } from "@/types/memory";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { isStreakMilestone } from "@/utils/streakMilestones";
+import { strings } from "@/theme/strings";
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
@@ -69,10 +70,14 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [orientationTransitioning, setOrientationTransitioning] =
     useState(false);
   const [zoom, setZoom] = useState(() => factorToZoom(1));
+  const [generationProgress, setGenerationProgress] = useState(0);
   const cameraRef = useRef<CameraView | null>(null);
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
   const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const generationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
   const { dailyQuote, clearDailyQuote } = useQuoteStore();
@@ -138,8 +143,44 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   function clearSelectedImage() {
     setSelectedImageUri(null);
     setImageContextUrl(null);
-    setHideQuote(false);
+    setHideQuote(true);
     setHasSavedCurrentPhoto(false);
+    setGenerationProgress(0);
+    clearDailyQuote();
+  }
+
+  async function generateForImage(sourceUri: string | null) {
+    if (!sourceUri) {
+      return;
+    }
+    if (generationIntervalRef.current) {
+      clearInterval(generationIntervalRef.current);
+      generationIntervalRef.current = null;
+    }
+    setGenerationProgress(0.08);
+    generationIntervalRef.current = setInterval(() => {
+      setGenerationProgress((current) => {
+        if (current >= 0.92) {
+          return current;
+        }
+        return current + 0.04;
+      });
+    }, 180);
+    const quote = await generate(
+      imageContextUrl ?? undefined,
+      imageContextUrl ? undefined : sourceUri,
+    );
+    if (generationIntervalRef.current) {
+      clearInterval(generationIntervalRef.current);
+      generationIntervalRef.current = null;
+    }
+    if (!quote) {
+      setGenerationProgress(0);
+      return;
+    }
+    setHideQuote(false);
+    setGenerationProgress(0);
+    showToast("Quote generated", "success");
   }
 
   async function handleCapture() {
@@ -153,10 +194,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         quality: 0.9,
       });
       setSelectedImageUri(photo.uri);
-      setImageContextUrl(null);
       setHideQuote(true);
+      await generateForImage(photo.uri);
+      setImageContextUrl(null);
       setHasSavedCurrentPhoto(false);
-      showToast("Photo captured", "success");
+      showToast(strings.camera.info.photoCaptured, "success");
     } finally {
       setIsCapturing(false);
     }
@@ -164,27 +206,25 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   async function handleGenerateAI() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const quote = await generate(
-      imageContextUrl ?? undefined,
-      imageContextUrl ? undefined : selectedImageUri ?? undefined,
-    );
-    if (!quote) {
-      return;
-    }
-    setHideQuote(false);
-    showToast("Quote generated", "success");
+    await generateForImage(selectedImageUri);
+  }
+
+  function handleClearQuote() {
+    clearDailyQuote();
+    setHideQuote(true);
+    setGenerationProgress(0);
   }
 
   async function handleSavePhoto() {
     if (!selectedImageUri) {
-      showToast("No photo to save", "error");
+      showToast(strings.camera.errors.noPhotoToSave, "error");
       return;
     }
     if (isSavingPhoto) {
       return;
     }
     if (hasSavedCurrentPhoto) {
-      showToast("Photo already saved", "info");
+      showToast(strings.camera.info.photoAlreadySaved, "info");
       return;
     }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -200,7 +240,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         quote: quoteText,
       });
       if (!result) {
-        showToast("Failed to save photo", "error");
+        showToast(strings.camera.errors.failedToSavePhoto, "error");
         return;
       }
       clearDailyQuote();
@@ -219,7 +259,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           styleFontId: "default",
           styleColorSchemeId: "default",
           createdAt: now,
-          visibility: QuoteVisibility.private,
+          visibility: "private",
           isFavorite: false,
         });
       }
@@ -233,9 +273,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       }
       setSelectedImageUri(null);
       setImageContextUrl(null);
-      setHideQuote(false);
+      setHideQuote(true);
       setHasSavedCurrentPhoto(false);
-      showToast("Photo saved", "success");
+      setGenerationProgress(0);
+      showToast(strings.camera.success.photoSaved, "success");
       onPhotoSaved?.();
     } finally {
       setIsSavingPhoto(false);
@@ -246,7 +287,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      showToast("We need gallery access to pick photos.", "error");
+      showToast(strings.camera.errors.galleryPermissionRequired, "error");
       return;
     }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -264,7 +305,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setImageContextUrl(null);
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
-    showToast("Photo selected", "success");
+    showToast(strings.camera.info.photoSelected, "success");
   }
 
   const isPortrait = orientation === "portrait";
@@ -293,10 +334,12 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     handleToggleOrientation,
     handleCapture,
     handleGenerateAI,
+    handleClearQuote,
     handleSavePhoto,
     handleOpenGallery,
     clearSelectedImage,
     isGenerating,
+    generationProgress,
     dailyQuoteText: dailyQuote?.text ?? null,
   };
 };

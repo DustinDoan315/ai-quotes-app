@@ -33,12 +33,6 @@ export default function RootLayout() {
         console.error("Failed to get Supabase session:", error);
       });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      syncUserProfile(session?.user ?? null);
-    });
-
     if (process.env.EXPO_PUBLIC_POSTHOG_API_KEY) {
       initPostHog(
         process.env.EXPO_PUBLIC_POSTHOG_API_KEY,
@@ -50,9 +44,7 @@ export default function RootLayout() {
       initSentry(process.env.EXPO_PUBLIC_SENTRY_DSN);
     }
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => {};
   }, []);
 
   return (

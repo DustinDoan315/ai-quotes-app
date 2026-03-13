@@ -1,0 +1,292 @@
+import { useMemoryStore } from "@/appState";
+import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
+import { Image } from "expo-image";
+import { useMemo, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+
+type DaySummary = {
+  date: string;
+  hasMine: boolean;
+  hasFavorite: boolean;
+  isStreak: boolean;
+  thumbnailUri: string | null;
+};
+
+type CalendarDayProps = {
+  summary: DaySummary | null;
+  onPress: (date: string) => void;
+  isToday: boolean;
+};
+
+const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function getMonthKey(date: Date) {
+  return date.toISOString().slice(0, 7);
+}
+
+function formatDateKey(date: Date) {
+  return date.toISOString().split("T")[0];
+}
+
+function buildMonthDays(
+  year: number,
+  monthIndex: number,
+  summaries: Record<string, Omit<DaySummary, "isStreak">>,
+  streakDates: Set<string>,
+  thumbnails: Record<string, string>,
+): DaySummary[] {
+  const days: DaySummary[] = [];
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const d = new Date(year, monthIndex, day);
+    const dateKey = formatDateKey(d);
+    const base = summaries[dateKey];
+    days.push({
+      date: dateKey,
+      hasMine: base?.hasMine ?? false,
+      hasFavorite: base?.hasFavorite ?? false,
+      isStreak: streakDates.has(dateKey),
+      thumbnailUri: thumbnails[dateKey] ?? null,
+    });
+  }
+  return days;
+}
+
+function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
+  if (!summary) {
+    return <View className="h-14 w-14 items-center justify-center" />;
+  }
+  const hasMine = summary.hasMine;
+  const hasFavorite = summary.hasFavorite;
+  const isStreak = summary.isStreak;
+  const hasThumb = Boolean(summary.thumbnailUri);
+  return (
+    <Pressable
+      onPress={() => onPress(summary.date)}
+      className="h-14 w-14 items-center justify-center rounded-2xl overflow-hidden"
+      style={({ pressed }) => ({
+        backgroundColor: hasThumb
+          ? "transparent"
+          : hasMine
+            ? "rgba(139, 92, 246, 0.25)"
+            : isToday
+              ? "rgba(251, 191, 36, 0.2)"
+              : "rgba(255,255,255,0.06)",
+        borderWidth: isToday ? 2 : 0,
+        borderColor: "rgba(251, 191, 36, 0.8)",
+        opacity: pressed ? 0.85 : 1,
+      })}>
+      {hasThumb && summary.thumbnailUri ? (
+        <>
+          <Image
+            source={{ uri: summary.thumbnailUri }}
+            className="absolute inset-0 w-full h-full"
+            contentFit="cover"
+          />
+          <View className="absolute inset-0 bg-black/40" />
+          <Text className="text-sm font-bold text-white z-10 drop-shadow">
+            {new Date(summary.date).getDate()}
+          </Text>
+          <View className="absolute bottom-0.5 left-0 right-0 flex-row justify-center gap-0.5 z-10">
+            {hasFavorite ? <Text className="text-[10px]">⭐</Text> : null}
+            {isStreak ? <Text className="text-[10px]">🔥</Text> : null}
+          </View>
+        </>
+      ) : (
+        <>
+          <Text
+            className={`text-base font-bold ${isToday ? "text-amber-400" : "text-white"}`}>
+            {new Date(summary.date).getDate()}
+          </Text>
+          <View className="mt-1 flex-row items-center gap-1">
+            {hasMine ? (
+              <View className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+            ) : null}
+            {isStreak ? <Text className="text-xs">🔥</Text> : null}
+            {hasFavorite ? <Text className="text-xs">⭐</Text> : null}
+          </View>
+        </>
+      )}
+    </Pressable>
+  );
+}
+
+type Props = {
+  onPressDay: (date: string) => void;
+};
+
+const MONTH_KEY_LEN = 7;
+
+function getThumbnailsForMonth(
+  memories: { date: string; photoBackgroundUri: string | null }[],
+  monthKey: string,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  memories.forEach((m) => {
+    if (m.date.slice(0, MONTH_KEY_LEN) !== monthKey || !m.photoBackgroundUri) return;
+    if (!out[m.date]) out[m.date] = m.photoBackgroundUri;
+  });
+  return out;
+}
+
+export function MemoriesCalendarScreen({ onPressDay }: Props) {
+  const [cursorMonth, setCursorMonth] = useState(() => new Date());
+  const memories = useMemoryStore((s) => s.memories);
+  const getCalendarSummaryForMonth = useMemoryStore(
+    (s) => s.getCalendarSummaryForMonth,
+  );
+  const currentStreak = useStreakStore((s) => s.currentStreak);
+  const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
+  const displayStreak = getDisplayStreak({ currentStreak, lastQuoteDate });
+
+  const monthKey = getMonthKey(cursorMonth);
+  const summarySelector = useMemo(
+    () => getCalendarSummaryForMonth(monthKey),
+    [getCalendarSummaryForMonth, monthKey],
+  );
+
+  const thumbnails = useMemo(
+    () => getThumbnailsForMonth(memories, monthKey),
+    [memories, monthKey],
+  );
+
+  const streakDates = useMemo(() => {
+    const dates = new Set<string>();
+    if (!lastQuoteDate || displayStreak === 0) {
+      return dates;
+    }
+    const lastDate = new Date(lastQuoteDate);
+    for (let i = 0; i < displayStreak; i += 1) {
+      const d = new Date(lastDate);
+      d.setDate(lastDate.getDate() - i);
+      dates.add(formatDateKey(d));
+    }
+    return dates;
+  }, [lastQuoteDate, displayStreak]);
+
+  const year = cursorMonth.getFullYear();
+  const monthIndex = cursorMonth.getMonth();
+  const summariesWithDate = useMemo(
+    () =>
+      Object.keys(summarySelector).reduce(
+        (acc, key) => {
+          const value = summarySelector[key];
+          acc[key] = {
+            date: key,
+            hasMine: value.hasMine,
+            hasFavorite: value.hasFavorite,
+          };
+          return acc;
+        },
+        {} as Record<string, { date: string; hasMine: boolean; hasFavorite: boolean }>,
+      ),
+    [summarySelector],
+  );
+
+  const monthDays = buildMonthDays(
+    year,
+    monthIndex,
+    summariesWithDate,
+    streakDates,
+    thumbnails,
+  );
+
+  const todayKey = formatDateKey(new Date());
+
+  const firstWeekday = new Date(year, monthIndex, 1).getDay();
+  const gridDays: (DaySummary | null)[] = [];
+  for (let i = 0; i < firstWeekday; i += 1) {
+    gridDays.push(null);
+  }
+  monthDays.forEach((d) => gridDays.push(d));
+
+  function handleChangeMonth(offset: number) {
+    setCursorMonth((prev) => {
+      const next = new Date(prev);
+      next.setMonth(prev.getMonth() + offset);
+      return next;
+    });
+  }
+
+  const monthLabel = cursorMonth.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+  });
+
+  return (
+    <View className="flex-1 bg-black">
+      <View className="bg-[#1e1b4b] px-5 pt-14 pb-6">
+        <Text className="text-2xl font-bold text-white tracking-tight">
+          Memories
+        </Text>
+        <Text className="mt-0.5 text-sm text-violet-300/90">
+          Your quote calendar · tap a day to see details
+        </Text>
+        <View className="mt-5 flex-row items-center justify-between">
+          <Pressable
+            onPress={() => handleChangeMonth(-1)}
+            className="h-11 w-11 items-center justify-center rounded-xl bg-violet-500/30">
+            <Text className="text-lg font-semibold text-white">‹</Text>
+          </Pressable>
+          <Text className="text-lg font-semibold text-white">{monthLabel}</Text>
+          <Pressable
+            onPress={() => handleChangeMonth(1)}
+            className="h-11 w-11 items-center justify-center rounded-xl bg-violet-500/30">
+            <Text className="text-lg font-semibold text-white">›</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <View className="mb-1 flex-row justify-between px-1 pt-4">
+        {weekdayLabels.map((label, index) => (
+          <Text
+            key={`${label}-${index}`}
+            className="flex-1 text-center text-xs font-semibold text-violet-400/80">
+            {label}
+          </Text>
+        ))}
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 4 }}>
+        <View className="flex-row flex-wrap">
+          {gridDays.map((day, index) => (
+            <View
+              key={day ? day.date : `empty-${index}`}
+              className="w-[14.28%] items-center pb-3 px-0.5">
+              <CalendarDay
+                summary={day}
+                onPress={onPressDay}
+                isToday={day ? day.date === todayKey : false}
+              />
+            </View>
+          ))}
+        </View>
+        <View className="mt-6 flex-row flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+          <View className="flex-row items-center gap-2">
+            <View className="h-2.5 w-2.5 rounded-full bg-violet-400" />
+            <Text className="text-xs text-white/80">Your quote</Text>
+          </View>
+          <View className="flex-row items-center gap-1">
+            <Text className="text-sm">🔥</Text>
+            <Text className="text-xs text-white/80">Streak day</Text>
+          </View>
+          <View className="flex-row items-center gap-1">
+            <Text className="text-sm">⭐</Text>
+            <Text className="text-xs text-white/80">Favorite</Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <View className="h-2.5 w-2.5 rounded-full border-2 border-amber-400 bg-transparent" />
+            <Text className="text-xs text-white/80">Today</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
