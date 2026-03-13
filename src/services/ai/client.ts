@@ -1,24 +1,6 @@
-import { downscaleImageForGPT } from '@/utils/imageProcessor';
-import { sanitizeQuote, validateQuote } from './safety';
+import { downscaleImageForGPT } from "@/utils/imageProcessor";
+import { sanitizeQuote, validateQuote } from "./safety";
 import type { GenerateQuoteRequest, GenerateQuoteResponse } from "./types";
-
-
-const COOLDOWN_MS = 10000;
-let lastRequestTime = 0;
-
-const checkCooldown = (): void => {
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-
-  if (timeSinceLastRequest < COOLDOWN_MS) {
-    const waitTime = COOLDOWN_MS - timeSinceLastRequest;
-    throw new Error(
-      `Please wait ${Math.ceil(waitTime / 1000)} seconds before generating another quote`,
-    );
-  }
-
-  lastRequestTime = now;
-};
 
 export const generateQuote = async (
   request: GenerateQuoteRequest,
@@ -29,8 +11,6 @@ export const generateQuote = async (
     hasImageUri: !!request.imageUri,
     hasImageContext: !!request.imageContext,
   });
-
-  checkCooldown();
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;

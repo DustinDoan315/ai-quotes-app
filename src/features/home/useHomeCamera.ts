@@ -148,7 +148,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     clearDailyQuote();
   }
 
-  async function generateForImage(sourceUri: string | null) {
+  async function generateForImage(
+    sourceUri: string | null,
+    enforceCooldown: boolean,
+  ) {
     if (!sourceUri) {
       return;
     }
@@ -168,6 +171,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     const quote = await generate(
       imageContextUrl ?? undefined,
       imageContextUrl ? undefined : sourceUri,
+      enforceCooldown,
     );
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
@@ -194,7 +198,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       });
       setSelectedImageUri(photo.uri);
       setHideQuote(true);
-      await generateForImage(photo.uri);
+      await generateForImage(photo.uri, false);
       setImageContextUrl(null);
       setHasSavedCurrentPhoto(false);
       showToast(strings.camera.info.photoCaptured, "success");
@@ -205,7 +209,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   async function handleGenerateAI() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await generateForImage(selectedImageUri);
+    await generateForImage(selectedImageUri, true);
   }
 
   function handleClearQuote() {

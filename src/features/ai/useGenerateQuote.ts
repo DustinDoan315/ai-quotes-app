@@ -1,11 +1,12 @@
-import { generateQuote } from '@/services/ai/client';
-import { useAIStore } from './aiStore';
-import { useQuoteStore } from '@/appState/quoteStore';
-import { useUIStore } from '@/appState/uiStore';
-import { useUserStore } from '@/appState/userStore';
+import { generateQuote } from "@/services/ai/client";
+import { useAIStore } from "./aiStore";
+import { useQuoteStore } from "@/appState/quoteStore";
+import { useUIStore } from "@/appState/uiStore";
+import { useUserStore } from "@/appState/userStore";
 
 const MAX_PERSONA_TRAITS = 8;
 const MAX_PERSONA_TRAIT_LENGTH = 40;
+const COOLDOWN_MS = 10000;
 
 const normalizePersonaTraits = (traits: string[] | undefined): string[] => {
   if (!traits || traits.length === 0) {
@@ -25,16 +26,31 @@ const normalizePersonaTraits = (traits: string[] | undefined): string[] => {
 };
 
 export const useGenerateQuote = () => {
-  const { setIsGenerating, setLastGeneratedAt } = useAIStore();
+  const { setIsGenerating, setLastGeneratedAt, lastGeneratedAt } = useAIStore();
   const { setDailyQuote, addToHistory } = useQuoteStore();
   const { persona } = useUserStore();
   const { showToast } = useUIStore();
 
-  const generate = async (imageContext?: string, imageUri?: string) => {
+  const generate = async (
+    imageContext?: string,
+    imageUri?: string,
+    enforceCooldown: boolean = true,
+  ) => {
     console.log("AI useGenerateQuote.generate called", {
       hasPersona: !!persona,
       hasImageUri: !!imageUri,
     });
+
+    if (enforceCooldown && lastGeneratedAt != null) {
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastGeneratedAt;
+      if (timeSinceLastRequest < COOLDOWN_MS) {
+        const waitTime = COOLDOWN_MS - timeSinceLastRequest;
+        throw new Error(
+          `Please wait ${Math.ceil(waitTime / 1000)} seconds before generating another quote`,
+        );
+      }
+    }
 
     const effectivePersonaId = persona?.id ?? "guest";
     const effectiveTraits = normalizePersonaTraits(persona?.traits);
