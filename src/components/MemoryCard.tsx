@@ -11,6 +11,8 @@ type Props = {
   photoOrientation?: QuoteImageOrientation;
   isFavorite?: boolean;
   createdAt: string;
+  styleFontId?: "small" | "medium" | "large";
+  styleColorSchemeId?: "light" | "amber" | "pink";
 };
 
 const MAX_WIDTH = Dimensions.get("window").width - 32;
@@ -27,6 +29,8 @@ export function MemoryCard({
   photoOrientation = "portrait",
   isFavorite = false,
   createdAt,
+  styleFontId = "medium",
+  styleColorSchemeId = "light",
 }: Props) {
   const aspect = getCardAspect(photoOrientation);
   const cardWidth = MAX_WIDTH;
@@ -35,6 +39,15 @@ export function MemoryCard({
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const fontSize =
+    styleFontId === "small" ? 16 : styleFontId === "large" ? 24 : 18;
+  const textColor =
+    styleColorSchemeId === "amber"
+      ? "#FBBF24"
+      : styleColorSchemeId === "pink"
+      ? "#F9A8D4"
+      : "#FFFFFF";
 
   return (
     <View
@@ -53,7 +66,8 @@ export function MemoryCard({
           />
           <View className="absolute inset-x-0 bottom-0 z-10 bg-black/60 px-4 pb-3 pt-4">
             <Text
-              className="text-[13px] font-semibold text-white"
+              className="font-semibold"
+              style={{ fontSize, color: textColor }}
               numberOfLines={3}>
               {quote}
             </Text>
@@ -81,7 +95,8 @@ export function MemoryCard({
       ) : (
         <View className="h-full w-full justify-center bg-white/5 px-5">
           <Text
-            className="text-[13px] font-semibold text-white"
+            className="font-semibold"
+            style={{ fontSize, color: textColor }}
             numberOfLines={3}>
             {quote}
           </Text>

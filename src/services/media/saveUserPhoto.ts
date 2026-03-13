@@ -13,6 +13,8 @@ type SaveUserPhotoParams = {
   guestId: string | null;
   quote?: string | null;
   orientation?: QuoteOrientation;
+  styleFontId?: "small" | "medium" | "large";
+  styleColorSchemeId?: "light" | "amber" | "pink";
 };
 
 type SaveUserPhotoResult = {
@@ -66,6 +68,8 @@ export const saveUserPhoto = async (
     guestId,
     quote,
     orientation = "portrait",
+    styleFontId = "medium",
+    styleColorSchemeId = "light",
   } = params;
 
   if (!localUri) {
@@ -147,6 +151,8 @@ export const saveUserPhoto = async (
     image_url: publicUrl,
     storage_path: path,
     quote: quote ?? "",
+    style_font_id: styleFontId,
+    style_color_scheme_id: styleColorSchemeId,
   });
 
   if (insertError) {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Image } from "expo-image";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import { LayoutChangeEvent, Text, View } from "react-native";
@@ -8,6 +9,119 @@ type Props = {
   onFeedLayoutYChange: (y: number) => void;
   authorName: string;
   authorAvatarUrl: string | null;
+};
+
+type QuoteMomentCardProps = {
+  item: QuotePhotoCard;
+  screenHeight: number;
+  authorName: string;
+  authorAvatarUrl: string | null;
+};
+
+const FALLBACK_ASPECT = 3 / 4;
+
+const QuoteMomentCard = ({
+  item,
+  screenHeight,
+  authorName,
+  authorAvatarUrl,
+}: QuoteMomentCardProps) => {
+  const [aspectRatio, setAspectRatio] = useState<number>(FALLBACK_ASPECT);
+
+  const createdTimeLabel = new Date(item.createdAt).toLocaleTimeString(
+    undefined,
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );
+
+  const fontSize =
+    item.styleFontId === "small"
+      ? 16
+      : item.styleFontId === "large"
+      ? 24
+      : 18;
+  const textColor =
+    item.styleColorSchemeId === "amber"
+      ? "#FBBF24"
+      : item.styleColorSchemeId === "pink"
+      ? "#F9A8D4"
+      : "#FFFFFF";
+
+  return (
+    <View
+      style={{ height: screenHeight }}
+      className="items-center justify-center py-6"
+    >
+      <View className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50">
+        <View
+          style={{ aspectRatio }}
+          className="relative overflow-hidden bg-black"
+        >
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            onLoad={(event) => {
+              const source = event.source;
+              if (!source || !source.width || !source.height) {
+                return;
+              }
+              setAspectRatio(source.width / source.height);
+            }}
+          />
+          <View className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+          <View className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-3">
+            <View className="mb-2 flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <View className="h-8 w-8 overflow-hidden rounded-full bg-white/15">
+                  {authorAvatarUrl ? (
+                    <Image
+                      source={{ uri: authorAvatarUrl }}
+                      style={{ width: "100%", height: "100%" }}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <View className="h-full w-full items-center justify-center">
+                      <Text className="text-xs font-semibold text-white/85">
+                        {authorName.trim().slice(0, 1).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View className="ml-2">
+                  <Text
+                    className="text-xs font-semibold text-white"
+                    numberOfLines={1}
+                  >
+                    {authorName}
+                  </Text>
+                  <Text className="text-[11px] text-white/70">
+                    {createdTimeLabel}
+                  </Text>
+                </View>
+              </View>
+              <View className="rounded-full bg-white/15 px-2.5 py-1">
+                <Text className="text-[11px] font-medium text-white/85">
+                  Moment
+                </Text>
+              </View>
+            </View>
+            {item.quote ? (
+              <Text
+                className="mt-1 font-semibold leading-snug"
+                style={{ fontSize, color: textColor }}
+                numberOfLines={4}
+              >
+                {item.quote}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      </View>
+    </View>
+  );
 };
 
 export const QuoteMomentsFeed = ({
@@ -34,55 +148,15 @@ export const QuoteMomentsFeed = ({
         </View>
       ) : (
         <>
-          {items.map((item) => {
-            return (
-              <View
-                key={item.id}
-                style={{ height: screenHeight }}
-                className="items-center justify-center py-6">
-                <View className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-lg shadow-black/40">
-                  <View style={{ aspectRatio: 3 / 4 }} className="relative">
-                    <Image
-                      source={{ uri: item.imageUrl }}
-                      style={{ width: "100%", height: "100%" }}
-                      contentFit="cover"
-                    />
-                    <View className="absolute inset-x-0 bottom-0 bg-black/65 px-5 py-4">
-                      <View className="mb-3 flex-row items-center">
-                        <View className="h-8 w-8 overflow-hidden rounded-full bg-white/10">
-                          {authorAvatarUrl ? (
-                            <Image
-                              source={{ uri: authorAvatarUrl }}
-                              style={{ width: "100%", height: "100%" }}
-                              contentFit="cover"
-                            />
-                          ) : (
-                            <View className="h-full w-full items-center justify-center">
-                              <Text className="text-xs font-semibold text-white/80">
-                                {authorName.trim().slice(0, 1).toUpperCase()}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text
-                          className="ml-2 flex-1 text-xs font-semibold text-white/90"
-                          numberOfLines={1}
-                        >
-                          {authorName}
-                        </Text>
-                      </View>
-                      <Text
-                        className="mb-3 text-sm font-semibold leading-snug text-white"
-                        numberOfLines={4}
-                      >
-                        {item.quote}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            );
-          })}
+          {items.map((item) => (
+            <QuoteMomentCard
+              key={item.id}
+              item={item}
+              screenHeight={screenHeight}
+              authorName={authorName}
+              authorAvatarUrl={authorAvatarUrl}
+            />
+          ))}
         </>
       )}
     </View>

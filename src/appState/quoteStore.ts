@@ -10,6 +10,8 @@ export type Quote = {
   personaId?: string;
   createdAt: number;
   imageUrl?: string;
+  fontSize?: 'small' | 'medium' | 'large';
+  colorScheme?: 'light' | 'amber' | 'pink';
 };
 
 type QuoteState = {
@@ -18,6 +20,7 @@ type QuoteState = {
   savedQuotes: Quote[];
   recentQuoteIds: string[];
   setDailyQuote: (quote: Quote) => void;
+  setQuoteStyle: (style: { fontSize?: 'small' | 'medium' | 'large'; colorScheme?: 'light' | 'amber' | 'pink' }) => void;
   addToHistory: (quote: Quote) => void;
   saveQuote: (quote: Quote) => void;
   removeSavedQuote: (quoteId: string) => void;
@@ -37,6 +40,17 @@ export const useQuoteStore = create<QuoteState>()(
     (set) => ({
       ...initialState,
       setDailyQuote: (quote) => set({ dailyQuote: quote }),
+      setQuoteStyle: (style) =>
+        set((state) =>
+          state.dailyQuote
+            ? {
+                dailyQuote: {
+                  ...state.dailyQuote,
+                  ...style,
+                },
+              }
+            : state,
+        ),
       addToHistory: (quote) =>
         set((state) => ({
           history: [quote, ...state.history].slice(0, 100),

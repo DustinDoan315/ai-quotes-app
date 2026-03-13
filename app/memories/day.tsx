@@ -148,6 +148,10 @@ export default function MemoriesDayScreen() {
               photoOrientation={memory.photoOrientation}
               isFavorite={memory.isFavorite}
               createdAt={memory.createdAt}
+              styleFontId={memory.styleFontId as "small" | "medium" | "large"}
+              styleColorSchemeId={
+                memory.styleColorSchemeId as "light" | "amber" | "pink"
+              }
             />
           ))
         )}

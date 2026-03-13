@@ -8,6 +8,8 @@ const quotePhotoRowSchema = z.object({
   quote: z.string().max(180).nullable().optional(),
   user_id: z.string().nullable().optional(),
   guest_id: z.string().nullable().optional(),
+  style_font_id: z.string().nullable().optional(),
+  style_color_scheme_id: z.string().nullable().optional(),
 });
 
 export type QuotePhotoCard = {
@@ -17,6 +19,8 @@ export type QuotePhotoCard = {
   createdAt: string;
   userId: string | null;
   guestId: string | null;
+  styleFontId: "small" | "medium" | "large";
+  styleColorSchemeId: "light" | "amber" | "pink";
 };
 
 type ListQuotePhotoCardsParams = {
@@ -30,7 +34,9 @@ export const listQuotePhotoCards = async (
 ): Promise<QuotePhotoCard[]> => {
   let query = supabase
     .from("user_photos")
-    .select("id, image_url, created_at, quote, user_id, guest_id")
+    .select(
+      "id, image_url, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id",
+    )
     .order("created_at", { ascending: false });
 
   if (params.userId) {
@@ -66,6 +72,9 @@ export const listQuotePhotoCards = async (
     quote: row.quote ?? "",
     userId: row.user_id ?? null,
     guestId: row.guest_id ?? null,
+    styleFontId: (row.style_font_id as "small" | "medium" | "large") ?? "medium",
+    styleColorSchemeId:
+      (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
   }));
 };
 

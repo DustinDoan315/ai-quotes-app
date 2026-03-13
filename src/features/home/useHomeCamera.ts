@@ -70,6 +70,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     useState(false);
   const [zoom, setZoom] = useState(() => factorToZoom(1));
   const [generationProgress, setGenerationProgress] = useState(0);
+  const [quoteFontSize, setQuoteFontSize] = useState<"small" | "medium" | "large">("medium");
+  const [quoteColorScheme, setQuoteColorScheme] = useState<"light" | "amber" | "pink">("light");
   const cameraRef = useRef<CameraView | null>(null);
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
@@ -84,7 +86,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const { showToast } = useUIStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
-  const addMemory = useMemoryStore((s) => s.addMemory);
+  const addMemory = useMemoryStore(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => state.addMemory,
+  );
 
   zoomRef.current = zoom;
 
@@ -242,6 +247,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         guestId,
         quote: quoteText,
         orientation: isPortrait ? "portrait" : "landscape",
+        styleFontId: quoteFontSize,
+        styleColorSchemeId: quoteColorScheme,
       });
       if (!result) {
         showToast(strings.camera.errors.failedToSavePhoto, "error");
@@ -261,8 +268,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           personaId: null,
           photoBackgroundUri: result.publicUrl,
           photoOrientation: result.orientation,
-          styleFontId: "default",
-          styleColorSchemeId: "default",
+          styleFontId: quoteFontSize,
+          styleColorSchemeId: quoteColorScheme,
           createdAt: now,
           visibility: "private",
           isFavorite: false,
@@ -345,6 +352,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     clearSelectedImage,
     isGenerating,
     generationProgress,
+    quoteFontSize,
+    quoteColorScheme,
+    setQuoteFontSize,
+    setQuoteColorScheme,
     dailyQuoteText: dailyQuote?.text ?? null,
   };
 };

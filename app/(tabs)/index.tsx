@@ -87,6 +87,10 @@ export default function HomeScreen() {
     dailyQuoteText,
     handleClearQuote,
     handleGenerateAI,
+    quoteFontSize,
+    quoteColorScheme,
+    setQuoteFontSize,
+    setQuoteColorScheme,
   } = useHomeCamera({
     onPhotoSaved: () => {
       refreshSilently();
@@ -357,6 +361,12 @@ export default function HomeScreen() {
                 dailyQuoteText={dailyQuoteText}
                 isGenerating={isGenerating}
                 generationProgress={generationProgress}
+                quoteFontSize={quoteFontSize}
+                quoteColorScheme={quoteColorScheme}
+                onChangeQuoteFontSize={setQuoteFontSize}
+                onChangeQuoteColorScheme={setQuoteColorScheme}
+                authorName={authorName}
+                authorAvatarUrl={authorAvatarUrl}
                 onCameraReady={handleCameraReady}
                 onZoomPresetPress={handleZoomPreset}
                 onToggleOrientation={handleToggleOrientation}
