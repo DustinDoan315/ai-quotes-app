@@ -1,4 +1,6 @@
 import { useMemoryStore } from "@/appState";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { Image } from "expo-image";
 import { useMemo, useState } from "react";
@@ -73,7 +75,7 @@ function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
         backgroundColor: hasThumb
           ? "transparent"
           : hasMine
-            ? "rgba(139, 92, 246, 0.25)"
+            ? "rgba(255,255,255,0.12)"
             : isToday
               ? "rgba(251, 191, 36, 0.2)"
               : "rgba(255,255,255,0.06)",
@@ -105,7 +107,7 @@ function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
           </Text>
           <View className="mt-1 flex-row items-center gap-1">
             {hasMine ? (
-              <View className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+              <View className="h-1.5 w-1.5 rounded-full bg-white" />
             ) : null}
             {isStreak ? <Text className="text-xs">🔥</Text> : null}
             {hasFavorite ? <Text className="text-xs">⭐</Text> : null}
@@ -135,6 +137,7 @@ function getThumbnailsForMonth(
 }
 
 export function MemoriesCalendarScreen({ onPressDay }: Props) {
+  const router = useRouter();
   const [cursorMonth, setCursorMonth] = useState(() => new Date());
   const memories = useMemoryStore((s) => s.memories);
   const getCalendarSummaryForMonth = useMemoryStore(
@@ -220,23 +223,35 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
 
   return (
     <View className="flex-1 bg-black">
-      <View className="bg-[#1e1b4b] px-5 pt-14 pb-6">
-        <Text className="text-2xl font-bold text-white tracking-tight">
-          Memories
+      <View className="border-b border-white/10 bg-black px-5 pt-14 pb-6">
+        <View className="mb-3 flex-row items-center justify-between">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
+            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+            <Ionicons name="chevron-back" size={22} color="#ffffff" />
+          </Pressable>
+          <Text className="text-xs font-semibold uppercase tracking-wide text-white/60">
+            Memories
+          </Text>
+          <View className="h-10 w-10" />
+        </View>
+        <Text className="text-2xl font-bold tracking-tight text-white">
+          Quote calendar
         </Text>
-        <Text className="mt-0.5 text-sm text-violet-300/90">
-          Your quote calendar · tap a day to see details
+        <Text className="mt-0.5 text-sm text-white/70">
+          Tap a day to revisit your saved quotes.
         </Text>
         <View className="mt-5 flex-row items-center justify-between">
           <Pressable
             onPress={() => handleChangeMonth(-1)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-violet-500/30">
+            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10">
             <Text className="text-lg font-semibold text-white">‹</Text>
           </Pressable>
           <Text className="text-lg font-semibold text-white">{monthLabel}</Text>
           <Pressable
             onPress={() => handleChangeMonth(1)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-violet-500/30">
+            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10">
             <Text className="text-lg font-semibold text-white">›</Text>
           </Pressable>
         </View>
@@ -246,7 +261,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         {weekdayLabels.map((label, index) => (
           <Text
             key={`${label}-${index}`}
-            className="flex-1 text-center text-xs font-semibold text-violet-400/80">
+            className="flex-1 text-center text-xs font-semibold text-white/60">
             {label}
           </Text>
         ))}
@@ -270,7 +285,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         </View>
         <View className="mt-6 flex-row flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
           <View className="flex-row items-center gap-2">
-            <View className="h-2.5 w-2.5 rounded-full bg-violet-400" />
+            <View className="h-2.5 w-2.5 rounded-full bg-white" />
             <Text className="text-xs text-white/80">Your quote</Text>
           </View>
           <View className="flex-row items-center gap-1">

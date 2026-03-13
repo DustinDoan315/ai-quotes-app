@@ -10,6 +10,7 @@ type Props = {
   photoBackgroundUri: string | null;
   photoOrientation?: QuoteImageOrientation;
   isFavorite?: boolean;
+  createdAt: string;
 };
 
 const MAX_WIDTH = Dimensions.get("window").width - 32;
@@ -25,10 +26,15 @@ export function MemoryCard({
   photoBackgroundUri,
   photoOrientation = "portrait",
   isFavorite = false,
+  createdAt,
 }: Props) {
   const aspect = getCardAspect(photoOrientation);
   const cardWidth = MAX_WIDTH;
   const cardHeight = cardWidth / aspect;
+  const createdTimeLabel = new Date(createdAt).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
     <View
@@ -51,13 +57,20 @@ export function MemoryCard({
               numberOfLines={3}>
               {quote}
             </Text>
-            {author ? (
-              <Text
-                className="mt-1 text-[11px] text-white/80"
-                numberOfLines={1}>
-                — {author}
+            <View className="mt-1 flex-row items-center justify-between">
+              {author ? (
+                <Text
+                  className="text-[11px] text-white/80"
+                  numberOfLines={1}>
+                  — {author}
+                </Text>
+              ) : (
+                <View />
+              )}
+              <Text className="text-[11px] font-medium text-white/80">
+                {createdTimeLabel}
               </Text>
-            ) : null}
+            </View>
           </View>
           {isFavorite ? (
             <View className="absolute right-2 top-2 z-20 rounded-full bg-amber-400/95 px-1.5 py-0.5">
@@ -72,11 +85,18 @@ export function MemoryCard({
             numberOfLines={3}>
             {quote}
           </Text>
-          {author ? (
-            <Text className="mt-2 text-[11px] text-white/70" numberOfLines={1}>
-              — {author}
+          <View className="mt-2 flex-row items-center justify-between">
+            {author ? (
+              <Text className="text-[11px] text-white/70" numberOfLines={1}>
+                — {author}
+              </Text>
+            ) : (
+              <View />
+            )}
+            <Text className="text-[11px] font-medium text-white/80">
+              {createdTimeLabel}
             </Text>
-          ) : null}
+          </View>
           {isFavorite ? (
             <View className="absolute right-2 top-2 rounded-full bg-amber-400/95 px-1.5 py-0.5">
               <Text className="text-[10px]">⭐</Text>
