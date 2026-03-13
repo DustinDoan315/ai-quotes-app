@@ -1,15 +1,12 @@
-import { useMemoryStore } from "@/appState";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
-import { Image } from "expo-image";
 import { useMemo, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+
+import { useMemoryStore } from "@/appState";
+import type { MemoryState } from "@/appState/memoryStore";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 
 type DaySummary = {
   date: string;
@@ -35,10 +32,16 @@ function formatDateKey(date: Date) {
   return date.toISOString().split("T")[0];
 }
 
+type MonthSummaryWithoutStreak = {
+  date: string;
+  hasMine: boolean;
+  hasFavorite: boolean;
+};
+
 function buildMonthDays(
   year: number,
   monthIndex: number,
-  summaries: Record<string, Omit<DaySummary, "isStreak">>,
+  summaries: Record<string, MonthSummaryWithoutStreak>,
   streakDates: Set<string>,
   thumbnails: Record<string, string>,
 ): DaySummary[] {
@@ -67,53 +70,52 @@ function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
   const hasFavorite = summary.hasFavorite;
   const isStreak = summary.isStreak;
   const hasThumb = Boolean(summary.thumbnailUri);
+  const dayNumber = new Date(summary.date).getDate();
   return (
     <Pressable
       onPress={() => onPress(summary.date)}
       className="h-14 w-14 items-center justify-center rounded-2xl overflow-hidden"
       style={({ pressed }) => ({
-        backgroundColor: hasThumb
-          ? "transparent"
-          : hasMine
-            ? "rgba(255,255,255,0.12)"
-            : isToday
-              ? "rgba(251, 191, 36, 0.2)"
-              : "rgba(255,255,255,0.06)",
-        borderWidth: isToday ? 2 : 0,
-        borderColor: "rgba(251, 191, 36, 0.8)",
+        backgroundColor: "transparent",
+        borderWidth: 0,
+        borderColor: "transparent",
         opacity: pressed ? 0.85 : 1,
       })}>
       {hasThumb && summary.thumbnailUri ? (
         <>
           <Image
             source={{ uri: summary.thumbnailUri }}
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 h-full w-full"
             contentFit="cover"
           />
           <View className="absolute inset-0 bg-black/40" />
-          <Text className="text-sm font-bold text-white z-10 drop-shadow">
-            {new Date(summary.date).getDate()}
-          </Text>
-          <View className="absolute bottom-0.5 left-0 right-0 flex-row justify-center gap-0.5 z-10">
-            {hasFavorite ? <Text className="text-[10px]">⭐</Text> : null}
-            {isStreak ? <Text className="text-[10px]">🔥</Text> : null}
-          </View>
         </>
-      ) : (
-        <>
+      ) : null}
+      <View className="z-10 items-center justify-center">
+        <View
+          className="items-center justify-center rounded-full"
+          style={{
+            width: 28,
+            height: 28,
+            backgroundColor: isToday ? "rgba(250, 204, 21, 0.95)" : "transparent",
+          }}>
           <Text
-            className={`text-base font-bold ${isToday ? "text-amber-400" : "text-white"}`}>
-            {new Date(summary.date).getDate()}
+            className="font-bold"
+            style={{
+              fontSize: 16,
+              color: isToday ? "#000000" : "#ffffff",
+            }}>
+            {dayNumber}
           </Text>
-          <View className="mt-1 flex-row items-center gap-1">
-            {hasMine ? (
-              <View className="h-1.5 w-1.5 rounded-full bg-white" />
-            ) : null}
-            {isStreak ? <Text className="text-xs">🔥</Text> : null}
-            {hasFavorite ? <Text className="text-xs">⭐</Text> : null}
-          </View>
-        </>
-      )}
+        </View>
+      </View>
+      <View className="mt-1 h-4 flex-row items-center justify-center gap-1">
+        {hasMine ? (
+          <View className="h-1.5 w-1.5 rounded-full bg-white" />
+        ) : null}
+        {isStreak ? <Text className="text-xs">🔥</Text> : null}
+        {hasFavorite ? <Text className="text-xs">⭐</Text> : null}
+      </View>
     </Pressable>
   );
 }
@@ -130,7 +132,8 @@ function getThumbnailsForMonth(
 ): Record<string, string> {
   const out: Record<string, string> = {};
   memories.forEach((m) => {
-    if (m.date.slice(0, MONTH_KEY_LEN) !== monthKey || !m.photoBackgroundUri) return;
+    if (m.date.slice(0, MONTH_KEY_LEN) !== monthKey || !m.photoBackgroundUri)
+      return;
     if (!out[m.date]) out[m.date] = m.photoBackgroundUri;
   });
   return out;
@@ -139,9 +142,9 @@ function getThumbnailsForMonth(
 export function MemoriesCalendarScreen({ onPressDay }: Props) {
   const router = useRouter();
   const [cursorMonth, setCursorMonth] = useState(() => new Date());
-  const memories = useMemoryStore((s) => s.memories);
+  const memories = useMemoryStore((s: MemoryState) => s.memories);
   const getCalendarSummaryForMonth = useMemoryStore(
-    (s) => s.getCalendarSummaryForMonth,
+    (s: MemoryState) => s.getCalendarSummaryForMonth,
   );
   const currentStreak = useStreakStore((s) => s.currentStreak);
   const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
@@ -186,7 +189,10 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
           };
           return acc;
         },
-        {} as Record<string, { date: string; hasMine: boolean; hasFavorite: boolean }>,
+        {} as Record<
+          string,
+          { date: string; hasMine: boolean; hasFavorite: boolean }
+        >,
       ),
     [summarySelector],
   );
@@ -295,10 +301,6 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
           <View className="flex-row items-center gap-1">
             <Text className="text-sm">⭐</Text>
             <Text className="text-xs text-white/80">Favorite</Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <View className="h-2.5 w-2.5 rounded-full border-2 border-amber-400 bg-transparent" />
-            <Text className="text-xs text-white/80">Today</Text>
           </View>
         </View>
       </ScrollView>

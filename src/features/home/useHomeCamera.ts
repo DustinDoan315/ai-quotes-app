@@ -201,12 +201,19 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.9,
       });
+      if (!photo || !photo.uri) {
+        showToast(strings.camera.errors.failedToSavePhoto, "error");
+        return;
+      }
       setSelectedImageUri(photo.uri);
       setHideQuote(true);
       await generateForImage(photo.uri, false);
       setImageContextUrl(null);
       setHasSavedCurrentPhoto(false);
       showToast(strings.camera.info.photoCaptured, "success");
+    } catch (error) {
+      console.error("Failed to capture image", error);
+      showToast(strings.camera.errors.failedToSavePhoto, "error");
     } finally {
       setIsCapturing(false);
     }
