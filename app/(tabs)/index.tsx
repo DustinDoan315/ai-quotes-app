@@ -1,3 +1,4 @@
+import { useMemoryStore } from "@/appState";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { CameraActionsBar } from "@/components/CameraActionsBar";
@@ -38,7 +39,7 @@ export default function HomeScreen() {
   const [milestone, setMilestone] = useState<number | null>(null);
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
   const insets = useSafeAreaInsets();
-  const displayStreak = useStreakStore((s) => getDisplayStreak(s));
+  const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
   const persona = useUserStore((s) => s.persona);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
@@ -87,12 +88,14 @@ export default function HomeScreen() {
   });
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
   const [isOnFeed, setIsOnFeed] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+  const pastMemories = useMemoryStore
+    .getState()
+    .getMemoriesOnSameDayPastYears(today);
 
   const authorName =
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
-  const actionBarBottomPadding = Math.max(insets.bottom, 24);
-  const actionBarHeight = 56 + actionBarBottomPadding + 12;
   const currentPhotoId =
     feedItems.length > 0 ? (feedItems[currentFeedIndex]?.id ?? null) : null;
   const viewabilityConfig = useRef({
@@ -117,6 +120,9 @@ export default function HomeScreen() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
+  const shouldShowMessageBar = isOnFeed && currentPhotoId;
+  const actionBarBottomPadding = insets.bottom;
+  const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
 
   async function handleReact(type: "love" | "clap" | "fire") {
     if (!currentPhotoId) {
@@ -216,7 +222,7 @@ export default function HomeScreen() {
       <FlatList
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        snapToInterval={SCREEN_HEIGHT}
+        snapToInterval={viewportHeight}
         snapToAlignment="center"
         decelerationRate="fast"
         data={feedItems}
@@ -236,15 +242,34 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View
             style={{
-              height: SCREEN_HEIGHT,
+              height: viewportHeight,
               paddingTop: insets.top,
-              paddingBottom: actionBarHeight,
             }}>
             <HomeHeader
               currentStreak={displayStreak}
               onPressProfile={() => router.push("/(tabs)/profile" as never)}
               onPressFriends={() => router.push("/(tabs)/friends" as never)}
             />
+            {pastMemories.length > 0 && (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/memories/day",
+                    params: { date: pastMemories[0].date },
+                  } as never)
+                }
+                className="mx-4 mb-3 rounded-xl border border-white/15 bg-white/8 px-4 py-3"
+                style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+                <Text className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                  This day in memories
+                </Text>
+                <Text
+                  className="mt-1 text-sm font-medium text-white"
+                  numberOfLines={2}>
+                  {pastMemories[0].quoteText}
+                </Text>
+              </Pressable>
+            )}
             {showInviteNudge && (
               <View className="mx-4 mb-2 flex-row items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3">
                 <Text className="flex-1 text-sm text-white" numberOfLines={2}>
@@ -304,13 +329,12 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <QuoteMomentsFeed
             items={[item]}
-            screenHeight={SCREEN_HEIGHT}
+            screenHeight={viewportHeight}
             onFeedLayoutYChange={() => {}}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
           />
         )}
-        contentContainerStyle={{ paddingBottom: actionBarHeight }}
       />
 
       {!isComposerOpen && (
@@ -318,7 +342,7 @@ export default function HomeScreen() {
           className="border-t border-white/10 bg-black/20 px-4 pt-2"
           style={{ paddingBottom: actionBarBottomPadding }}
           pointerEvents="box-none">
-          {isOnFeed && currentPhotoId && (
+          {shouldShowMessageBar && (
             <View className="mb-2 flex-row items-center justify-between rounded-full bg-white/10 px-3 py-2">
               <Pressable
                 onPress={() => setIsComposerOpen(true)}

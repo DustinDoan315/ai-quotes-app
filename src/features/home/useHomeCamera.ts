@@ -12,6 +12,8 @@ import { useStreakStore } from "@/appState/streakStore";
 import { useUIStore } from "@/appState/uiStore";
 import { analyticsEvents } from "@/services/analytics/events";
 import { useUserStore } from "@/appState/userStore";
+import { useMemoryStore } from "@/appState";
+import { QuoteVisibility } from "@/types/memory";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { isStreakMilestone } from "@/utils/streakMilestones";
 
@@ -78,6 +80,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const { showToast } = useUIStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
+  const addMemory = useMemoryStore((s) => s.addMemory);
 
   zoomRef.current = zoom;
 
@@ -201,6 +204,25 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       clearDailyQuote();
+      const today = new Date().toISOString().split("T")[0];
+      const now = new Date().toISOString();
+      if (quoteText) {
+        addMemory({
+          id: `${today}-${Date.now().toString(36)}`,
+          ownerUserId: userId,
+          ownerGuestId: guestId,
+          date: today,
+          quoteText,
+          author: profile?.display_name ?? profile?.username ?? null,
+          personaId: null,
+          photoBackgroundUri: selectedImageUri,
+          styleFontId: "default",
+          styleColorSchemeId: "default",
+          createdAt: now,
+          visibility: QuoteVisibility.private,
+          isFavorite: false,
+        });
+      }
       useStreakStore.getState().incrementStreak();
       const newStreak = useStreakStore.getState().currentStreak;
       if (newStreak > 0) {

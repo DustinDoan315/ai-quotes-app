@@ -1,5 +1,5 @@
-import { apiClient } from './client';
-import { QuoteResponse } from './types';
+import { apiClient } from "./client";
+import { QuoteResponse } from "./types";
 
 export const apiRoutes = {
   quotes: {

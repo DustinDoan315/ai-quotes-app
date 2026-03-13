@@ -1,4 +1,4 @@
-import { APIError, NetworkError, TimeoutError } from './errors';
+import { APIError, NetworkError, TimeoutError } from "./errors";
 
 const GPT_API_URL = process.env.EXPO_PUBLIC_GPT_API_URL || "";
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "";
