@@ -13,7 +13,6 @@ import { useUIStore } from "@/appState/uiStore";
 import { analyticsEvents } from "@/services/analytics/events";
 import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
-import { QuoteVisibility } from "@/types/memory";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { isStreakMilestone } from "@/utils/streakMilestones";
 import { strings } from "@/theme/strings";
@@ -238,6 +237,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         userId,
         guestId,
         quote: quoteText,
+        orientation: isPortrait ? "portrait" : "landscape",
       });
       if (!result) {
         showToast(strings.camera.errors.failedToSavePhoto, "error");
@@ -255,7 +255,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           quoteText,
           author: profile?.display_name ?? profile?.username ?? null,
           personaId: null,
-          photoBackgroundUri: selectedImageUri,
+          photoBackgroundUri: result.publicUrl,
+          photoOrientation: result.orientation,
           styleFontId: "default",
           styleColorSchemeId: "default",
           createdAt: now,

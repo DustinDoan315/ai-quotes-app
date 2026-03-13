@@ -1,5 +1,7 @@
 export type QuoteVisibility = "private" | "friends" | "public";
 
+export type QuoteImageOrientation = "portrait" | "landscape";
+
 export type QuoteMemory = {
   id: string;
   ownerUserId: string | null;
@@ -9,6 +11,7 @@ export type QuoteMemory = {
   author: string | null;
   personaId: string | null;
   photoBackgroundUri: string | null;
+  photoOrientation?: QuoteImageOrientation;
   styleFontId: string;
   styleColorSchemeId: string;
   createdAt: string;

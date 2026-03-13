@@ -1,17 +1,24 @@
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import {
+  QUOTE_OUTPUT_SIZE,
+  type QuoteOrientation,
+} from "@/constants/quoteImageSize";
 import { supabase } from "@/config/supabase";
 import { signInAnonymously } from "@/services/supabase-auth";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { Image } from "react-native";
 
 type SaveUserPhotoParams = {
   localUri: string;
   userId: string | null;
   guestId: string | null;
   quote?: string | null;
+  orientation?: QuoteOrientation;
 };
 
 type SaveUserPhotoResult = {
   storagePath: string;
   publicUrl: string;
+  orientation: QuoteOrientation;
 };
 
 const createOwnerFolder = (userId: string | null, guestId: string | null) => {
@@ -24,10 +31,42 @@ const createOwnerFolder = (userId: string | null, guestId: string | null) => {
   return `anonymous-${Date.now().toString(36)}`;
 };
 
+function getImageDimensions(uri: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    Image.getSize(
+      uri,
+      (width, height) => resolve({ width, height }),
+      reject,
+    );
+  });
+}
+
+function centerCropToAspect(
+  srcWidth: number,
+  srcHeight: number,
+  targetAspect: number,
+): { originX: number; originY: number; width: number; height: number } {
+  const srcAspect = srcWidth / srcHeight;
+  if (srcAspect > targetAspect) {
+    const width = Math.round(srcHeight * targetAspect);
+    const originX = Math.round((srcWidth - width) / 2);
+    return { originX, originY: 0, width, height: srcHeight };
+  }
+  const height = Math.round(srcWidth / targetAspect);
+  const originY = Math.round((srcHeight - height) / 2);
+  return { originX: 0, originY, width: srcWidth, height };
+}
+
 export const saveUserPhoto = async (
   params: SaveUserPhotoParams,
 ): Promise<SaveUserPhotoResult | null> => {
-  const { localUri, userId, guestId, quote } = params;
+  const {
+    localUri,
+    userId,
+    guestId,
+    quote,
+    orientation = "portrait",
+  } = params;
 
   if (!localUri) {
     return null;
@@ -42,13 +81,19 @@ export const saveUserPhoto = async (
     }
   }
 
+  const output = QUOTE_OUTPUT_SIZE[orientation];
+  const targetAspect = output.width / output.height;
+
   let uploadUri = localUri;
   try {
+    const { width: srcW, height: srcH } = await getImageDimensions(localUri);
+    const cropRect = centerCropToAspect(srcW, srcH, targetAspect);
     const context = ImageManipulator.manipulate(localUri);
-    context.resize({ width: 720 });
+    context.crop(cropRect);
+    context.resize({ width: output.width, height: output.height });
     const rendered = await context.renderAsync();
     const saved = await rendered.saveAsync({
-      compress: 0.6,
+      compress: 0.75,
       format: SaveFormat.JPEG,
     });
     uploadUri = saved.uri;
@@ -112,5 +157,6 @@ export const saveUserPhoto = async (
   return {
     storagePath: path,
     publicUrl,
+    orientation,
   };
 };

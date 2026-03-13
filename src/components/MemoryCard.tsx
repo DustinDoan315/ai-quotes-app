@@ -1,48 +1,89 @@
+import { QUOTE_ASPECT } from "@/constants/quoteImageSize";
 import { Image } from "expo-image";
-import { Text, View } from "react-native";
+import { Dimensions, Text, View } from "react-native";
+
+import type { QuoteImageOrientation } from "@/types/memory";
 
 type Props = {
   quote: string;
   author: string | null;
   photoBackgroundUri: string | null;
+  photoOrientation?: QuoteImageOrientation;
+  isFavorite?: boolean;
 };
 
-export function MemoryCard({ quote, author, photoBackgroundUri }: Props) {
+const MAX_WIDTH = Dimensions.get("window").width - 32;
+
+function getCardAspect(orientation: QuoteImageOrientation): number {
+  const a = QUOTE_ASPECT[orientation];
+  return a.width / a.height;
+}
+
+export function MemoryCard({
+  quote,
+  author,
+  photoBackgroundUri,
+  photoOrientation = "portrait",
+  isFavorite = false,
+}: Props) {
+  const aspect = getCardAspect(photoOrientation);
+  const cardWidth = MAX_WIDTH;
+  const cardHeight = cardWidth / aspect;
+
   return (
-    <View className="mx-4 mb-4 overflow-hidden rounded-3xl bg-black/80">
-      <View className="aspect-[9/16] w-full max-w-md self-center">
-        {photoBackgroundUri ? (
+    <View
+      className="mb-4 overflow-hidden rounded-2xl border border-white/10 bg-black/50"
+      style={{ width: cardWidth, height: cardHeight }}>
+      {photoBackgroundUri ? (
+        <>
           <Image
             source={{ uri: photoBackgroundUri }}
-            style={{ width: "100%", height: "100%" }}
+            style={{
+              position: "absolute",
+              width: cardWidth,
+              height: cardHeight,
+            }}
             contentFit="cover"
           />
-        ) : (
-          <View className="h-full w-full items-center justify-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-            <Text className="px-6 text-center text-base font-semibold text-white">
+          <View className="absolute inset-x-0 bottom-0 z-10 bg-black/60 px-4 pb-3 pt-4">
+            <Text
+              className="text-[13px] font-semibold text-white"
+              numberOfLines={3}>
               {quote}
             </Text>
             {author ? (
-              <Text className="mt-3 text-center text-xs font-medium text-white/80">
-                {author}
+              <Text
+                className="mt-1 text-[11px] text-white/80"
+                numberOfLines={1}>
+                — {author}
               </Text>
             ) : null}
           </View>
-        )}
-        {photoBackgroundUri ? (
-          <View className="absolute inset-x-0 bottom-0 bg-black/55 px-5 pb-6 pt-4">
-            <Text className="text-center text-base font-semibold text-white">
-              {quote}
+          {isFavorite ? (
+            <View className="absolute right-2 top-2 z-20 rounded-full bg-amber-400/95 px-1.5 py-0.5">
+              <Text className="text-[10px]">⭐</Text>
+            </View>
+          ) : null}
+        </>
+      ) : (
+        <View className="h-full w-full justify-center bg-white/5 px-5">
+          <Text
+            className="text-[13px] font-semibold text-white"
+            numberOfLines={3}>
+            {quote}
+          </Text>
+          {author ? (
+            <Text className="mt-2 text-[11px] text-white/70" numberOfLines={1}>
+              — {author}
             </Text>
-            {author ? (
-              <Text className="mt-2 text-center text-xs font-medium text-white/85">
-                {author}
-              </Text>
-            ) : null}
-          </View>
-        ) : null}
-      </View>
+          ) : null}
+          {isFavorite ? (
+            <View className="absolute right-2 top-2 rounded-full bg-amber-400/95 px-1.5 py-0.5">
+              <Text className="text-[10px]">⭐</Text>
+            </View>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
-
