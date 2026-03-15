@@ -1,5 +1,6 @@
 import { useUserStore } from "@/appState/userStore";
 import { addFriend, resolveInviteCode } from "@/services/inviteApi";
+import { captureMessage } from "@/services/analytics/sentry";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -12,10 +13,25 @@ async function processInviteCode(
   myUserId: string
 ): Promise<InviteStatus> {
   const inviterId = await resolveInviteCode(rawCode);
-  if (!inviterId) return "invalid";
+  if (!inviterId) {
+    captureMessage("Invite resolve returned no inviter", "warning", {
+      feature: "invite",
+      codePrefix: rawCode?.slice(0, 8),
+    });
+    return "invalid";
+  }
   if (inviterId === myUserId) return "self";
   const ok = await addFriend(myUserId, inviterId);
-  return ok ? "success" : "error";
+  if (!ok) {
+    captureMessage("addFriend failed after resolve", "error", {
+      feature: "invite",
+      codePrefix: rawCode?.slice(0, 8),
+      myUserId,
+      inviterId,
+    });
+    return "error";
+  }
+  return "success";
 }
 
 export default function InviteByCodeScreen() {

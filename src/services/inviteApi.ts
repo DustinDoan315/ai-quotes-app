@@ -1,4 +1,5 @@
 import { supabase } from "@/config/supabase";
+import { captureException } from "@/services/analytics/sentry";
 
 const CODE_LENGTH = 8;
 const CODE_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -70,11 +71,20 @@ export function buildInviteUrl(code: string): string {
 }
 
 export async function resolveInviteCode(code: string): Promise<string | null> {
-  const { data } = await supabase
+  const trimmed = code.trim().toLowerCase();
+  const { data, error } = await supabase
     .from("invite_links")
     .select("user_id")
-    .eq("code", code.trim().toLowerCase())
+    .eq("code", trimmed)
     .maybeSingle();
+  if (error) {
+    captureException(new Error(error.message), {
+      feature: "resolveInviteCode",
+      code: trimmed,
+      supabaseCode: error.code,
+    });
+    return null;
+  }
   return data?.user_id ?? null;
 }
 
@@ -83,12 +93,30 @@ export async function addFriend(myUserId: string, friendUserId: string): Promise
     user_id: myUserId,
     friend_id: friendUserId,
   });
-  if (e1 && e1.code !== "23505") return false;
+  if (e1 && e1.code !== "23505") {
+    captureException(new Error(e1.message), {
+      feature: "addFriend",
+      step: "insert_my_row",
+      myUserId,
+      friendUserId,
+      supabaseCode: e1.code,
+    });
+    return false;
+  }
   const { error: e2 } = await supabase.from("friends").insert({
     user_id: friendUserId,
     friend_id: myUserId,
   });
-  if (e2 && e2.code !== "23505") return false;
+  if (e2 && e2.code !== "23505") {
+    captureException(new Error(e2.message), {
+      feature: "addFriend",
+      step: "insert_reciprocal_row",
+      myUserId,
+      friendUserId,
+      supabaseCode: e2.code,
+    });
+    return false;
+  }
   return true;
 }
 

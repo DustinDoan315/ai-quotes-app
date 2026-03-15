@@ -20,6 +20,11 @@ export const captureException = (
 export const captureMessage = (
   message: string,
   level: Sentry.SeverityLevel = "info",
+  extra?: Record<string, unknown>,
 ) => {
-  Sentry.captureMessage(message, level);
+  Sentry.withScope((scope) => {
+    scope.setLevel(level);
+    if (extra) scope.setExtras(extra);
+    Sentry.captureMessage(message);
+  });
 };
