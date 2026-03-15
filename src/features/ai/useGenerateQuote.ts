@@ -32,13 +32,12 @@ export const useGenerateQuote = () => {
   const { showToast } = useUIStore();
 
   const generate = async (
-    imageContext?: string,
-    imageUri?: string,
+    base64Image?: string,
     enforceCooldown: boolean = true,
   ) => {
     console.log("AI useGenerateQuote.generate called", {
       hasPersona: !!persona,
-      hasImageUri: !!imageUri,
+      hasBase64Image: !!base64Image,
     });
 
     if (enforceCooldown && lastGeneratedAt != null) {
@@ -62,8 +61,7 @@ export const useGenerateQuote = () => {
       const response = await generateQuote({
         personaId: effectivePersonaId,
         personaTraits: effectiveTraits,
-        imageContext,
-        imageUri,
+        base64Image: base64Image ?? undefined,
       });
 
       if (!response.isValid) {

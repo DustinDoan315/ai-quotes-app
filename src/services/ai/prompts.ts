@@ -1,14 +1,14 @@
 import type { GenerateQuoteRequest } from "./types";
 
 export const buildQuotePrompt = (request: GenerateQuoteRequest): string => {
-  const { personaTraits, imageContext } = request;
+  const { personaTraits } = request;
 
   const traitsDescription = personaTraits.join(", ");
 
   let prompt = `You are a quote generator. Create an inspirational quote that matches these personality traits: ${traitsDescription}. `;
 
-  if (imageContext) {
-    prompt += `Consider this visual context: ${imageContext}. `;
+  if (request.base64Image) {
+    prompt += "Consider the attached image for visual inspiration. ";
   }
 
   prompt += `Requirements:

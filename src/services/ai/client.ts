@@ -1,6 +1,13 @@
-import { downscaleImageForGPT } from "@/utils/imageProcessor";
+import { getQuoteLanguage } from "./quoteLanguage";
 import { sanitizeQuote, validateQuote } from "./safety";
 import type { GenerateQuoteRequest, GenerateQuoteResponse } from "./types";
+
+function cleanBase64(value: string | undefined): string {
+  if (typeof value !== "string" || !value.trim()) return "";
+  return value
+    .trim()
+    .replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
+}
 
 export const generateQuote = async (
   request: GenerateQuoteRequest,
@@ -8,8 +15,7 @@ export const generateQuote = async (
   console.log("AI generateQuote called", {
     personaId: request.personaId,
     traitsCount: request.personaTraits.length,
-    hasImageUri: !!request.imageUri,
-    hasImageContext: !!request.imageContext,
+    hasBase64Image: !!request.base64Image,
   });
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -32,34 +38,46 @@ export const generateQuote = async (
   }
 
   try {
-    let processedImageContext = request.imageContext;
+    const cleanedBase64 = cleanBase64(request.base64Image);
+    const language = request.language ?? getQuoteLanguage();
 
-    if (request.imageUri && !request.imageContext) {
-      console.log("AI downscaling image for GPT");
-      processedImageContext = await downscaleImageForGPT(request.imageUri);
-    }
+    const payload: {
+      personaTraits: string[];
+      base64Image?: string;
+      language: "vi" | "en";
+      debugVision?: boolean;
+    } = {
+      personaTraits: request.personaTraits,
+      language,
+    };
+    if (cleanedBase64) payload.base64Image = cleanedBase64;
+    if (request.debugVision) payload.debugVision = true;
 
     console.log("AI calling Supabase quote function", {
       url: `${supabaseUrl}/functions/v1/quote`,
-      hasImageContext: !!processedImageContext,
+      hasBase64Image: !!cleanedBase64,
+      language: payload.language,
     });
 
     const response = await fetch(`${supabaseUrl}/functions/v1/quote`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        apikey: supabaseAnonKey,
         Authorization: `Bearer ${supabaseAnonKey}`,
       },
-      body: JSON.stringify({
-        personaTraits: request.personaTraits,
-        imageContext: processedImageContext,
-      }),
+      body: JSON.stringify(payload),
+    });
+
+    const responseData = await response.json().catch(() => ({}));
+    console.log("AI quote API response", {
+      ok: response.ok,
+      status: response.status,
+      data: responseData,
     });
 
     if (!response.ok) {
-      const errorData: { error?: string } = await response
-        .json()
-        .catch(() => ({}));
+      const errorData = responseData as { error?: string };
       const serverMessage = errorData.error?.trim();
       const reason =
         serverMessage ||
@@ -73,19 +91,18 @@ export const generateQuote = async (
       };
     }
 
-    const data: { quote: string } = await response.json();
+    const data = responseData as { quote?: string };
+    const rawQuote = typeof data.quote === "string" ? data.quote : "";
 
-    console.log("AI Supabase quote RAW", {
-      raw: data.quote,
-      length: data.quote?.length ?? 0,
-    });
+    if (!rawQuote.trim()) {
+      return {
+        quote: "",
+        isValid: false,
+        reason: "Empty quote from service",
+      };
+    }
 
-    const sanitized = sanitizeQuote(data.quote);
-
-    console.log("AI Supabase quote sanitized", {
-      sanitized,
-      length: sanitized.length,
-    });
+    const sanitized = sanitizeQuote(rawQuote);
     const validation = validateQuote(sanitized);
 
     if (!validation.isValid) {

@@ -14,6 +14,8 @@ import { analyticsEvents } from "@/services/analytics/events";
 import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
+import { compressImageForUpload } from "@/utils/imageProcessor";
+import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
 import { strings } from "@/theme/strings";
 
@@ -61,7 +63,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
-  const [imageContextUrl, setImageContextUrl] = useState<string | null>(null);
   const [hideQuote, setHideQuote] = useState(false);
   const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
@@ -146,7 +147,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   function clearSelectedImage() {
     setSelectedImageUri(null);
-    setImageContextUrl(null);
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
@@ -157,9 +157,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     sourceUri: string | null,
     enforceCooldown: boolean,
   ) {
-    if (!sourceUri) {
-      return;
-    }
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
       generationIntervalRef.current = null;
@@ -173,11 +170,24 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return current + 0.04;
       });
     }, 180);
-    const quote = await generate(
-      imageContextUrl ?? undefined,
-      imageContextUrl ? undefined : sourceUri,
-      enforceCooldown,
-    );
+    let base64: string | undefined;
+    if (sourceUri) {
+      try {
+        base64 = await compressImageForUpload(sourceUri);
+      } catch (err) {
+        if (generationIntervalRef.current) {
+          clearInterval(generationIntervalRef.current);
+          generationIntervalRef.current = null;
+        }
+        setGenerationProgress(0);
+        showToast(
+          err instanceof Error ? err.message : "Failed to process image",
+          "error",
+        );
+        return;
+      }
+    }
+    const quote = await generate(base64, enforceCooldown);
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
       generationIntervalRef.current = null;
@@ -201,14 +211,13 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.9,
       });
-      if (!photo || !photo.uri) {
+      if (!photo?.uri) {
         showToast(strings.camera.errors.failedToSavePhoto, "error");
         return;
       }
       setSelectedImageUri(photo.uri);
       setHideQuote(true);
       await generateForImage(photo.uri, false);
-      setImageContextUrl(null);
       setHasSavedCurrentPhoto(false);
       showToast(strings.camera.info.photoCaptured, "success");
     } catch (error) {
@@ -221,7 +230,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   async function handleGenerateAI() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await generateForImage(selectedImageUri, true);
+    await generateForImage(selectedImageUri ?? null, true);
   }
 
   function handleClearQuote() {
@@ -291,7 +300,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         onMilestoneReached?.(newStreak);
       }
       setSelectedImageUri(null);
-      setImageContextUrl(null);
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
@@ -310,18 +318,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       return;
     }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      quality: 0.9,
-      selectionLimit: 1,
-    });
-    if (result.canceled || result.assets.length === 0) {
+    const picked = await pickPhotoForQuote();
+    if (!picked) {
       return;
     }
-    const asset = result.assets[0];
-    setSelectedImageUri(asset.uri);
-    setImageContextUrl(null);
+    setSelectedImageUri(picked.uri);
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     showToast(strings.camera.info.photoSelected, "success");
