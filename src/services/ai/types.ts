@@ -5,6 +5,7 @@ export type GenerateQuoteRequest = {
   personaTraits: string[];
   base64Image?: string;
   language?: QuoteLanguage;
+  visionLanguage?: QuoteLanguage;
   debugVision?: boolean;
   model?: string;
 };

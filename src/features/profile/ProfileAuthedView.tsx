@@ -1,6 +1,7 @@
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
 import { getCurrentUser } from "@/services/supabase-auth";
 import { Ionicons } from "@expo/vector-icons";
@@ -336,6 +337,8 @@ export function ProfileAuthedView({
             </Text>
           </View>
         ) : null}
+
+        <ProfileQuoteLanguageSection />
 
         <Pressable
           onPress={handleSignOut}

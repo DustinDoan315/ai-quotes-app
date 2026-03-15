@@ -28,7 +28,7 @@ const normalizePersonaTraits = (traits: string[] | undefined): string[] => {
 export const useGenerateQuote = () => {
   const { setIsGenerating, setLastGeneratedAt, lastGeneratedAt } = useAIStore();
   const { setDailyQuote, addToHistory } = useQuoteStore();
-  const { persona } = useUserStore();
+  const { persona, quoteLanguage } = useUserStore();
   const { showToast } = useUIStore();
 
   const generate = async (
@@ -62,6 +62,8 @@ export const useGenerateQuote = () => {
         personaId: effectivePersonaId,
         personaTraits: effectiveTraits,
         base64Image: base64Image ?? undefined,
+        language: quoteLanguage ?? "vi",
+        visionLanguage: "en",
       });
 
       if (!response.isValid) {

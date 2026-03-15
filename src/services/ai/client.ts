@@ -40,15 +40,18 @@ export const generateQuote = async (
   try {
     const cleanedBase64 = cleanBase64(request.base64Image);
     const language = request.language ?? getQuoteLanguage();
+    const visionLanguage = request.visionLanguage ?? "en";
 
     const payload: {
       personaTraits: string[];
       base64Image?: string;
       language: "vi" | "en";
+      visionLanguage?: "vi" | "en";
       debugVision?: boolean;
     } = {
       personaTraits: request.personaTraits,
       language,
+      visionLanguage,
     };
     if (cleanedBase64) payload.base64Image = cleanedBase64;
     if (request.debugVision) payload.debugVision = true;
@@ -82,7 +85,7 @@ export const generateQuote = async (
       const reason =
         serverMessage ||
         (response.status >= 500
-          ? "Quote service is temporarily unavailable. Try again in a moment."
+          ? "Quote couldn't be generated. Tap Generate to try again."
           : `Request failed (${response.status})`);
       return {
         quote: "",

@@ -128,7 +128,7 @@ export default function HomeScreen() {
   const currentPhotoId =
     feedItems.length > 0 ? (feedItems[currentFeedIndex]?.id ?? null) : null;
   const viewabilityConfig = useRef({
-    viewAreaCoveragePercentThreshold: 60,
+    viewAreaCoveragePercentThreshold: 50,
   }).current;
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: { index: number | null }[] }) => {
@@ -153,6 +153,23 @@ export default function HomeScreen() {
   const shouldShowMessageBar = isOnFeed && currentPhotoId;
   const actionBarBottomPadding = insets.bottom;
   const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
+  const getItemLayout = useMemo(
+    () =>
+      (_: unknown, index: number) => ({
+        length: viewportHeight,
+        offset: viewportHeight + index * viewportHeight,
+        index,
+      }),
+    [viewportHeight],
+  );
+  const snapOffsets = useMemo(
+    () =>
+      Array.from(
+        { length: feedItems.length + 1 },
+        (_, i) => i * viewportHeight,
+      ),
+    [feedItems.length, viewportHeight],
+  );
   const isCaptureFlowActive =
     isCapturing ||
     isSavingPhoto ||
@@ -280,11 +297,12 @@ export default function HomeScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isCaptureFlowActive}
-        snapToInterval={viewportHeight}
-        snapToAlignment="center"
+        snapToAlignment="start"
+        snapToOffsets={snapOffsets}
         decelerationRate="fast"
         data={feedItems}
         keyExtractor={(item) => item.id}
+        getItemLayout={getItemLayout}
         refreshControl={
           <RefreshControl
             refreshing={isFeedRefreshing}

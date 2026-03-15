@@ -21,6 +21,8 @@ type UserProfile = {
 
 type AuthState = "guest" | "authenticated" | "loading";
 
+export type QuoteLanguagePreference = "vi" | "en";
+
 type UserState = {
   persona: Persona | null;
   profile: UserProfile | null;
@@ -28,16 +30,18 @@ type UserState = {
   guestId: string | null;
   guestDisplayName: string | null;
   inviteNudgeDismissed: boolean;
+  quoteLanguage: QuoteLanguagePreference;
   setPersona: (persona: Persona) => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
   setGuestDisplayName: (name: string | null) => void;
   setInviteNudgeDismissed: (dismissed: boolean) => void;
+  setQuoteLanguage: (lang: QuoteLanguagePreference) => void;
   clearUser: () => void;
   ensureGuestId: () => string;
 };
 
-const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "clearUser" | "ensureGuestId"> =
+const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "clearUser" | "ensureGuestId"> =
   {
     persona: null,
     profile: null,
@@ -45,6 +49,7 @@ const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState"
     guestId: null,
     guestDisplayName: null,
     inviteNudgeDismissed: false,
+    quoteLanguage: "vi",
   };
 
 const createGuestId = () =>
@@ -59,6 +64,7 @@ export const useUserStore = create<UserState>()(
       setAuthState: (authState) => set({ authState }),
       setGuestDisplayName: (guestDisplayName) => set({ guestDisplayName }),
       setInviteNudgeDismissed: (inviteNudgeDismissed) => set({ inviteNudgeDismissed }),
+      setQuoteLanguage: (quoteLanguage) => set({ quoteLanguage }),
       clearUser: () => set(initialState),
       ensureGuestId: () => {
         const current = get().guestId;
@@ -73,7 +79,7 @@ export const useUserStore = create<UserState>()(
     {
       name: "user-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed }),
+      partialize: (state) => ({ persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, quoteLanguage: state.quoteLanguage }),
     },
   ),
 );

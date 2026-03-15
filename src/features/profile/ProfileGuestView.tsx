@@ -1,4 +1,5 @@
 import { useUserStore } from "@/appState/userStore";
+import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
@@ -42,6 +43,8 @@ export function ProfileGuestView({
             </Text>
           </View>
         ) : null}
+
+        <ProfileQuoteLanguageSection />
 
         <View className="mb-6">
           <Text className="mb-2 text-sm font-medium text-white/70">
