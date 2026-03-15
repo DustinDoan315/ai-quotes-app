@@ -12,23 +12,12 @@ function isTwoLetterCountryCode(value: string | undefined): value is CountryCode
 export function getDefaultCountryCode(): CountryCode {
   const locales = Localization.getLocales();
   const first = locales[0];
-  if (isTwoLetterCountryCode(first?.regionCode)) return first.regionCode;
-  if (isTwoLetterCountryCode(first?.countryCode)) return first.countryCode;
+  const region = first?.regionCode ?? undefined;
+  if (isTwoLetterCountryCode(region)) return region;
   return "US";
 }
 
-export function toFriendlyOtpError(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes("invalid phone")) return "That phone number doesn’t look valid. Double-check it and try again.";
-  if (m.includes("invalid number")) return "That phone number doesn’t look valid. Double-check it and try again.";
-  if (m.includes("expired")) return "That code expired. Request a new one and try again.";
-  if (m.includes("too many")) return "Too many attempts. Please wait a bit and try again.";
-  if (m.includes("network")) return "Network issue. Check your connection and try again.";
-  if (m.includes("rate")) return "Please wait a moment before trying again.";
-  if (m.includes("otp") && m.includes("invalid")) return "That code doesn’t match. Try again.";
-  if (m.includes("token") && m.includes("invalid")) return "That code doesn’t match. Try again.";
-  return "Something went wrong. Please try again.";
-}
+export { toFriendlyOtpError } from "@/utils/otpErrorMessages";
 
 export function errorToMessage(err: unknown): string {
   if (!err) return "";
@@ -43,4 +32,3 @@ export function errorToMessage(err: unknown): string {
     return "Unexpected error";
   }
 }
-

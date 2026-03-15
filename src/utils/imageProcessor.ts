@@ -1,5 +1,5 @@
-import * as ImageManipulator from 'expo-image-manipulator';
-import { GPT_CONFIG } from '@/services/ai/config';
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { GPT_CONFIG } from "@/services/ai/config";
 
 const TARGET_MAX_DIMENSION = 256;
 const TARGET_QUALITY = 0.4;
@@ -8,27 +8,21 @@ export const downscaleImageForGPT = async (
   imageUri: string,
 ): Promise<string> => {
   try {
-    const manipResult = await ImageManipulator.manipulateAsync(
-      imageUri,
-      [
-        {
-          resize: {
-            width: TARGET_MAX_DIMENSION,
-          },
-        },
-      ],
-      {
-        compress: TARGET_QUALITY,
-        format: ImageManipulator.SaveFormat.JPEG,
-        base64: true,
-      },
-    );
+    const context = ImageManipulator.manipulate(imageUri).resize({
+      width: TARGET_MAX_DIMENSION,
+    });
+    const renderedImage = await context.renderAsync();
+    const result = await renderedImage.saveAsync({
+      compress: TARGET_QUALITY,
+      format: SaveFormat.JPEG,
+      base64: true,
+    });
 
-    if (!manipResult.base64) {
+    if (!result.base64) {
       throw new Error("Failed to generate base64 image");
     }
 
-    return `data:image/jpeg;base64,${manipResult.base64}`;
+    return `data:image/jpeg;base64,${result.base64}`;
   } catch (error) {
     throw new Error(
       `Image processing failed: ${error instanceof Error ? error.message : "Unknown error"}`,

@@ -1,4 +1,4 @@
-import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
+import { useStreakStore } from "@/appState/streakStore";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
@@ -148,7 +148,6 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   );
   const currentStreak = useStreakStore((s) => s.currentStreak);
   const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
-  const displayStreak = getDisplayStreak({ currentStreak, lastQuoteDate });
 
   const monthKey = getMonthKey(cursorMonth);
   const summarySelector = useMemo(
@@ -163,17 +162,17 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
 
   const streakDates = useMemo(() => {
     const dates = new Set<string>();
-    if (!lastQuoteDate || displayStreak === 0) {
+    if (!lastQuoteDate || currentStreak === 0) {
       return dates;
     }
     const lastDate = new Date(lastQuoteDate);
-    for (let i = 0; i < displayStreak; i += 1) {
+    for (let i = 0; i < currentStreak; i += 1) {
       const d = new Date(lastDate);
       d.setDate(lastDate.getDate() - i);
       dates.add(formatDateKey(d));
     }
     return dates;
-  }, [lastQuoteDate, displayStreak]);
+  }, [lastQuoteDate, currentStreak]);
 
   const year = cursorMonth.getFullYear();
   const monthIndex = cursorMonth.getMonth();
