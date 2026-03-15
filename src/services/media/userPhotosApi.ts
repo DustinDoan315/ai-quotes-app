@@ -19,6 +19,8 @@ export type QuotePhotoCard = {
   createdAt: string;
   userId: string | null;
   guestId: string | null;
+  authorDisplayName: string | null;
+  authorAvatarUrl: string | null;
   styleFontId: "small" | "medium" | "large";
   styleColorSchemeId: "light" | "amber" | "pink";
 };
@@ -26,6 +28,7 @@ export type QuotePhotoCard = {
 type ListQuotePhotoCardsParams = {
   guestId?: string | null;
   userId?: string | null;
+  feedUserIds?: string[];
   limit?: number;
 };
 
@@ -39,7 +42,9 @@ export const listQuotePhotoCards = async (
     )
     .order("created_at", { ascending: false });
 
-  if (params.userId) {
+  if (params.feedUserIds && params.feedUserIds.length > 0) {
+    query = query.in("user_id", params.feedUserIds);
+  } else if (params.userId) {
     query = query.eq("user_id", params.userId);
   } else if (params.guestId) {
     query = query.eq("guest_id", params.guestId);
@@ -65,16 +70,47 @@ export const listQuotePhotoCards = async (
     return [];
   }
 
-  return parsed.data.map((row) => ({
-    id: row.id,
-    imageUrl: row.image_url,
-    createdAt: row.created_at,
-    quote: row.quote ?? "",
-    userId: row.user_id ?? null,
-    guestId: row.guest_id ?? null,
-    styleFontId: (row.style_font_id as "small" | "medium" | "large") ?? "medium",
-    styleColorSchemeId:
-      (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
-  }));
+  const userIds = [
+    ...new Set(
+      parsed.data.map((r) => r.user_id).filter((id): id is string => id != null),
+    ),
+  ];
+  let profileMap = new Map<
+    string,
+    { displayName: string | null; avatarUrl: string | null }
+  >();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("user_id, display_name, username, avatar_url")
+      .in("user_id", userIds);
+    profileMap = new Map(
+      (profiles ?? []).map((p) => [
+        p.user_id,
+        {
+          displayName: p.display_name ?? p.username ?? null,
+          avatarUrl: p.avatar_url ?? null,
+        },
+      ]),
+    );
+  }
+
+  return parsed.data.map((row) => {
+    const profile = row.user_id ? profileMap.get(row.user_id) : undefined;
+    return {
+      id: row.id,
+      imageUrl: row.image_url,
+      createdAt: row.created_at,
+      quote: row.quote ?? "",
+      userId: row.user_id ?? null,
+      guestId: row.guest_id ?? null,
+      authorDisplayName: profile?.displayName ?? null,
+      authorAvatarUrl: profile?.avatarUrl ?? null,
+      styleFontId:
+        (row.style_font_id as "small" | "medium" | "large") ?? "medium",
+      styleColorSchemeId:
+        (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
+    };
+  });
 };
 

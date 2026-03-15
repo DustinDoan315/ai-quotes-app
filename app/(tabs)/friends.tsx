@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -186,10 +187,17 @@ export default function FriendsScreen() {
             <View
               key={f.id}
               className="mb-2 flex-row items-center rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-white/10">
-                <Text className="text-sm font-semibold text-white">
-                  {(f.display_name ?? f.username ?? "?")[0].toUpperCase()}
-                </Text>
+              <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/10">
+                {f.avatar_url ? (
+                  <Image
+                    source={{ uri: f.avatar_url }}
+                    className="h-10 w-10 rounded-full"
+                  />
+                ) : (
+                  <Text className="text-sm font-semibold text-white">
+                    {(f.display_name ?? f.username ?? "?")[0].toUpperCase()}
+                  </Text>
+                )}
               </View>
               <View className="ml-3 flex-1">
                 <Text className="font-medium text-white">

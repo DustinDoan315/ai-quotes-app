@@ -103,6 +103,7 @@ export default function HomeScreen() {
   });
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
   const [isOnFeed, setIsOnFeed] = useState(false);
+  const listRef = useRef<FlatList>(null);
   const today = new Date().toISOString().split("T")[0];
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const pastMemories = useMemo(() => {
@@ -160,6 +161,14 @@ export default function HomeScreen() {
 
   function handleOpenMemories() {
     router.push("/memories" as never);
+  }
+
+  function handleCameraButtonPress() {
+    if (isOnFeed) {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    } else {
+      handleCapture();
+    }
   }
 
   async function handleReact(type: "love" | "clap" | "fire") {
@@ -267,6 +276,7 @@ export default function HomeScreen() {
         </View>
       )}
       <FlatList
+        ref={listRef}
         className="flex-1"
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isCaptureFlowActive}
@@ -438,7 +448,7 @@ export default function HomeScreen() {
           )}
           <CameraActionsBar
             onGenerate={handleOpenMemories}
-            onCapture={handleCapture}
+            onCapture={handleCameraButtonPress}
             onOpenGallery={handleOpenGallery}
             onSave={handleSavePhoto}
             isGenerating={isGenerating}

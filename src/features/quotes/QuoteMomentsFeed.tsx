@@ -27,6 +27,8 @@ const QuoteMomentCard = ({
   authorAvatarUrl,
 }: QuoteMomentCardProps) => {
   const [aspectRatio, setAspectRatio] = useState<number>(FALLBACK_ASPECT);
+  const displayName = item.authorDisplayName ?? authorName;
+  const displayAvatar = item.authorAvatarUrl ?? authorAvatarUrl;
 
   const createdTimeLabel = new Date(item.createdAt).toLocaleTimeString(
     undefined,
@@ -76,16 +78,16 @@ const QuoteMomentCard = ({
             <View className="mb-2 flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <View className="h-8 w-8 overflow-hidden rounded-full bg-white/15">
-                  {authorAvatarUrl ? (
+                  {displayAvatar ? (
                     <Image
-                      source={{ uri: authorAvatarUrl }}
+                      source={{ uri: displayAvatar }}
                       style={{ width: "100%", height: "100%" }}
                       contentFit="cover"
                     />
                   ) : (
                     <View className="h-full w-full items-center justify-center">
                       <Text className="text-xs font-semibold text-white/85">
-                        {authorName.trim().slice(0, 1).toUpperCase()}
+                        {displayName.trim().slice(0, 1).toUpperCase()}
                       </Text>
                     </View>
                   )}
@@ -95,7 +97,7 @@ const QuoteMomentCard = ({
                     className="text-xs font-semibold text-white"
                     numberOfLines={1}
                   >
-                    {authorName}
+                    {displayName}
                   </Text>
                   <Text className="text-[11px] text-white/70">
                     {createdTimeLabel}

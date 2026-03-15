@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useUserStore } from "@/appState/userStore";
+import { listMyFriends } from "@/services/inviteApi";
 import {
   listQuotePhotoCards,
   type QuotePhotoCard,
@@ -24,7 +25,18 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
     try {
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
-      const data = await listQuotePhotoCards({ userId, guestId, limit: 60 });
+      let data: QuotePhotoCard[];
+      if (userId) {
+        const friends = await listMyFriends(userId);
+        const friendIds = friends.map((f) => f.friend_id);
+        const feedUserIds = [userId, ...friendIds];
+        data = await listQuotePhotoCards({
+          feedUserIds,
+          limit: 60,
+        });
+      } else {
+        data = await listQuotePhotoCards({ guestId, limit: 60 });
+      }
       setItems(data);
     } finally {
       setIsLoading(false);
@@ -44,7 +56,15 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
     try {
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
-      const data = await listQuotePhotoCards({ userId, guestId, limit: 60 });
+      let data: QuotePhotoCard[];
+      if (userId) {
+        const friends = await listMyFriends(userId);
+        const friendIds = friends.map((f) => f.friend_id);
+        const feedUserIds = [userId, ...friendIds];
+        data = await listQuotePhotoCards({ feedUserIds, limit: 60 });
+      } else {
+        data = await listQuotePhotoCards({ guestId, limit: 60 });
+      }
       setItems(data);
     } catch {}
   }, [profile, ensureGuestId]);
