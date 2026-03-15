@@ -12,6 +12,12 @@ export const syncUserProfile = async (user: User | null) => {
     return;
   }
 
+  if (user.is_anonymous) {
+    setProfile(null);
+    setAuthState("guest");
+    return;
+  }
+
   setAuthState("authenticated");
 
   let profile = await getCurrentUserProfile();

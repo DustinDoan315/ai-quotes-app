@@ -7,34 +7,49 @@ interface HomeHeaderProps {
   currentStreak: number;
   onPressProfile?: () => void;
   onPressFriends?: () => void;
+  onPressSignIn?: () => void;
 }
 
 export function HomeHeader({
   currentStreak,
   onPressProfile,
   onPressFriends,
+  onPressSignIn,
 }: HomeHeaderProps) {
   const tier = getStreakTier(currentStreak);
   const profile = useUserStore((state) => state.profile);
   const avatarUrl = profile?.avatar_url ?? null;
+  const isGuest = !profile?.user_id;
+  const showSignInCta = isGuest && Boolean(onPressSignIn);
+  const handleProfilePress = showSignInCta ? onPressSignIn : onPressProfile;
   return (
     <View className="px-4 pt-2">
       <View className="flex-row items-center justify-between">
-        <Pressable
-          onPress={onPressProfile}
-          className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.8 : 1,
-          })}>
-          {avatarUrl ? (
-            <Image
-              source={{ uri: avatarUrl }}
-              className="h-10 w-10 rounded-full"
-            />
-          ) : (
-            <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
-          )}
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={handleProfilePress}
+            className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            {avatarUrl ? (
+              <Image
+                source={{ uri: avatarUrl }}
+                className="h-10 w-10 rounded-full"
+              />
+            ) : (
+              <Ionicons name="person-circle-outline" size={26} color="#ffffff" />
+            )}
+          </Pressable>
+          {showSignInCta ? (
+            <Pressable
+              onPress={onPressSignIn}
+              className="rounded-full bg-white/20 px-3 py-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
+              <Text className="text-sm font-semibold text-white">Sign in with phone</Text>
+            </Pressable>
+          ) : null}
+        </View>
         <View className="flex-row items-center gap-2">
           <Pressable
             onPress={onPressFriends}

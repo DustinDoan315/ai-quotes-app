@@ -90,6 +90,9 @@ export function useAuth(): UseAuthReturn {
   const handleSignOut = async () => {
     const { error } = await signOut();
     setProfile(null);
+    if (!error) {
+      await syncUserProfile(null);
+    }
     return { error };
   };
 

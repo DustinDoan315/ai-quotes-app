@@ -297,6 +297,12 @@ export default function HomeScreen() {
               currentStreak={displayStreak}
               onPressProfile={() => router.push("/(tabs)/profile" as never)}
               onPressFriends={() => router.push("/(tabs)/friends" as never)}
+              onPressSignIn={() =>
+                router.push({
+                  pathname: "/login",
+                  params: { returnTo: "/(tabs)" },
+                } as never)
+              }
             />
             {pastMemories.length > 0 && (
               <Pressable
