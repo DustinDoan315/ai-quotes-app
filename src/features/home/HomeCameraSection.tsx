@@ -18,6 +18,7 @@ type Props = {
   orientationTransitioning: boolean;
   selectedImageUri: string | null;
   canDeleteImage: boolean;
+  facing: "back" | "front";
   zoom: number;
   zoomFactor: number;
   activePreset: number;
@@ -34,6 +35,7 @@ type Props = {
   onCameraReady: () => void;
   onZoomPresetPress: (preset: 0.5 | 1 | 2) => void;
   onToggleOrientation: () => void;
+  onToggleFacing: () => void;
   onClearImage: () => void;
   onClearQuote: () => void;
   onRegenerateQuote: () => void;
@@ -46,6 +48,7 @@ export const HomeCameraSection = ({
   orientationTransitioning,
   selectedImageUri,
   canDeleteImage,
+  facing,
   zoom,
   zoomFactor,
   activePreset,
@@ -62,6 +65,7 @@ export const HomeCameraSection = ({
   onCameraReady,
   onZoomPresetPress,
   onToggleOrientation,
+  onToggleFacing,
   onClearImage,
   onClearQuote,
   onRegenerateQuote,
@@ -138,7 +142,7 @@ export const HomeCameraSection = ({
               <CameraView
                 ref={cameraRef}
                 style={{ flex: 1 }}
-                facing="back"
+                facing={facing}
                 zoom={zoom}
                 onCameraReady={onCameraReady}
               />
@@ -375,20 +379,28 @@ export const HomeCameraSection = ({
                 })}
               </View>
               <View className="flex-1 items-end">
-                <Pressable
-                  onPress={onToggleOrientation}
-                  className="h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                  <Ionicons
-                    name={
-                      isPortrait
-                        ? "phone-portrait-outline"
-                        : "phone-landscape-outline"
-                    }
-                    size={20}
-                    color="#fff"
-                  />
-                </Pressable>
+                <View className="flex-row items-center gap-2">
+                  <Pressable
+                    onPress={onToggleFacing}
+                    className="h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                    <Ionicons name="camera-reverse-outline" size={20} color="#fff" />
+                  </Pressable>
+                  <Pressable
+                    onPress={onToggleOrientation}
+                    className="h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                    <Ionicons
+                      name={
+                        isPortrait
+                          ? "phone-portrait-outline"
+                          : "phone-landscape-outline"
+                      }
+                      size={20}
+                      color="#fff"
+                    />
+                  </Pressable>
+                </View>
               </View>
             </View>
           </View>

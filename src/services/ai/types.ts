@@ -28,3 +28,42 @@ export type ImageDetectionResult = {
   mood: string[];
   confidence_note: string;
 };
+
+export type ExplainQuoteRequest = {
+  quote: string;
+  personaTraits: string[];
+  language: QuoteLanguage;
+};
+
+export type ExplainQuoteResponse = {
+  explanation: string;
+  isValid: boolean;
+  reason?: string;
+};
+
+export type RewriteTone = "funny" | "savage" | "calm";
+
+export type RewriteQuoteRequest = {
+  quote: string;
+  personaTraits: string[];
+  tone: RewriteTone;
+  language: QuoteLanguage;
+};
+
+export type RewriteQuoteResponse = {
+  quote: string;
+  isValid: boolean;
+  reason?: string;
+};
+
+export type FutureQuoteRequest = {
+  quote: string;
+  personaTraits: string[];
+  language: QuoteLanguage;
+};
+
+export type FutureQuoteResponse = {
+  quote: string;
+  isValid: boolean;
+  reason?: string;
+};

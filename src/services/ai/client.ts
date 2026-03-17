@@ -1,6 +1,15 @@
 import { getQuoteLanguage } from "./quoteLanguage";
 import { sanitizeQuote, validateQuote } from "./safety";
-import type { GenerateQuoteRequest, GenerateQuoteResponse } from "./types";
+import type {
+  GenerateQuoteRequest,
+  GenerateQuoteResponse,
+  ExplainQuoteRequest,
+  ExplainQuoteResponse,
+  RewriteQuoteRequest,
+  RewriteQuoteResponse,
+  FutureQuoteRequest,
+  FutureQuoteResponse,
+} from "./types";
 
 function cleanBase64(value: string | undefined): string {
   if (typeof value !== "string" || !value.trim()) return "";
@@ -127,6 +136,233 @@ export const generateQuote = async (
       isValid: false,
       reason:
         error instanceof Error ? error.message : "Failed to generate quote",
+    };
+  }
+};
+
+export const explainQuote = async (
+  request: ExplainQuoteRequest,
+): Promise<ExplainQuoteResponse> => {
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return {
+      explanation: "",
+      isValid: false,
+      reason: "Missing Supabase configuration",
+    };
+  }
+
+  try {
+    const payload = {
+      quote: request.quote,
+      personaTraits: request.personaTraits,
+      language: request.language ?? getQuoteLanguage(),
+    };
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/quote-explain`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = (await response.json().catch(() => ({}))) as {
+      explanation?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      const serverMessage = data.error?.trim();
+      return {
+        explanation: "",
+        isValid: false,
+        reason: serverMessage || `Request failed (${response.status})`,
+      };
+    }
+
+    const explanation =
+      typeof data.explanation === "string" ? data.explanation.trim() : "";
+
+    if (!explanation) {
+      return {
+        explanation: "",
+        isValid: false,
+        reason: "Empty explanation from service",
+      };
+    }
+
+    return {
+      explanation,
+      isValid: true,
+    };
+  } catch (error) {
+    return {
+      explanation: "",
+      isValid: false,
+      reason: error instanceof Error ? error.message : "Failed to explain quote",
+    };
+  }
+};
+
+export const rewriteQuote = async (
+  request: RewriteQuoteRequest,
+): Promise<RewriteQuoteResponse> => {
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return {
+      quote: "",
+      isValid: false,
+      reason: "Missing Supabase configuration",
+    };
+  }
+
+  try {
+    const payload = {
+      quote: request.quote,
+      personaTraits: request.personaTraits,
+      tone: request.tone,
+      language: request.language ?? getQuoteLanguage(),
+    };
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/quote-rewrite`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = (await response.json().catch(() => ({}))) as {
+      quote?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      const serverMessage = data.error?.trim();
+      return {
+        quote: "",
+        isValid: false,
+        reason: serverMessage || `Request failed (${response.status})`,
+      };
+    }
+
+    const rawQuote = typeof data.quote === "string" ? data.quote : "";
+    if (!rawQuote.trim()) {
+      return {
+        quote: "",
+        isValid: false,
+        reason: "Empty quote from service",
+      };
+    }
+
+    const sanitized = sanitizeQuote(rawQuote);
+    const validation = validateQuote(sanitized);
+
+    if (!validation.isValid) {
+      return {
+        quote: "",
+        isValid: false,
+        reason: validation.reason,
+      };
+    }
+
+    return {
+      quote: sanitized,
+      isValid: true,
+    };
+  } catch (error) {
+    return {
+      quote: "",
+      isValid: false,
+      reason: error instanceof Error ? error.message : "Failed to rewrite quote",
+    };
+  }
+};
+
+export const generateFutureQuote = async (
+  request: FutureQuoteRequest,
+): Promise<FutureQuoteResponse> => {
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return {
+      quote: "",
+      isValid: false,
+      reason: "Missing Supabase configuration",
+    };
+  }
+
+  try {
+    const payload = {
+      quote: request.quote,
+      personaTraits: request.personaTraits,
+      language: request.language ?? getQuoteLanguage(),
+    };
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/quote-future`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = (await response.json().catch(() => ({}))) as {
+      quote?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      const serverMessage = data.error?.trim();
+      return {
+        quote: "",
+        isValid: false,
+        reason: serverMessage || `Request failed (${response.status})`,
+      };
+    }
+
+    const rawQuote = typeof data.quote === "string" ? data.quote : "";
+    if (!rawQuote.trim()) {
+      return {
+        quote: "",
+        isValid: false,
+        reason: "Empty quote from service",
+      };
+    }
+
+    const sanitized = sanitizeQuote(rawQuote);
+    const validation = validateQuote(sanitized);
+
+    if (!validation.isValid) {
+      return {
+        quote: "",
+        isValid: false,
+        reason: validation.reason,
+      };
+    }
+
+    return {
+      quote: sanitized,
+      isValid: true,
+    };
+  } catch (error) {
+    return {
+      quote: "",
+      isValid: false,
+      reason:
+        error instanceof Error ? error.message : "Failed to generate future quote",
     };
   }
 };

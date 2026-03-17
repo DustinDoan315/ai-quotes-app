@@ -1,5 +1,8 @@
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
+import { useStreakStore } from "@/appState/streakStore";
+import { useMemoryStore } from "@/appState";
+import type { MemoryState } from "@/appState/memoryStore";
 import { useAuth } from "@/hooks/useSupabaseAuth";
 import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
@@ -29,6 +32,17 @@ export function ProfileAuthedView({
 }: ProfileAuthedViewProps) {
   const showToast = useUIStore((s) => s.showToast);
   const profile = useUserStore((s) => s.profile);
+  const persona = useUserStore((s) => s.persona);
+  const currentStreak = useStreakStore((s) => s.currentStreak);
+  const memories = useMemoryStore((s: MemoryState) => s.memories);
+  const identityTitle =
+    persona && persona.traits.length > 0
+      ? persona.traits.includes("disciplined")
+        ? "The Disciplined One"
+        : persona.traits.includes("quiet")
+          ? "The Quiet Thinker"
+          : "The Rebuilder"
+      : "Growing Through Moments";
   const { updateProfile, signOut, refreshProfile } = useAuth();
 
   const [editing, setEditing] = useState(false);
@@ -249,6 +263,18 @@ export function ProfileAuthedView({
       </View>
 
       <ScrollView className="flex-1 px-4 py-6">
+        <View className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <Text className="mb-1 text-xs font-medium uppercase tracking-wide text-white/50">
+            Identity
+          </Text>
+          <Text className="text-sm font-semibold text-white">
+            {identityTitle}
+          </Text>
+          <Text className="mt-1 text-xs text-white/60">
+            Streak: {currentStreak} day{currentStreak === 1 ? "" : "s"} · Memories:{" "}
+            {memories.length}
+          </Text>
+        </View>
         <View className="mb-6 flex-row items-center">
           <Pressable
             onPress={handlePickAvatar}

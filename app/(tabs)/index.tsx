@@ -72,12 +72,14 @@ export default function HomeScreen() {
     hasSavedCurrentPhoto,
     orientationTransitioning,
     isPortrait,
+    facing,
     zoom,
     zoomFactor,
     activePreset,
     pinchGesture,
     handleZoomPreset,
     handleToggleOrientation,
+    handleToggleFacing,
     handleCapture,
     handleSavePhoto,
     handleOpenGallery,
@@ -388,6 +390,7 @@ export default function HomeScreen() {
                 orientationTransitioning={orientationTransitioning}
                 selectedImageUri={selectedImageUri}
                 canDeleteImage={!hasSavedCurrentPhoto}
+                facing={facing}
                 zoom={zoom}
                 zoomFactor={zoomFactor}
                 activePreset={activePreset}
@@ -404,6 +407,7 @@ export default function HomeScreen() {
                 onCameraReady={handleCameraReady}
                 onZoomPresetPress={handleZoomPreset}
                 onToggleOrientation={handleToggleOrientation}
+                onToggleFacing={handleToggleFacing}
                 onClearImage={clearSelectedImage}
                 onClearQuote={handleClearQuote}
                 onRegenerateQuote={handleGenerateAI}

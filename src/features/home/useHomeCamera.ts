@@ -48,6 +48,7 @@ function activePresetForFactor(factor: number): ZoomPreset {
 }
 
 export type CameraOrientation = "portrait" | "landscape";
+type CameraFacing = "back" | "front";
 
 export type PinchGesture = ReturnType<typeof Gesture.Pinch>;
 
@@ -69,6 +70,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [orientation, setOrientation] = useState<CameraOrientation>("portrait");
   const [orientationTransitioning, setOrientationTransitioning] =
     useState(false);
+  const [facing, setFacing] = useState<CameraFacing>("back");
   const [zoom, setZoom] = useState(() => factorToZoom(1));
   const [generationProgress, setGenerationProgress] = useState(0);
   const [quoteFontSize, setQuoteFontSize] = useState<"small" | "medium" | "large">("medium");
@@ -83,7 +85,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     null,
   );
   const { dailyQuote, clearDailyQuote } = useQuoteStore();
-  const { profile, ensureGuestId } = useUserStore();
+  const { profile, persona, ensureGuestId } = useUserStore();
   const { showToast } = useUIStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
@@ -139,6 +141,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setOrientationTransitioning(false);
       orientationTimeoutRef.current = null;
     }, 300);
+  }
+
+  function handleToggleFacing() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setFacing((previous) => (previous === "back" ? "front" : "back"));
   }
 
   function handleCameraReady() {
@@ -281,7 +288,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           date: today,
           quoteText,
           author: profile?.display_name ?? profile?.username ?? null,
-          personaId: null,
+          personaId: persona?.id ?? null,
           photoBackgroundUri: result.publicUrl,
           photoOrientation: result.orientation,
           styleFontId: quoteFontSize,
@@ -352,6 +359,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     pinchGesture,
     handleZoomPreset,
     handleToggleOrientation,
+    handleToggleFacing,
     handleCapture,
     handleGenerateAI,
     handleClearQuote,
@@ -365,5 +373,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setQuoteFontSize,
     setQuoteColorScheme,
     dailyQuoteText: dailyQuote?.text ?? null,
+    facing,
   };
 };

@@ -1,4 +1,7 @@
 import { useUserStore } from "@/appState/userStore";
+import { useStreakStore } from "@/appState/streakStore";
+import { useMemoryStore } from "@/appState";
+import type { MemoryState } from "@/appState/memoryStore";
 import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -17,6 +20,16 @@ export function ProfileGuestView({
   const persona = useUserStore((s) => s.persona);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
   const setGuestDisplayName = useUserStore((s) => s.setGuestDisplayName);
+  const currentStreak = useStreakStore((s) => s.currentStreak);
+  const memories = useMemoryStore((s: MemoryState) => s.memories);
+  const identityTitle =
+    persona && persona.traits.length > 0
+      ? persona.traits.includes("disciplined")
+        ? "The Disciplined One"
+        : persona.traits.includes("quiet")
+          ? "The Quiet Thinker"
+          : "The Rebuilder"
+      : "Growing Through Moments";
 
   return (
     <View className="flex-1 bg-black">
@@ -31,6 +44,18 @@ export function ProfileGuestView({
       </View>
 
       <ScrollView className="flex-1 px-4 py-6">
+        <View className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <Text className="mb-1 text-xs font-medium uppercase tracking-wide text-white/50">
+            Identity
+          </Text>
+          <Text className="text-sm font-semibold text-white">
+            {identityTitle}
+          </Text>
+          <Text className="mt-1 text-xs text-white/60">
+            Streak: {currentStreak} day{currentStreak === 1 ? "" : "s"} · Memories:{" "}
+            {memories.length}
+          </Text>
+        </View>
         {persona ? (
           <View className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
             <Text className="mb-1 text-xs font-medium uppercase tracking-wide text-white/50">

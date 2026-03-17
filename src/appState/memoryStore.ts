@@ -1,11 +1,21 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { QuoteMemory, QuoteVisibility } from "../types/memory";
+import { QuoteMemory, QuoteVisibility, QuoteImageOrientation } from "../types/memory";
+import type { Quote } from "./quoteStore";
 
 export type MemoryState = {
   _hasHydrated: boolean;
   memories: QuoteMemory[];
+  createMemoryFromQuote: (params: {
+    quote: Quote;
+    ownerUserId: string | null;
+    ownerGuestId: string | null;
+    photoBackgroundUri: string | null;
+    photoOrientation?: QuoteImageOrientation;
+    styleFontId: "small" | "medium" | "large";
+    styleColorSchemeId: "light" | "amber" | "pink";
+  }) => QuoteMemory;
   addMemory: (memory: QuoteMemory) => void;
   toggleFavorite: (id: string) => void;
   setVisibility: (id: string, visibility: QuoteVisibility) => void;
@@ -25,6 +35,34 @@ export const useMemoryStore = create<MemoryState>()(
       _hasHydrated: false,
       memories: [],
       setHasHydrated: (value) => set({ _hasHydrated: value }),
+      createMemoryFromQuote: ({
+        quote,
+        ownerUserId,
+        ownerGuestId,
+        photoBackgroundUri,
+        photoOrientation,
+        styleFontId,
+        styleColorSchemeId,
+      }) => {
+        const today = new Date(quote.createdAt).toISOString().split("T")[0];
+        const createdAtIso = new Date(quote.createdAt).toISOString();
+        return {
+          id: `${today}-${quote.id}`,
+          ownerUserId,
+          ownerGuestId,
+          date: today,
+          quoteText: quote.text,
+          author: null,
+          personaId: quote.personaId ?? null,
+          photoBackgroundUri,
+          photoOrientation,
+          styleFontId,
+          styleColorSchemeId,
+          createdAt: createdAtIso,
+          visibility: "private",
+          isFavorite: false,
+        };
+      },
       addMemory: (memory) =>
         set((state) => ({
           memories: [memory, ...state.memories].sort(byCreatedAtDesc).slice(0, 365 * 3),
