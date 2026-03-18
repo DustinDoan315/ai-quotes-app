@@ -3,6 +3,11 @@ import { useAIStore } from "./aiStore";
 import { useQuoteStore } from "@/appState/quoteStore";
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
+import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import { useUsageStore } from "@/appState/usageStore";
+import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
+import { strings } from "@/theme/strings";
+import { router } from "expo-router";
 
 const MAX_PERSONA_TRAITS = 8;
 const MAX_PERSONA_TRAIT_LENGTH = 40;
@@ -30,6 +35,8 @@ export const useGenerateQuote = () => {
   const { setDailyQuote, addToHistory } = useQuoteStore();
   const { persona, quoteLanguage } = useUserStore();
   const { showToast } = useUIStore();
+  const { customerInfo } = useSubscriptionStore();
+  const { dailyAiCount, resetIfNewDay, incrementAiUsage } = useUsageStore();
 
   const generate = async (
     base64Image?: string,
@@ -39,6 +46,23 @@ export const useGenerateQuote = () => {
       hasPersona: !!persona,
       hasBase64Image: !!base64Image,
     });
+
+    resetIfNewDay();
+
+    const snapshot = customerInfo
+      ? { activeEntitlementIds: customerInfo.activeEntitlementIds }
+      : null;
+    const guards = createSubscriptionGuards(snapshot);
+    const guardResult = guards.canGenerateQuote(dailyAiCount);
+
+    if (!guardResult.allowed) {
+      showToast(
+        `${strings.subscription.aiLimitReachedTitle} ${strings.subscription.aiLimitReachedBody}`,
+        "info",
+      );
+      router.push("/modal/paywall?reason=ai_limit" as never);
+      return null;
+    }
 
     if (enforceCooldown && lastGeneratedAt != null) {
       const now = Date.now();
@@ -85,6 +109,7 @@ export const useGenerateQuote = () => {
 
       setDailyQuote(quote);
       addToHistory(quote);
+      incrementAiUsage();
       setLastGeneratedAt(Date.now());
 
       console.log("AI quote stored", {
