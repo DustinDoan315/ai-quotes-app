@@ -7,9 +7,9 @@ import {
   type RevenueCatCustomerInfo,
   type RevenueCatPackageId,
 } from "@/services/paywall/types";
+import { type SubscriptionPlanId } from "@/domain/subscription/subscriptionConstants";
 import {
   resolvePlanFromSnapshot,
-  type SubscriptionPlanId,
   type SubscriptionSnapshot,
 } from "@/domain/subscription/subscriptionResolver";
 
@@ -110,6 +110,31 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         }
         set({ isPurchasing: true, errorMessage: null });
         try {
+          if (
+            __DEV__ &&
+            process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE === "mock_failure"
+          ) {
+            set({
+              isPurchasing: false,
+              errorMessage: "Simulated purchase failure (debug)",
+            });
+            return;
+          }
+          if (
+            __DEV__ &&
+            process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE === "mock_success"
+          ) {
+            set({
+              customerInfo: null,
+              isPro: true,
+              activeEntitlementId: "debug_pro",
+              plan: "pro",
+              lastSyncedAt: Date.now(),
+              isPurchasing: false,
+              errorMessage: null,
+            });
+            return;
+          }
           const { customerInfo } = await revenuecatClient.purchasePackage(
             selectedPackageId,
           );

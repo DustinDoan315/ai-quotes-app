@@ -382,6 +382,20 @@ export default function HomeScreen() {
                 </View>
               </View>
             )}
+            {__DEV__ && (
+              <View className="mx-4 mb-2">
+                <Pressable
+                  onPress={() =>
+                    router.push("/modal/paywall?reason=ai_limit" as never)
+                  }
+                  className="items-center justify-center rounded-full bg-amber-400 px-4 py-2"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+                  <Text className="text-xs font-semibold text-black">
+                    Open Paywall (Test)
+                  </Text>
+                </Pressable>
+              </View>
+            )}
             <View className="flex-1 w-full">
               <HomeCameraSection
                 cameraRef={cameraRef}
