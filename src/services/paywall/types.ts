@@ -1,4 +1,4 @@
-export type RevenueCatPackageId = "pro_monthly" | "pro_yearly";
+export type RevenueCatPackageId = "$rc_monthly" | "$rc_annual" | "$rc_lifetime";
 
 export type RevenueCatOffering = {
   identifier: string;
