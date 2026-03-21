@@ -50,6 +50,13 @@ export const strings = {
       superRare: "Super Rare",
       superLegend: "Super Legend",
     },
+    vibeRarityShort: {
+      common: "C",
+      uncommon: "U",
+      rare: "R",
+      superRare: "SR",
+      superLegend: "★",
+    },
   },
   subscription: {
     aiLimitReachedTitle: "You reached today’s free AI limit.",

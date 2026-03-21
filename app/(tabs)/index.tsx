@@ -335,7 +335,6 @@ export default function HomeScreen() {
                   params: { returnTo: "/(tabs)" },
                 } as never)
               }
-              vibeHint={vibeHint}
             />
             {pastMemories.length > 0 && (
               <Pressable
@@ -428,6 +427,7 @@ export default function HomeScreen() {
                 onClearImage={clearSelectedImage}
                 onClearQuote={handleClearQuote}
                 onRegenerateQuote={handleGenerateAI}
+                vibeHint={vibeHint}
               />
             </View>
           </View>

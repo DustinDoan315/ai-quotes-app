@@ -1,4 +1,6 @@
+import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
+import type { HomeVibeHintParts } from "@/types/homeBackground";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import { Image } from "expo-image";
@@ -39,6 +41,7 @@ type Props = {
   onClearImage: () => void;
   onClearQuote: () => void;
   onRegenerateQuote: () => void;
+  vibeHint: HomeVibeHintParts | null;
 };
 
 export const HomeCameraSection = ({
@@ -69,6 +72,7 @@ export const HomeCameraSection = ({
   onClearImage,
   onClearQuote,
   onRegenerateQuote,
+  vibeHint,
 }: Props) => {
   const fontSizeValue = useMemo(() => {
     if (quoteFontSize === "small") {
@@ -195,6 +199,15 @@ export const HomeCameraSection = ({
                   </View>
                 </View>
               </View>
+            ) : null}
+            {vibeHint ? (
+              <HomeVibeWatermark
+                vibeHint={vibeHint}
+                placement={showQuoteOverlay ? "top" : "bottom"}
+                avoidTrash={Boolean(
+                  showQuoteOverlay && selectedImageUri && canDeleteImage,
+                )}
+              />
             ) : null}
           </MotiView>
         </GestureDetector>
