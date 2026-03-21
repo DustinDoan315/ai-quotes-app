@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
 import { strings } from "@/theme/strings";
@@ -6,73 +7,92 @@ type FeatureRowProps = {
   label: string;
   freeValue: string;
   proValue: string;
+  isLast: boolean;
 };
 
 export const PaywallFeatureComparison = () => {
   return (
-    <View className="mb-5 rounded-3xl bg-black/70 p-4 shadow-lg shadow-black/60">
-      <Text className="mb-3 text-xs font-semibold uppercase tracking-wide text-white/60">
-        {strings.subscription.featureHeader}
-      </Text>
+    <View className="mb-5 w-full max-w-full overflow-hidden rounded-3xl border border-amber-400/25 bg-slate-950/95">
+      <View className="border-b border-amber-400/20 bg-amber-500/15 px-3 py-3">
+        <Text className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-amber-100">
+          {strings.subscription.featureHeaderHighlight}
+        </Text>
+      </View>
 
-      <View className="flex-row border-b border-white/10 pb-2">
-        <View className="flex-1" />
-        <View className="w-16 items-center">
-          <Text className="text-[11px] font-semibold text-white/70">
+      <View className="flex-row border-b border-white/10 px-2 pb-2 pt-3">
+        <View className="min-w-0 flex-1" />
+        <View className="w-[68px] shrink-0 items-center">
+          <Text className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
             {strings.subscription.freeLabel}
           </Text>
         </View>
-        <View className="w-16 items-center">
-          <Text className="text-[11px] font-semibold text-amber-300">
+        <View className="w-[68px] shrink-0 items-center">
+          <Text className="text-[10px] font-bold uppercase tracking-wide text-amber-200">
             {strings.subscription.proLabel}
           </Text>
         </View>
       </View>
 
-      <View className="mt-2 space-y-2">
+      <View className="px-1 pb-3 pt-1">
         <FeatureRow
           label={strings.subscription.featureDailyQuotes}
           freeValue={strings.subscription.freeDailyQuotesValue}
           proValue={strings.subscription.proDailyQuotesValue}
+          isLast={false}
         />
         <FeatureRow
           label={strings.subscription.featureExports}
           freeValue={strings.subscription.freeExportsValue}
           proValue={strings.subscription.proExportsValue}
+          isLast={false}
         />
         <FeatureRow
           label={strings.subscription.featurePremiumThemes}
           freeValue={strings.subscription.freePremiumThemesValue}
           proValue={strings.subscription.proPremiumThemesValue}
+          isLast={false}
         />
         <FeatureRow
           label={strings.subscription.featureAdvancedPersona}
           freeValue={strings.subscription.freeAdvancedPersonaValue}
           proValue={strings.subscription.proAdvancedPersonaValue}
+          isLast={false}
         />
         <FeatureRow
           label={strings.subscription.featureWatermark}
           freeValue={strings.subscription.freeWatermarkValue}
           proValue={strings.subscription.proWatermarkValue}
+          isLast
         />
       </View>
     </View>
   );
 };
 
-const FeatureRow = ({ label, freeValue, proValue }: FeatureRowProps) => {
+const FeatureRow = ({ label, freeValue, proValue, isLast }: FeatureRowProps) => {
   return (
-    <View className="flex-row items-center py-1.5">
-      <View className="flex-1">
-        <Text className="text-xs font-medium text-white/85">{label}</Text>
-      </View>
-      <View className="w-16 items-center">
-        <Text className="text-[11px] text-white/60">{freeValue}</Text>
-      </View>
-      <View className="w-16 items-center">
-        <Text className="text-[11px] font-semibold text-amber-300">
-          {proValue}
+    <View
+      className={`flex-row items-start py-2.5 ${isLast ? "" : "border-b border-white/10"}`}>
+      <View className="min-w-0 flex-1 pr-1">
+        <Text className="text-[13px] font-medium leading-[18px] text-slate-100">
+          {label}
         </Text>
+      </View>
+      <View className="w-[68px] shrink-0 items-center pt-0.5">
+        <View className="flex-col items-center gap-0.5">
+          <Ionicons name="close-circle" size={16} color="#f87171" />
+          <Text className="text-center text-[10px] leading-3 text-slate-400">
+            {freeValue}
+          </Text>
+        </View>
+      </View>
+      <View className="w-[68px] shrink-0 items-center pt-0.5">
+        <View className="flex-col items-center gap-0.5">
+          <Ionicons name="checkmark-circle" size={17} color="#34d399" />
+          <Text className="text-center text-[10px] font-semibold leading-3 text-emerald-200">
+            {proValue}
+          </Text>
+        </View>
       </View>
     </View>
   );

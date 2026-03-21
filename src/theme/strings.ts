@@ -36,7 +36,19 @@ export const strings = {
     aiLimitReachedBody: "Upgrade to Pro for unlimited quote generations.",
     paywallHeroTitle: "Create better quote cards without limits",
     paywallHeroSubtitle: "Unlimited quotes, exports, and premium styles.",
+    paywallBullet1: "Generate as many AI quotes as you want — no daily cap.",
+    paywallBullet2: "Export and share quote cards without limits.",
+    paywallBullet3: "Unlock every theme and remove the watermark.",
+    aiLimitPaywallBody:
+      "You’ve used today’s free generations. Pro unlocks unlimited AI quotes so you never hit a wall.",
+    exportLimitPaywallBody:
+      "You’ve reached today’s export limit. Pro lets you export and share as many cards as you want.",
+    premiumThemePaywallBody:
+      "Pro opens every premium layout and style so your cards always look polished.",
+    personaPaywallBody:
+      "Pro unlocks full persona controls so the AI matches your voice.",
     featureHeader: "What you get",
+    featureHeaderHighlight: "Compare plans",
     featureDailyQuotes: "Daily AI quotes",
     featureExports: "Daily exports",
     featurePremiumThemes: "Premium themes",
@@ -54,19 +66,37 @@ export const strings = {
     proAdvancedPersonaValue: "Full control",
     freeWatermarkValue: "Shown",
     proWatermarkValue: "Removed",
+    heroEyebrow: "Unlock everything",
     choosePlanHeader: "Choose your plan",
+    noPlansAvailable:
+      "We couldn’t load subscription plans. Check your connection and try again, or open the App Store / Play Store and try later.",
     primaryCta: "Continue",
     processingCta: "Processing…",
     restoreCta: "Restore purchases",
     maybeLaterCta: "Not now",
     bestValueTag: "Best value",
-    purchaseSuccessToast: "Welcome to Pro — enjoy unlimited quotes.",
-    restoreSuccessToast: "Your Pro access is restored.",
+    purchaseSuccessToast: "Subscription active — you’re on Pro now.",
+    purchaseVerifyLater:
+      "Purchase received. If Pro doesn’t unlock in a minute, tap Restore purchases.",
+    restoreSuccessToast: "Pro restored — your subscription is active.",
     restoreNoActiveToast: "No active subscription found for this account.",
     subscriptionTermsLink: "Terms of Use",
     privacyPolicyLink: "Privacy Policy",
     footerReassurance:
       "Payments are processed by Apple or Google. You can cancel anytime in Settings.",
+    statusLoadingPlansTitle: "Connecting to the store…",
+    statusLoadingPlansBody:
+      "We’re fetching live prices and plans from Apple or Google. This usually takes a few seconds.",
+    statusPurchasingTitle: "Completing your purchase…",
+    statusPurchasingBody:
+      "Stay on this screen. You may be asked to confirm with Face ID, Touch ID, or your store password.",
+    statusRestoringTitle: "Restoring your purchases…",
+    statusRestoringBody:
+      "We’re checking your account for an active subscription. This may take a moment.",
+    statusErrorTitle: "Something went wrong",
+    retryLoadPlans: "Try again",
+    ctaHelperIos: "You’ll confirm with Face ID, Touch ID, or your Apple ID.",
+    ctaHelperAndroid: "You’ll confirm with your Google Play account on the next screen.",
     contextAiLimitTitle: "Generate quotes anytime",
     contextExportLimitTitle: "Export without limits",
     contextPremiumThemeTitle: "Unlock premium styles",

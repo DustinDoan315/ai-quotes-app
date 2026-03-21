@@ -1,12 +1,39 @@
 import { RevenueCatConfig } from '../config/revenuecat';
 import Purchases, {
   CustomerInfo,
+  LOG_LEVEL,
   PurchasesOffering,
   PurchasesPackage,
 } from 'react-native-purchases';
 
 let isInitialized = false;
 let initPromise: Promise<void> | null = null;
+
+function installRevenueCatLogHandler(): void {
+  Purchases.setLogHandler((logLevel, message) => {
+    const line = `[RevenueCat] ${message}`;
+    if (logLevel === LOG_LEVEL.ERROR && message.includes('simulated successfully')) {
+      console.info(line);
+      return;
+    }
+    switch (logLevel) {
+      case LOG_LEVEL.DEBUG:
+        console.debug(line);
+        break;
+      case LOG_LEVEL.INFO:
+        console.info(line);
+        break;
+      case LOG_LEVEL.WARN:
+        console.warn(line);
+        break;
+      case LOG_LEVEL.ERROR:
+        console.error(line);
+        break;
+      default:
+        console.log(line);
+    }
+  });
+}
 
 export function isRevenueCatInitialized(): boolean {
   return isInitialized;
@@ -23,6 +50,7 @@ export async function initializeRevenueCat(): Promise<void> {
 
   initPromise = (async () => {
     try {
+      installRevenueCatLogHandler();
       Purchases.configure({ apiKey });
       isInitialized = true;
     } catch (error) {

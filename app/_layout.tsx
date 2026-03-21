@@ -1,12 +1,14 @@
 import { initializeRevenueCat } from '../services/revenuecat';
+import { ToastHost } from '@/components/ToastHost';
 import { initPostHog } from '@/services/analytics/posthog';
 import { initSentry } from '@/services/analytics/sentry';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { supabase } from '@/config/supabase';
 import { syncUserProfile } from '@/features/auth/authService';
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import '../global.css';
 
 
@@ -49,7 +51,12 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <SafeAreaProvider>
+        <View style={styles.root}>
+          <Stack screenOptions={{ headerShown: false }} />
+          <ToastHost />
+        </View>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
