@@ -2,9 +2,9 @@ import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradien
 import { QuoteMomentCardMedia } from "@/features/quotes/QuoteMomentCardMedia";
 import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
+import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { strings } from "@/theme/strings";
-import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -51,17 +51,13 @@ export const QuoteMomentCard = ({
   );
 
   const fontSize =
-    item.styleFontId === "small"
-      ? 16
-      : item.styleFontId === "large"
-      ? 24
-      : 18;
+    item.styleFontId === "small" ? 16 : item.styleFontId === "large" ? 24 : 18;
   const textColor =
     item.styleColorSchemeId === "amber"
       ? "#FBBF24"
       : item.styleColorSchemeId === "pink"
-      ? "#F9A8D4"
-      : "#FFFFFF";
+        ? "#F9A8D4"
+        : "#FFFFFF";
 
   const mediaBlock = (
     <QuoteMomentCardMedia

@@ -1,4 +1,3 @@
-import { useHomeBackgroundStore } from "@/appState/homeBackgroundStore";
 import { useUserStore } from "@/appState/userStore";
 import { strings } from "@/theme/strings";
 import {
@@ -13,8 +12,6 @@ import { getDailyHomeBackground } from "@/utils/homeBackgroundRoll";
 import { useUserStoreHydrated } from "@/utils/useUserStoreHydrated";
 import { useEffect, useMemo } from "react";
 
-let lastHomeBackgroundLogKey = "";
-
 export function useHomeBackgroundPalette(): {
   palette: HomeBackgroundPalette;
   vibeHint: HomeVibeHintParts | null;
@@ -24,8 +21,19 @@ export function useHomeBackgroundPalette(): {
   const guestId = useUserStore((s) => s.guestId);
   const ensureGuestId = useUserStore((s) => s.ensureGuestId);
   const userStoreHydrated = useUserStoreHydrated();
-  const devBgIndex = useHomeBackgroundStore((s) => s.devBgIndex);
   const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    if (!userStoreHydrated) {
+      return;
+    }
+    if (profile?.user_id) {
+      return;
+    }
+    if (authState === "authenticated") {
+      return;
+    }
+    ensureGuestId();
+  }, [userStoreHydrated, profile?.user_id, authState, ensureGuestId]);
   const identityKey = useMemo(() => {
     if (profile?.user_id) {
       return profile.user_id;
@@ -36,14 +44,8 @@ export function useHomeBackgroundPalette(): {
     if (!userStoreHydrated) {
       return null;
     }
-    return guestId ?? ensureGuestId();
-  }, [
-    profile?.user_id,
-    authState,
-    guestId,
-    ensureGuestId,
-    userStoreHydrated,
-  ]);
+    return guestId;
+  }, [profile?.user_id, authState, guestId, userStoreHydrated]);
   const dailyBackground = useMemo(() => {
     if (identityKey == null) {
       return {
@@ -67,22 +69,10 @@ export function useHomeBackgroundPalette(): {
         luckPercent: dailyBackground.luckPercent,
       };
     }
-    if (__DEV__ && devBgIndex != null) {
-      const palette = HOME_BACKGROUNDS[devBgIndex];
-      return {
-        palette,
-        luckPercent: 50 + (devBgIndex % 7),
-      };
-    }
     return dailyBackground;
-  }, [
-    profile?.user_id,
-    profile?.home_vibe_key,
-    devBgIndex,
-    dailyBackground,
-  ]);
+  }, [profile?.user_id, profile?.home_vibe_key, dailyBackground]);
   const vibeHint = useMemo(() => {
-    if (identityKey == null && !(__DEV__ && devBgIndex != null)) {
+    if (identityKey == null) {
       return null;
     }
     const { palette, luckPercent } = effectiveDaily;
@@ -92,41 +82,7 @@ export function useHomeBackgroundPalette(): {
       rarity: palette.rarity,
       luckPercent,
     };
-  }, [identityKey, effectiveDaily, devBgIndex]);
-  useEffect(() => {
-    if (!__DEV__) {
-      return;
-    }
-    const p = effectiveDaily.palette;
-    const hasServerKey = Boolean(
-      profile?.user_id &&
-        profile?.home_vibe_key != null &&
-        String(profile.home_vibe_key).trim() !== "",
-    );
-    let source = "daily_roll";
-    if (hasServerKey) {
-      source = "user_profiles.home_vibe_key";
-    } else if (devBgIndex != null) {
-      source = "dev_override";
-    }
-    const dedupeKey = `${source}:${p.vibeKey}:${p.colors.join(",")}`;
-    if (lastHomeBackgroundLogKey === dedupeKey) {
-      return;
-    }
-    lastHomeBackgroundLogKey = dedupeKey;
-    console.log("[home background]", source, {
-      vibeKey: p.vibeKey,
-      rarity: p.rarity,
-      colors: [...p.colors],
-      storedHomeVibeKey: profile?.home_vibe_key ?? null,
-      devBgIndex: devBgIndex ?? null,
-    });
-  }, [
-    effectiveDaily.palette,
-    devBgIndex,
-    profile?.user_id,
-    profile?.home_vibe_key,
-  ]);
+  }, [identityKey, effectiveDaily]);
   return {
     palette: effectiveDaily.palette,
     vibeHint,

@@ -1,12 +1,11 @@
-import { HomeBackground } from "@/features/home/HomeBackground";
-import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
+import { colors } from "@/theme/colors";
 import { StyleSheet, View } from "react-native";
 
 export function GlobalHomeBackground() {
-  const { palette } = useHomeBackgroundPalette();
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-      <HomeBackground palette={palette} />
-    </View>
+    <View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.screenBackground }]}
+    />
   );
 }

@@ -3,6 +3,7 @@ export const colors = {
   secondary: "#666666",
   background: "#FFFFFF",
   backgroundDark: "#000000",
+  screenBackground: "#09090b",
   text: "#000000",
   textSecondary: "#666666",
   textLight: "#999999",

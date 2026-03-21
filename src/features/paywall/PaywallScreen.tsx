@@ -40,7 +40,6 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
   const isRestoring = useSubscriptionStore((s) => s.isRestoring);
   const errorMessage = useSubscriptionStore((s) => s.errorMessage);
   const isLoading = useSubscriptionStore((s) => s.isLoading);
-  const isPro = useSubscriptionStore((s) => s.isPro);
 
   const showToast = useUIStore((s) => s.showToast);
 
@@ -88,9 +87,7 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
   const showOfferingsLoading =
     offeringsFetchStatus === "loading" || (isLoading && !offerings);
   const hasPackages = Boolean(offerings?.availablePackages?.length);
-  const canUseDevPurchaseMock =
-    __DEV__ && Boolean(process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE);
-  const canPurchase = hasPackages || canUseDevPurchaseMock;
+  const canPurchase = hasPackages;
   const primaryLabel = isPurchasing
     ? strings.subscription.processingCta
     : strings.subscription.primaryCta;
@@ -197,8 +194,6 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
           bestValuePackageId={bestValuePackageId}
           selectedPackageId={selectedPackageId}
           onSelectPackage={setSelectedPackageId}
-          errorMessage={errorMessage}
-          isPro={isPro}
         />
 
         <PaywallStickyFooter

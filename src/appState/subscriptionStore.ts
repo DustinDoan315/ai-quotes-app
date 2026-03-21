@@ -124,29 +124,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       purchaseSelectedPackage: async () => {
         set({ isPurchasing: true, errorMessage: null });
         try {
-          if (
-            __DEV__ &&
-            process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE === "mock_failure"
-          ) {
-            set({
-              errorMessage: "Simulated purchase failure (debug)",
-            });
-            return;
-          }
-          if (
-            __DEV__ &&
-            process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE === "mock_success"
-          ) {
-            set({
-              customerInfo: null,
-              isPro: true,
-              activeEntitlementId: "debug_pro",
-              plan: "pro",
-              lastSyncedAt: Date.now(),
-              errorMessage: null,
-            });
-            return;
-          }
           const { selectedPackageId } = get();
           if (!selectedPackageId) {
             return;

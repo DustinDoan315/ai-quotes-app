@@ -9,6 +9,7 @@ interface HomeVibeWatermarkProps {
   readonly avoidTrash?: boolean;
   readonly horizontalAlign?: "left" | "right";
   readonly rotated?: boolean;
+  readonly borderOnly?: boolean;
 }
 
 export function HomeVibeWatermark({
@@ -17,6 +18,7 @@ export function HomeVibeWatermark({
   avoidTrash,
   horizontalAlign = "right",
   rotated = true,
+  borderOnly = false,
 }: HomeVibeWatermarkProps) {
   const rarityStyle = HOME_VIBE_RARITY_STYLE[vibeHint.rarity];
   let positionClass = "bottom-3 right-3";
@@ -34,7 +36,11 @@ export function HomeVibeWatermark({
       className={`absolute z-30 ${positionClass}`}
       accessibilityLabel={`${vibeHint.vibeName}, ${vibeHint.rarityLabel}, ${strings.home.luckLabel} ${vibeHint.luckPercent}`}>
       <View
-        className="rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5"
+        className={
+          borderOnly
+            ? "rounded-md border border-white/25 bg-transparent px-2.5 py-1.5"
+            : "rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5"
+        }
         style={rotated ? { transform: [{ rotate: "-9deg" }] } : undefined}>
         <Text
           className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/75"

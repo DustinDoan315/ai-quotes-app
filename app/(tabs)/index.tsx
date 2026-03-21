@@ -1,6 +1,4 @@
 import { useMemoryStore } from "@/appState";
-import type { MemoryState } from "@/appState/memoryStore";
-import type { QuoteMemory } from "@/types/memory";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { CameraActionsBar } from "@/components/CameraActionsBar";
@@ -12,8 +10,8 @@ import { useHomeCamera } from "@/features/home/useHomeCamera";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
-import { useRouter } from "expo-router";
 import { strings } from "@/theme/strings";
+import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -28,6 +26,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import type { MemoryState } from "@/appState/memoryStore";
+import type { QuoteMemory } from "@/types/memory";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -72,15 +73,12 @@ export default function HomeScreen() {
     selectedImageUri,
     hideQuote,
     hasSavedCurrentPhoto,
-    orientationTransitioning,
-    isPortrait,
     facing,
     zoom,
     zoomFactor,
     activePreset,
     pinchGesture,
     handleZoomPreset,
-    handleToggleOrientation,
     handleToggleFacing,
     handleCapture,
     handleSavePhoto,
@@ -159,12 +157,11 @@ export default function HomeScreen() {
   const actionBarBottomPadding = insets.bottom;
   const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
   const getItemLayout = useMemo(
-    () =>
-      (_: unknown, index: number) => ({
-        length: viewportHeight,
-        offset: viewportHeight + index * viewportHeight,
-        index,
-      }),
+    () => (_: unknown, index: number) => ({
+      length: viewportHeight,
+      offset: viewportHeight + index * viewportHeight,
+      index,
+    }),
     [viewportHeight],
   );
   const snapOffsets = useMemo(
@@ -347,9 +344,9 @@ export default function HomeScreen() {
                 }
                 className="mx-4 mb-3 rounded-xl border border-white/15 bg-white/8 px-4 py-3"
                 style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
-            <Text className="text-xs font-semibold uppercase tracking-wide text-amber-300">
-              {strings.memories.thisDayInMemoriesLabel}
-            </Text>
+                <Text className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                  {strings.memories.thisDayInMemoriesLabel}
+                </Text>
                 <Text
                   className="mt-1 text-sm font-medium text-white"
                   numberOfLines={2}>
@@ -385,26 +382,10 @@ export default function HomeScreen() {
                 </View>
               </View>
             )}
-            {__DEV__ && (
-              <View className="mx-4 mb-2">
-                <Pressable
-                  onPress={() =>
-                    router.push("/modal/paywall?reason=ai_limit" as never)
-                  }
-                  className="items-center justify-center rounded-full bg-amber-400 px-4 py-2"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
-                  <Text className="text-xs font-semibold text-black">
-                    Open Paywall (Test)
-                  </Text>
-                </Pressable>
-              </View>
-            )}
             <View className="flex-1 w-full">
               <HomeCameraSection
                 cameraRef={cameraRef}
                 pinchGesture={pinchGesture}
-                isPortrait={isPortrait}
-                orientationTransitioning={orientationTransitioning}
                 selectedImageUri={selectedImageUri}
                 canDeleteImage={!hasSavedCurrentPhoto}
                 facing={facing}
@@ -423,12 +404,12 @@ export default function HomeScreen() {
                 authorAvatarUrl={authorAvatarUrl}
                 onCameraReady={handleCameraReady}
                 onZoomPresetPress={handleZoomPreset}
-                onToggleOrientation={handleToggleOrientation}
                 onToggleFacing={handleToggleFacing}
                 onClearImage={clearSelectedImage}
                 onClearQuote={handleClearQuote}
                 onRegenerateQuote={handleGenerateAI}
                 vibeHint={vibeHint}
+                cardPalette={palette}
               />
             </View>
           </View>

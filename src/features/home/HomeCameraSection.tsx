@@ -1,14 +1,23 @@
+import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
-import type { HomeVibeHintParts } from "@/types/homeBackground";
+import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
+import type {
+  HomeBackgroundPalette,
+  HomeVibeHintParts,
+} from "@/types/homeBackground";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
-import { Easing } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 type QuoteFontSize = "small" | "medium" | "large";
 type QuoteColor = "light" | "amber" | "pink";
@@ -16,8 +25,6 @@ type QuoteColor = "light" | "amber" | "pink";
 type Props = {
   cameraRef: React.RefObject<CameraView | null>;
   pinchGesture: PinchGesture;
-  isPortrait: boolean;
-  orientationTransitioning: boolean;
   selectedImageUri: string | null;
   canDeleteImage: boolean;
   facing: "back" | "front";
@@ -36,19 +43,17 @@ type Props = {
   authorAvatarUrl: string | null;
   onCameraReady: () => void;
   onZoomPresetPress: (preset: 0.5 | 1 | 2) => void;
-  onToggleOrientation: () => void;
   onToggleFacing: () => void;
   onClearImage: () => void;
   onClearQuote: () => void;
   onRegenerateQuote: () => void;
   vibeHint: HomeVibeHintParts | null;
+  cardPalette: HomeBackgroundPalette;
 };
 
 export const HomeCameraSection = ({
   cameraRef,
   pinchGesture,
-  isPortrait,
-  orientationTransitioning,
   selectedImageUri,
   canDeleteImage,
   facing,
@@ -67,13 +72,26 @@ export const HomeCameraSection = ({
   authorAvatarUrl,
   onCameraReady,
   onZoomPresetPress,
-  onToggleOrientation,
   onToggleFacing,
   onClearImage,
   onClearQuote,
   onRegenerateQuote,
   vibeHint,
+  cardPalette,
 }: Props) => {
+  const [shellSize, setShellSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const chrome = useMemo(
+    () => getHomeVibeFeedChrome(cardPalette),
+    [cardPalette],
+  );
+  const flipIconRotation = useSharedValue(0);
+  const flipIconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${flipIconRotation.value}deg` }],
+  }));
+  const cardAspect = 3 / 3.75;
   const fontSizeValue = useMemo(() => {
     if (quoteFontSize === "small") {
       return 16;
@@ -83,16 +101,6 @@ export const HomeCameraSection = ({
     }
     return 18;
   }, [quoteFontSize]);
-
-  const quoteColorValue = useMemo(() => {
-    if (quoteColorScheme === "amber") {
-      return "#FBBF24";
-    }
-    if (quoteColorScheme === "pink") {
-      return "#F9A8D4";
-    }
-    return "#FFFFFF";
-  }, [quoteColorScheme]);
 
   const createdTimeLabel = useMemo(
     () =>
@@ -105,53 +113,84 @@ export const HomeCameraSection = ({
 
   const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating);
 
+  const handleCameraFlipPress = () => {
+    flipIconRotation.value = withTiming(flipIconRotation.value + 180, {
+      duration: 320,
+    });
+    onToggleFacing();
+  };
+
   return (
     <View className="flex-1 w-full flex-col px-2 py-6">
       <View className="min-h-0 flex-1 items-center justify-center">
         <GestureDetector gesture={pinchGesture}>
-          <MotiView
-            animate={{
-              opacity: orientationTransitioning ? 0.6 : 1,
-              scale: orientationTransitioning ? 0.96 : 1,
-            }}
-            transition={{
-              type: "timing",
-              duration: 300,
-              easing: Easing.linear,
-            }}
-            className={
-              isPortrait
-                ? "aspect-[3/3.75] w-full max-w-md overflow-hidden rounded-3xl bg-black"
-                : "aspect-[3.5/3] w-full max-w-2xl overflow-hidden rounded-3xl bg-black"
-            }>
-            {selectedImageUri ? (
-              <View className="flex-1">
-                <Image
-                  source={{ uri: selectedImageUri }}
-                  style={{ flex: 1 }}
-                  contentFit="cover"
-                />
-                {canDeleteImage ? (
-                  <Pressable
-                    onPress={onClearImage}
-                    className="absolute right-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-black/60"
-                    style={({ pressed }) => ({
-                      opacity: pressed ? 0.8 : 1,
-                    })}>
-                    <Ionicons name="trash-outline" size={18} color="#ffffff" />
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : (
-              <CameraView
-                ref={cameraRef}
-                style={{ flex: 1 }}
-                facing={facing}
-                zoom={zoom}
-                onCameraReady={onCameraReady}
+          <View
+            className="w-full max-w-md overflow-hidden rounded-[28px]"
+            style={[chrome.outerShell, { aspectRatio: cardAspect }]}
+            onLayout={(e) => {
+              const { width, height } = e.nativeEvent.layout;
+              if (width > 0 && height > 0) {
+                setShellSize({ width, height });
+              }
+            }}>
+            {shellSize ? (
+              <FeedCardVibeGradientShell
+                palette={cardPalette}
+                width={shellSize.width}
+                height={shellSize.height}
               />
-            )}
-
+            ) : null}
+            <View className="absolute inset-[3px] z-[1] flex flex-col overflow-hidden rounded-[25px] bg-black">
+              <View pointerEvents="none" style={chrome.hairline} />
+              {selectedImageUri ? (
+                <View className="flex-1">
+                  <Image
+                    source={{ uri: selectedImageUri }}
+                    style={{ flex: 1 }}
+                    contentFit="cover"
+                  />
+                  {canDeleteImage ? (
+                    <Pressable
+                      onPress={onClearImage}
+                      className="absolute right-3 top-3 z-20 h-9 w-9 items-center justify-center rounded-full bg-black/60"
+                      style={({ pressed }) => ({
+                        opacity: pressed ? 0.8 : 1,
+                      })}>
+                      <Ionicons name="trash-outline" size={18} color="#ffffff" />
+                    </Pressable>
+                  ) : null}
+                </View>
+              ) : (
+                <CameraView
+                  ref={cameraRef}
+                  style={{ flex: 1 }}
+                  facing={facing}
+                  zoom={zoom}
+                  onCameraReady={onCameraReady}
+                />
+              )}
+              <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
+              <View pointerEvents="none" style={chrome.photoBorder} />
+              <View
+                pointerEvents="none"
+                className="absolute left-2.5 top-2.5 z-[4] h-11 w-11 rounded-tl-2xl border-l-[3px] border-t-[3px]"
+                style={{ borderColor: chrome.cornerColor }}
+              />
+              <View
+                pointerEvents="none"
+                className="absolute right-2.5 top-2.5 z-[4] h-11 w-11 rounded-tr-2xl border-r-[3px] border-t-[3px]"
+                style={{ borderColor: chrome.cornerColor }}
+              />
+              <View
+                pointerEvents="none"
+                className="absolute bottom-2.5 left-2.5 z-[4] h-11 w-11 rounded-bl-2xl border-b-[3px] border-l-[3px]"
+                style={{ borderColor: chrome.cornerColor }}
+              />
+              <View
+                pointerEvents="none"
+                className="absolute bottom-2.5 right-2.5 z-[4] h-11 w-11 rounded-br-2xl border-b-[3px] border-r-[3px]"
+                style={{ borderColor: chrome.cornerColor }}
+              />
             {showQuoteOverlay ? (
               <View className="pointer-events-none absolute inset-0">
                 <View className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-3">
@@ -183,16 +222,16 @@ export const HomeCameraSection = ({
                         </Text>
                       </View>
                     </View>
-                    <View className="rounded-full bg-white/15 px-2.5 py-1">
+                    <View className="rounded-full border border-white/25 px-2.5 py-1">
                       <Text className="text-[11px] font-medium text-white/85">
                         Today
                       </Text>
                     </View>
                   </View>
-                  <View className="rounded-2xl bg-black/40 px-3 py-2">
+                  <View className="rounded-2xl border border-white/20 px-3 py-2">
                     <Text
-                      className="text-center font-semibold"
-                      style={{ fontSize: fontSizeValue, color: quoteColorValue }}
+                      className="text-center font-semibold text-white"
+                      style={{ fontSize: fontSizeValue }}
                       numberOfLines={4}>
                       {dailyQuoteText}
                     </Text>
@@ -207,9 +246,11 @@ export const HomeCameraSection = ({
                 avoidTrash={Boolean(
                   showQuoteOverlay && selectedImageUri && canDeleteImage,
                 )}
+                borderOnly
               />
             ) : null}
-          </MotiView>
+            </View>
+          </View>
         </GestureDetector>
       </View>
 
@@ -392,28 +433,20 @@ export const HomeCameraSection = ({
                 })}
               </View>
               <View className="flex-1 items-end">
-                <View className="flex-row items-center gap-2">
-                  <Pressable
-                    onPress={onToggleFacing}
-                    className="h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
-                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                    <Ionicons name="camera-reverse-outline" size={20} color="#fff" />
-                  </Pressable>
-                  <Pressable
-                    onPress={onToggleOrientation}
-                    className="h-10 w-10 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
-                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                    <Ionicons
-                      name={
-                        isPortrait
-                          ? "phone-portrait-outline"
-                          : "phone-landscape-outline"
-                      }
-                      size={20}
-                      color="#fff"
-                    />
-                  </Pressable>
-                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Switch camera"
+                  onPress={handleCameraFlipPress}
+                  hitSlop={12}
+                  className="h-11 w-11 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+                  style={({ pressed }) => ({
+                    opacity: pressed ? 0.75 : 1,
+                    transform: [{ scale: pressed ? 0.94 : 1 }],
+                  })}>
+                  <Animated.View style={flipIconStyle}>
+                    <Ionicons name="camera-reverse-outline" size={22} color="#fff" />
+                  </Animated.View>
+                </Pressable>
               </View>
             </View>
           </View>

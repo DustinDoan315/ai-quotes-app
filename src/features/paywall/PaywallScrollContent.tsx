@@ -21,8 +21,6 @@ type Props = {
   bestValuePackageId: string | null;
   selectedPackageId: RevenueCatPackageId | null;
   onSelectPackage: (id: RevenueCatPackageId) => void;
-  errorMessage: string | null;
-  isPro: boolean;
 };
 
 export const PaywallScrollContent = ({
@@ -35,8 +33,6 @@ export const PaywallScrollContent = ({
   bestValuePackageId,
   selectedPackageId,
   onSelectPackage,
-  errorMessage,
-  isPro,
 }: Props) => {
   return (
     <ScrollView
@@ -106,23 +102,6 @@ export const PaywallScrollContent = ({
           {strings.subscription.footerReassurance}
         </Text>
       </View>
-
-      {__DEV__ && process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE ? (
-        <View className="mt-5 w-full max-w-full rounded-2xl border border-dashed border-amber-400/50 bg-amber-950/40 p-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-            Test purchase mode
-          </Text>
-          <Text className="mt-1 text-[11px] text-amber-100">
-            Mode: {process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE}
-          </Text>
-          {errorMessage ? (
-            <Text className="mt-1 text-[11px] text-red-300">{errorMessage}</Text>
-          ) : null}
-          <Text className="mt-1 text-[10px] text-slate-400">
-            isPro: {isPro ? "yes" : "no"}
-          </Text>
-        </View>
-      ) : null}
     </ScrollView>
   );
 };

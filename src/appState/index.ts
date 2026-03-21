@@ -1,4 +1,3 @@
-export { useHomeBackgroundStore } from "./homeBackgroundStore";
 export { useQuoteStore } from "./quoteStore";
 export { useStreakStore } from "./streakStore";
 export { useUIStore } from "./uiStore";

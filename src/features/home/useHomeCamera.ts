@@ -47,7 +47,6 @@ function activePresetForFactor(factor: number): ZoomPreset {
   return 2;
 }
 
-export type CameraOrientation = "portrait" | "landscape";
 type CameraFacing = "back" | "front";
 
 export type PinchGesture = ReturnType<typeof Gesture.Pinch>;
@@ -69,9 +68,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [hideQuote, setHideQuote] = useState(false);
   const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
-  const [orientation, setOrientation] = useState<CameraOrientation>("portrait");
-  const [orientationTransitioning, setOrientationTransitioning] =
-    useState(false);
   const [facing, setFacing] = useState<CameraFacing>("back");
   const [zoom, setZoom] = useState(() => factorToZoom(1));
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -80,9 +76,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const cameraRef = useRef<CameraView | null>(null);
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
-  const orientationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const generationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
@@ -130,23 +123,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setZoom(factorToZoom(preset));
   }
 
-  function handleToggleOrientation() {
-    if (orientationTimeoutRef.current) {
-      clearTimeout(orientationTimeoutRef.current);
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setOrientationTransitioning(true);
-    setOrientation((previous) =>
-      previous === "portrait" ? "landscape" : "portrait",
-    );
-    orientationTimeoutRef.current = setTimeout(() => {
-      setOrientationTransitioning(false);
-      orientationTimeoutRef.current = null;
-    }, 300);
-  }
-
   function handleToggleFacing() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setFacing((previous) => (previous === "back" ? "front" : "back"));
   }
 
@@ -271,7 +249,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         userId,
         guestId,
         quote: quoteText,
-        orientation: isPortrait ? "portrait" : "landscape",
+        orientation: "portrait",
         styleFontId: quoteFontSize,
         styleColorSchemeId: quoteColorScheme,
         homeVibeKey: homeVibeKey ?? null,
@@ -338,7 +316,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     showToast(strings.camera.info.photoSelected, "success");
   }
 
-  const isPortrait = orientation === "portrait";
   const zoomFactor = zoomToFactor(zoom);
   const activePreset = activePresetForFactor(zoomFactor);
 
@@ -354,14 +331,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     selectedImageUri,
     hideQuote,
     hasSavedCurrentPhoto,
-    orientationTransitioning,
-    isPortrait,
     zoom,
     zoomFactor,
     activePreset,
     pinchGesture,
     handleZoomPreset,
-    handleToggleOrientation,
     handleToggleFacing,
     handleCapture,
     handleGenerateAI,

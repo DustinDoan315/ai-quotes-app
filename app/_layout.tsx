@@ -1,7 +1,6 @@
 import { initializeRevenueCat } from '../services/revenuecat';
 import { ToastHost } from '@/components/ToastHost';
 import { GlobalHomeBackground } from '@/features/home/GlobalHomeBackground';
-import { HomeBackgroundDevLayer } from '@/features/home/HomeBackgroundDevLayer';
 import { initPostHog } from '@/services/analytics/posthog';
 import { initSentry } from '@/services/analytics/sentry';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
@@ -79,7 +78,6 @@ export default function RootLayout() {
                 }}
               />
             </View>
-            <HomeBackgroundDevLayer />
             <ToastHost />
           </View>
         </ThemeProvider>
