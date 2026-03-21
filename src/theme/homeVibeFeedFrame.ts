@@ -37,6 +37,8 @@ function pickAccent(palette: HomeBackgroundPalette): {
   };
 }
 
+export type HomeVibeFeedChrome = ReturnType<typeof getHomeVibeFeedChrome>;
+
 export function getHomeVibeFeedChrome(palette: HomeBackgroundPalette): {
   hairline: ViewStyle;
   imageWash: ViewStyle;

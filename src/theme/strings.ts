@@ -61,6 +61,7 @@ export const strings = {
       watermarkBrand: "AI Quotes",
       watermarkTagline: "Your daily quote",
       momentEyebrow: "Moment",
+      shareMomentA11y: "Share this moment with branding",
     },
   },
   subscription: {
