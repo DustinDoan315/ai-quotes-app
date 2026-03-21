@@ -1,20 +1,19 @@
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
-import { useStreakStore } from "@/appState/streakStore";
-import { useMemoryStore } from "@/appState";
-import type { MemoryState } from "@/appState/memoryStore";
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { ProfileAuthedHeader } from "@/features/profile/ProfileAuthedHeader";
+import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
+import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
+import { ProfilePhoneCard } from "@/features/profile/ProfilePhoneCard";
 import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
+import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
+import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
-import { getCurrentUser } from "@/services/supabase-auth";
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useMemo, useState } from "react";
 
 import {
   ActivityIndicator,
-  Image,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -32,18 +31,8 @@ export function ProfileAuthedView({
 }: ProfileAuthedViewProps) {
   const showToast = useUIStore((s) => s.showToast);
   const profile = useUserStore((s) => s.profile);
-  const persona = useUserStore((s) => s.persona);
-  const currentStreak = useStreakStore((s) => s.currentStreak);
-  const memories = useMemoryStore((s: MemoryState) => s.memories);
-  const identityTitle =
-    persona && persona.traits.length > 0
-      ? persona.traits.includes("disciplined")
-        ? "The Disciplined One"
-        : persona.traits.includes("quiet")
-          ? "The Quiet Thinker"
-          : "The Rebuilder"
-      : "Growing Through Moments";
   const { updateProfile, signOut, refreshProfile } = useAuth();
+  const { phoneDisplay, phoneVerified } = useProfileAuthedPhone();
 
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
@@ -53,8 +42,6 @@ export function ProfileAuthedView({
   const [avatarUrlLocal, setAvatarUrlLocal] = useState<string | null>(
     profile?.avatar_url ?? null,
   );
-  const [phoneDisplay, setPhoneDisplay] = useState<string | null>(null);
-  const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!editing) {
@@ -66,39 +53,6 @@ export function ProfileAuthedView({
   useEffect(() => {
     setAvatarUrlLocal(profile?.avatar_url ?? null);
   }, [profile?.avatar_url]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const loadPhone = async () => {
-      const user = await getCurrentUser();
-      if (!user || cancelled) {
-        setPhoneDisplay(null);
-        setPhoneVerified(null);
-        return;
-      }
-      const raw = (user.phone ?? "").trim();
-      if (!raw) {
-        setPhoneDisplay(null);
-        setPhoneVerified(null);
-        return;
-      }
-      const last4 = raw.slice(-4);
-      const masked =
-        raw.startsWith("+") && raw.length > 4
-          ? `+*** *** ${last4}`
-          : `*** *** ${last4}`;
-      setPhoneDisplay(masked);
-      setPhoneVerified(
-        Boolean(
-          (user as { phone_confirmed_at?: string | null }).phone_confirmed_at,
-        ),
-      );
-    };
-    loadPhone();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const trimmedName = displayName.trim();
   const nameError = useMemo(() => {
@@ -219,109 +173,32 @@ export function ProfileAuthedView({
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
-      <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
-        <View className="flex-row items-center">
-          <Pressable
-            onPress={onBack}
-            className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Ionicons name="chevron-back" size={22} color="#fff" />
-          </Pressable>
-          <Text className="ml-3 text-lg font-semibold text-white">
-            {titleName}
-          </Text>
-        </View>
+      <ProfileAuthedHeader
+        titleName={titleName}
+        editing={editing}
+        saving={saving}
+        canSave={canSave}
+        onBack={onBack}
+        onCancelEdit={() => setEditing(false)}
+        onSave={handleSave}
+        onStartEdit={() => setEditing(true)}
+      />
 
-        {editing ? (
-          <View className="flex-row gap-3">
-            <Pressable
-              onPress={() => setEditing(false)}
-              disabled={saving}
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-              <Text className="text-base text-white/60">Cancel</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleSave}
-              disabled={!canSave}
-              style={({ pressed }) => ({
-                opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
-              })}>
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text className="text-base font-medium text-white">Save</Text>
-              )}
-            </Pressable>
-          </View>
-        ) : (
-          <Pressable
-            onPress={() => setEditing(true)}
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="text-base text-white/80">Edit</Text>
-          </Pressable>
-        )}
-      </View>
-
-      <ScrollView className="flex-1 px-4 py-6">
-        <View className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-          <Text className="mb-1 text-xs font-medium uppercase tracking-wide text-white/50">
-            Identity
-          </Text>
-          <Text className="text-sm font-semibold text-white">
-            {identityTitle}
-          </Text>
-          <Text className="mt-1 text-xs text-white/60">
-            Streak: {currentStreak} day{currentStreak === 1 ? "" : "s"} · Memories:{" "}
-            {memories.length}
-          </Text>
-        </View>
-        <View className="mb-6 flex-row items-center">
-          <Pressable
-            onPress={handlePickAvatar}
-            disabled={avatarSaving}
-            className="h-16 w-16 items-center justify-center rounded-full bg-white/20"
-            style={({ pressed }) => ({
-              opacity: avatarSaving ? 0.5 : pressed ? 0.8 : 1,
-            })}>
-            {avatarUrl ? (
-              <Image
-                source={{ uri: avatarUrl }}
-                className="h-16 w-16 rounded-full"
-              />
-            ) : (
-              <Ionicons name="person" size={32} color="#fff" />
-            )}
-          </Pressable>
-          <View className="ml-4 flex-1">
-            <Text className="text-lg font-medium text-white">
-              {profile?.display_name || profile?.username || "No name"}
-            </Text>
-            {profile?.username ? (
-              <Text className="text-sm text-white/60">@{profile.username}</Text>
-            ) : null}
-            <Text className="mt-1 text-xs text-white/50">
-              Tap the avatar to update.
-            </Text>
-          </View>
-        </View>
+      <ScrollView className="flex-1 px-4 py-6" contentContainerClassName="pb-10">
+        <ProfileIdentityCard />
+        <ProfileAvatarRow
+          avatarUrl={avatarUrl}
+          avatarSaving={avatarSaving}
+          displayLine={profile?.display_name || profile?.username || "No name"}
+          username={profile?.username ?? null}
+          onPickAvatar={handlePickAvatar}
+        />
 
         {phoneDisplay ? (
-          <View className="mb-6 flex-row items-center justify-between rounded-xl border border-white/15 bg-white/5 px-4 py-3">
-            <View>
-              <Text className="text-xs font-medium uppercase tracking-wide text-white/50">
-                Phone
-              </Text>
-              <Text className="mt-0.5 text-sm text-white">{phoneDisplay}</Text>
-            </View>
-            <Text
-              className={
-                phoneVerified
-                  ? "text-xs font-semibold text-emerald-400"
-                  : "text-xs text-white/60"
-              }>
-              {phoneVerified ? "Verified" : "Not verified"}
-            </Text>
-          </View>
+          <ProfilePhoneCard
+            phoneDisplay={phoneDisplay}
+            phoneVerified={Boolean(phoneVerified)}
+          />
         ) : null}
 
         {editing ? (
@@ -335,7 +212,7 @@ export function ProfileAuthedView({
                 onChangeText={setDisplayName}
                 placeholder="Your name"
                 placeholderTextColor="rgba(255,255,255,0.4)"
-                className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white"
+                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-base text-white"
               />
               {nameError ? (
                 <Text className="mt-1 text-xs text-red-400">{nameError}</Text>
@@ -343,22 +220,20 @@ export function ProfileAuthedView({
             </View>
 
             <View className="mb-6">
-              <Text className="mb-2 text-sm font-medium text-white/70">
-                Bio
-              </Text>
+              <Text className="mb-2 text-sm font-medium text-white/70">Bio</Text>
               <TextInput
                 value={bio}
                 onChangeText={setBio}
                 placeholder="A short bio"
                 placeholderTextColor="rgba(255,255,255,0.4)"
                 multiline
-                className="min-h-[96px] rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white"
+                className="min-h-[96px] rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-base text-white"
               />
             </View>
           </>
         ) : profile?.bio ? (
-          <View className="mb-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <Text className="text-sm text-white/80 text-left">
+          <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
+            <Text className="text-left text-sm leading-5 text-white/85">
               {profile.bio}
             </Text>
           </View>
@@ -366,12 +241,7 @@ export function ProfileAuthedView({
 
         <ProfileQuoteLanguageSection />
 
-        <Pressable
-          onPress={handleSignOut}
-          className="mt-4 rounded-xl border border-white/20 py-3"
-          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-          <Text className="text-center text-base text-white/80">Sign out</Text>
-        </Pressable>
+        <ProfileSignOutButton onPress={handleSignOut} />
       </ScrollView>
     </View>
   );

@@ -13,12 +13,12 @@ export function ProfileQuoteLanguageSection() {
       <View className="flex-row gap-2">
         <Pressable
           onPress={() => setQuoteLanguage("vi")}
-          className="flex-1 rounded-xl border py-3"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.8 : 1,
-            borderColor: quoteLanguage === "vi" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)",
-            backgroundColor: quoteLanguage === "vi" ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
-          })}>
+          className={`flex-1 rounded-xl border py-3 ${
+            quoteLanguage === "vi"
+              ? "border-white/50 bg-white/15"
+              : "border-white/20 bg-white/5"
+          }`}
+          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Text
             className="text-center text-base text-white"
             style={{ fontWeight: quoteLanguage === "vi" ? "600" : "400" }}>
@@ -27,12 +27,12 @@ export function ProfileQuoteLanguageSection() {
         </Pressable>
         <Pressable
           onPress={() => setQuoteLanguage("en")}
-          className="flex-1 rounded-xl border py-3"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.8 : 1,
-            borderColor: quoteLanguage === "en" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)",
-            backgroundColor: quoteLanguage === "en" ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
-          })}>
+          className={`flex-1 rounded-xl border py-3 ${
+            quoteLanguage === "en"
+              ? "border-white/50 bg-white/15"
+              : "border-white/20 bg-white/5"
+          }`}
+          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Text
             className="text-center text-base text-white"
             style={{ fontWeight: quoteLanguage === "en" ? "600" : "400" }}>

@@ -18,8 +18,6 @@ export const syncUserProfile = async (user: User | null) => {
     return;
   }
 
-  setAuthState("authenticated");
-
   let profile = await getCurrentUserProfile();
   profile ??= await ensureUserProfile(user.id);
   if (profile) {
@@ -31,6 +29,8 @@ export const syncUserProfile = async (user: User | null) => {
         setGuestDisplayName(null);
       }
     }
-    setProfile(profile);
+    useUserStore.setState({ profile, authState: "authenticated" });
+  } else {
+    setAuthState("authenticated");
   }
 };
