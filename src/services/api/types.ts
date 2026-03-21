@@ -13,7 +13,7 @@ export type QuoteResponse = z.infer<typeof QuoteResponseSchema>;
 export const PersonaSchema = z.object({
   id: z.string(),
   traits: z.array(z.string()),
-  preferences: z.record(z.unknown()),
+  preferences: z.record(z.string(), z.unknown()),
 });
 
 export type Persona = z.infer<typeof PersonaSchema>;

@@ -68,7 +68,7 @@ const safeParseJson = <T>(value: string): T | null => {
 const extractOutputText = (data: unknown): string => {
   const d = data as { output?: Array<{ content?: Array<{ text?: string }> }> };
   if (!Array.isArray(d?.output)) return "";
-[][]
+
   for (const item of d.output) {
     if (!Array.isArray(item?.content)) continue;
 

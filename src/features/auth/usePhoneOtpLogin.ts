@@ -1,5 +1,6 @@
-import type { CountryCode } from "@realtril/react-native-country-picker-modal";
+import type { CountryCode as LibCountryCode } from "libphonenumber-js";
 import { AsYouType, parsePhoneNumberFromString } from "libphonenumber-js";
+import type { CountryCode } from "react-native-country-picker-modal";
 import { useEffect, useMemo, useState } from "react";
 import { errorToMessage, getDefaultCountryCode, normalizeOtpDigits, toFriendlyOtpError } from "@/utils/phoneOtp";
 
@@ -34,13 +35,13 @@ export function usePhoneOtpLogin({ signInWithPhoneOtp, verifyPhoneOtp, onVerifie
 
   const formattedNationalPhone = useMemo(() => {
     const digits = nationalPhoneInput.replaceAll(/[^\d+]/g, "");
-    return new AsYouType(countryCode).input(digits);
+    return new AsYouType(countryCode as LibCountryCode).input(digits);
   }, [countryCode, nationalPhoneInput]);
 
   const parsedPhone = useMemo(() => {
     const digits = nationalPhoneInput.trim().replaceAll(/[^\d+]/g, "");
     if (!digits) return null;
-    const parsed = parsePhoneNumberFromString(digits, countryCode);
+    const parsed = parsePhoneNumberFromString(digits, countryCode as LibCountryCode);
     return parsed ?? null;
   }, [countryCode, nationalPhoneInput]);
 

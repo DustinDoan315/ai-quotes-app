@@ -1,0 +1,37 @@
+diff --git a/ios/EXUpdates/ReactDelegateHandler/ExpoUpdatesReactDelegateHandler.swift b/ios/EXUpdates/ReactDelegateHandler/ExpoUpdatesReactDelegateHandler.swift
+index 0000000..1111111 100644
+--- a/ios/EXUpdates/ReactDelegateHandler/ExpoUpdatesReactDelegateHandler.swift
++++ b/ios/EXUpdates/ReactDelegateHandler/ExpoUpdatesReactDelegateHandler.swift
+@@ -1,5 +1,6 @@
+ // Copyright 2018-present 650 Industries. All rights reserved.
+ 
++import Expo
+ import ExpoModulesCore
+ 
+ /**
+@@ -62,10 +63,10 @@
+     guard let reactDelegate = self.reactDelegate else {
+       fatalError("`reactDelegate` should not be nil")
+     }
+-    guard let rctAppDelegate = (UIApplication.shared.delegate as? RCTAppDelegate) else {
+-      fatalError("The `UIApplication.shared.delegate` is not a `RCTAppDelegate` instance.")
++    guard let expoAppDelegate = (UIApplication.shared.delegate as? ExpoAppDelegate) else {
++      fatalError("The `UIApplication.shared.delegate` is not an `ExpoAppDelegate` instance.")
+     }
+-    let rootView = rctAppDelegate.recreateRootView(
++    let rootView = expoAppDelegate.recreateRootView(
+       withBundleURL: AppController.sharedInstance.launchAssetUrl(),
+       moduleName: self.rootViewModuleName,
+       initialProps: self.rootViewInitialProperties,
+diff --git a/ios/EXUpdates.podspec b/ios/EXUpdates.podspec
+index 0000000..1111111 100644
+--- a/ios/EXUpdates.podspec
++++ b/ios/EXUpdates.podspec
+@@ -26,6 +26,7 @@
+   s.source         = { git: 'https://github.com/expo/expo.git' }
+   s.static_framework = true
+   s.dependency 'ExpoModulesCore'
++  s.dependency 'Expo'
+   s.dependency 'React-Core'
+   s.dependency 'EXStructuredHeaders'
+   s.dependency 'EXUpdatesInterface'

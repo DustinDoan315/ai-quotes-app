@@ -1,9 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import { useUIStore } from "@/appState/uiStore";
+import { PaywallFeatureComparison } from "@/features/paywall/PaywallFeatureComparison";
+import { PaywallPackageList } from "@/features/paywall/PaywallPackageList";
+import { PaywallPlansSkeleton } from "@/features/paywall/PaywallPlansSkeleton";
+import { PaywallStickyFooter } from "@/features/paywall/PaywallStickyFooter";
+import { usePaywallOfferings } from "@/features/paywall/usePaywallOfferings";
 import { strings } from "@/theme/strings";
-import { MotiView } from "moti";
-import { useEffect, useMemo } from "react";
+import { pickBestValuePackageId } from "@/utils/paywallPackage";
 
 type PaywallReason =
   | "ai_limit"
@@ -18,18 +27,24 @@ type Props = {
 };
 
 export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
-  const {
-    offerings,
-    selectedPackageId,
-    setSelectedPackageId,
-    purchaseSelectedPackage,
-    restorePurchases,
-    isPurchasing,
-    isRestoring,
-    errorMessage,
-    isLoading,
-    loadOfferings,
-  } = useSubscriptionStore();
+  const offerings = useSubscriptionStore((s) => s.offerings);
+  const selectedPackageId = useSubscriptionStore((s) => s.selectedPackageId);
+  const setSelectedPackageId = useSubscriptionStore(
+    (s) => s.setSelectedPackageId,
+  );
+  const purchaseSelectedPackage = useSubscriptionStore(
+    (s) => s.purchaseSelectedPackage,
+  );
+  const restorePurchases = useSubscriptionStore((s) => s.restorePurchases);
+  const isPurchasing = useSubscriptionStore((s) => s.isPurchasing);
+  const isRestoring = useSubscriptionStore((s) => s.isRestoring);
+  const errorMessage = useSubscriptionStore((s) => s.errorMessage);
+  const isLoading = useSubscriptionStore((s) => s.isLoading);
+  const isPro = useSubscriptionStore((s) => s.isPro);
+
+  const showToast = useUIStore((s) => s.showToast);
+
+  const { offeringsFetchStatus, loadOfferings } = usePaywallOfferings();
 
   const headline = useMemo(() => {
     if (reason === "ai_limit") return strings.subscription.contextAiLimitTitle;
@@ -45,22 +60,62 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
     return strings.subscription.paywallHeroTitle;
   }, [reason]);
 
+  const bestValuePackageId = useMemo(() => {
+    if (!offerings?.availablePackages.length) {
+      return null;
+    }
+    return pickBestValuePackageId(
+      offerings.availablePackages.map((p) => p.identifier),
+    );
+  }, [offerings]);
+
   const handlePrimaryPress = async () => {
     if (!selectedPackageId && offerings?.availablePackages[0]) {
       setSelectedPackageId(offerings.availablePackages[0].identifier);
     }
     await purchaseSelectedPackage();
+    const state = useSubscriptionStore.getState();
+    if (state.errorMessage) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(state.errorMessage, "error", 4000);
+      return;
+    }
+    if (state.isPro) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast(strings.subscription.purchaseSuccessToast, "success");
+      onClose();
+    }
   };
 
   const handleRestorePress = async () => {
     await restorePurchases();
+    const state = useSubscriptionStore.getState();
+    if (state.errorMessage) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(state.errorMessage, "error", 4000);
+      return;
+    }
+    if (state.isPro) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast(strings.subscription.restoreSuccessToast, "success");
+      onClose();
+      return;
+    }
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    showToast(strings.subscription.restoreNoActiveToast, "info", 3500);
   };
 
-  useEffect(() => {
-    if (!offerings && !isLoading) {
-      void loadOfferings();
-    }
-  }, [offerings, isLoading, loadOfferings]);
+  const showOfferingsError =
+    offeringsFetchStatus === "error" && Boolean(errorMessage);
+  const showOfferingsLoading =
+    offeringsFetchStatus === "loading" || (isLoading && !offerings);
+  const hasPackages = Boolean(offerings?.availablePackages?.length);
+  const canUseDevPurchaseMock =
+    __DEV__ && Boolean(process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE);
+  const canPurchase = hasPackages || canUseDevPurchaseMock;
+  const primaryLabel = isPurchasing
+    ? strings.subscription.processingCta
+    : strings.subscription.primaryCta;
 
   return (
     <View className="flex-1 bg-black">
@@ -69,246 +124,113 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
         <View className="h-1/3 bg-fuchsia-500/10" />
         <View className="h-1/3 bg-sky-500/10" />
       </View>
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingTop: 64,
-          paddingBottom: 40,
-        }}>
-        <MotiView
-          from={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "timing", duration: 400 }}
-          className="mb-4 items-center">
-          <View className="h-16 w-16 items-center justify-center rounded-3xl bg-black/70 shadow-lg shadow-amber-500/40">
-            <Text className="text-3xl">✨</Text>
-          </View>
-          <Text className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200/90">
-            Pro Experience
-          </Text>
-        </MotiView>
-        <MotiView
-          from={{ opacity: 0, translateY: 16 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 350 }}
-          className="mb-6">
-          <Text className="text-center text-xl font-semibold text-white">
-            {headline}
-          </Text>
-          <Text className="mt-2 text-center text-sm text-white/70">
-            {strings.subscription.paywallHeroSubtitle}
-          </Text>
-        </MotiView>
-
-        <View className="mb-5 rounded-3xl bg-black/70 p-4 shadow-lg shadow-black/60">
-          <Text className="mb-3 text-xs font-semibold uppercase tracking-wide text-white/60">
-            {strings.subscription.featureHeader}
-          </Text>
-
-          <View className="flex-row border-b border-white/10 pb-2">
-            <View className="flex-1" />
-            <View className="w-16 items-center">
-              <Text className="text-[11px] font-semibold text-white/70">
-                {strings.subscription.freeLabel}
-              </Text>
-            </View>
-            <View className="w-16 items-center">
-              <Text className="text-[11px] font-semibold text-amber-300">
-                {strings.subscription.proLabel}
-              </Text>
-            </View>
-          </View>
-
-          <View className="mt-2 space-y-2">
-            <FeatureRow
-              label={strings.subscription.featureDailyQuotes}
-              freeValue={strings.subscription.freeDailyQuotesValue}
-              proValue={strings.subscription.proDailyQuotesValue}
-            />
-            <FeatureRow
-              label={strings.subscription.featureExports}
-              freeValue={strings.subscription.freeExportsValue}
-              proValue={strings.subscription.proExportsValue}
-            />
-            <FeatureRow
-              label={strings.subscription.featurePremiumThemes}
-              freeValue={strings.subscription.freePremiumThemesValue}
-              proValue={strings.subscription.proPremiumThemesValue}
-            />
-            <FeatureRow
-              label={strings.subscription.featureAdvancedPersona}
-              freeValue={strings.subscription.freeAdvancedPersonaValue}
-              proValue={strings.subscription.proAdvancedPersonaValue}
-            />
-            <FeatureRow
-              label={strings.subscription.featureWatermark}
-              freeValue={strings.subscription.freeWatermarkValue}
-              proValue={strings.subscription.proWatermarkValue}
-            />
-          </View>
-        </View>
-
-        <View className="mb-5 space-y-2">
-          <View className="flex-row items-center gap-x-3">
-            <View className="h-8 w-8 items-center justify-center rounded-full bg-emerald-400/15">
-              <Text className="text-lg">🔒</Text>
-            </View>
-            <Text className="flex-1 text-xs text-white/85">
-              Secure purchase handled by the App Store or Google Play.
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-x-3">
-            <View className="h-8 w-8 items-center justify-center rounded-full bg-amber-400/15">
-              <Text className="text-lg">⏰</Text>
-            </View>
-            <Text className="flex-1 text-xs text-white/85">
-              Cancel anytime in your subscription settings.
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-x-3">
-            <View className="h-8 w-8 items-center justify-center rounded-full bg-sky-400/15">
-              <Text className="text-lg">⭐️</Text>
-            </View>
-            <Text className="flex-1 text-xs text-white/85">
-              Designed to keep your quote ritual fast, focused, and fun.
-            </Text>
-          </View>
-        </View>
-
-        {offerings ? (
-          <View className="mb-5 space-y-3">
-            {offerings.availablePackages.map((pkg) => {
-              const isSelected = pkg.identifier === selectedPackageId;
-              const isBestValue = pkg.identifier === "$rc_annual";
-              const planLabel =
-                pkg.identifier === "$rc_monthly"
-                  ? "Monthly Pro"
-                  : pkg.identifier === "$rc_annual"
-                  ? "Yearly Pro"
-                  : "Lifetime Pro";
-              const samplePriceText =
-                pkg.identifier === "$rc_monthly"
-                  ? "$4.99 billed monthly"
-                  : pkg.identifier === "$rc_annual"
-                  ? "$29.99 billed yearly"
-                  : "$59.99 one-time purchase";
-              return (
-                <Pressable
-                  key={pkg.identifier}
-                  onPress={() => setSelectedPackageId(pkg.identifier)}
-                  className="rounded-2xl border px-4 py-3"
-                  style={{
-                    borderColor: isSelected
-                      ? "#FBBF24"
-                      : "rgba(148,163,184,0.6)",
-                    backgroundColor: isSelected
-                      ? "rgba(15,23,42,0.95)"
-                      : "rgba(15,23,42,0.85)",
-                  }}>
-                  <View className="flex-row items-center justify-between">
-                    <View>
-                      <Text className="text-sm font-semibold text-white">
-                        {planLabel}
-                      </Text>
-                      <Text className="mt-0.5 text-xs text-white/70">
-                        {samplePriceText}
-                      </Text>
-                      <Text className="mt-0.5 text-[11px] text-white/60">
-                        {pkg.description}
-                      </Text>
-                    </View>
-                    <View className="items-end">
-                      <Text className="text-sm font-semibold text-white">
-                        {pkg.priceString}
-                      </Text>
-                      {isBestValue ? (
-                        <View className="mt-1 rounded-full bg-amber-400/20 px-2 py-0.5">
-                          <Text className="text-[10px] font-semibold text-amber-300">
-                            {strings.subscription.bestValueTag}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        ) : null}
-
-        <View className="mt-4 space-y-3">
-          <Pressable
-            onPress={handlePrimaryPress}
-            disabled={isPurchasing}
-            className="h-12 items-center justify-center rounded-full bg-amber-400"
-            style={({ pressed }) => ({
-              opacity: pressed || isPurchasing ? 0.7 : 1,
-            })}>
-            <Text className="text-sm font-semibold text-black">
-              {strings.subscription.primaryCta}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={handleRestorePress}
-            disabled={isRestoring}
-            className="mt-2 h-11 items-center justify-center rounded-full border border-white/30 bg-transparent"
-            style={({ pressed }) => ({
-              opacity: pressed || isRestoring ? 0.7 : 1,
-            })}>
-            <Text className="text-xs font-semibold text-white">
-              {strings.subscription.restoreCta}
-            </Text>
-          </Pressable>
-
+      <SafeAreaView className="flex-1" edges={["top"]}>
+        <View className="flex-row items-center justify-end px-4 pb-2">
           <Pressable
             onPress={onClose}
-            className="h-11 items-center justify-center rounded-full bg-transparent">
-            <Text className="text-xs font-medium text-white/70">
-              {strings.subscription.maybeLaterCta}
-            </Text>
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            hitSlop={14}
+            className="h-11 w-11 items-center justify-center rounded-full bg-white/12">
+            <Ionicons name="close" size={24} color="#f8fafc" />
           </Pressable>
         </View>
-        {__DEV__ && process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE ? (
-          <View className="mt-5 rounded-2xl border border-dashed border-amber-400/60 bg-amber-500/10 p-3">
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-              Test purchase mode
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingBottom: 16,
+          }}>
+          <View className="mb-5 items-center px-1">
+            <View className="h-[72px] w-[72px] items-center justify-center rounded-[22px] bg-black/70 shadow-lg shadow-amber-500/30">
+              <Text className="text-[40px]">✨</Text>
+            </View>
+            <Text className="mt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200/90">
+              Pro
             </Text>
-            <Text className="mt-1 text-[11px] text-amber-100/90">
-              Mode: {process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE}
-            </Text>
-            {errorMessage ? (
-              <Text className="mt-1 text-[11px] text-red-300">
+          </View>
+          <Text className="text-center text-[26px] font-bold leading-8 text-white">
+            {headline}
+          </Text>
+          <Text className="mt-2 text-center text-[15px] leading-[22px] text-white/65">
+            {strings.subscription.paywallHeroSubtitle}
+          </Text>
+
+          {showOfferingsError ? (
+            <View className="mt-6 rounded-2xl border border-red-400/35 bg-red-950/45 p-4">
+              <Text className="text-center text-sm leading-5 text-red-100">
                 {errorMessage}
               </Text>
-            ) : null}
+              <Pressable
+                onPress={() => {
+                  loadOfferings().catch(() => undefined);
+                }}
+                className="mt-4 h-11 items-center justify-center rounded-full bg-white/12">
+                <Text className="text-sm font-semibold text-white">Try again</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {showOfferingsLoading && !showOfferingsError ? (
+            <View className="mt-8">
+              <PaywallPlansSkeleton />
+            </View>
+          ) : null}
+
+          {!showOfferingsLoading && offerings && hasPackages ? (
+            <View className="mt-8">
+              <PaywallPackageList
+                offerings={offerings}
+                selectedPackageId={selectedPackageId}
+                bestValuePackageId={bestValuePackageId}
+                onSelectPackage={setSelectedPackageId}
+              />
+            </View>
+          ) : null}
+
+          <View className="mt-8">
+            <PaywallFeatureComparison />
           </View>
-        ) : null}
-      </ScrollView>
-    </View>
-  );
-};
 
-type FeatureRowProps = {
-  label: string;
-  freeValue: string;
-  proValue: string;
-};
+          <View className="mt-6 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <Text className="text-center text-[12px] leading-[18px] text-white/55">
+              {strings.subscription.footerReassurance}
+            </Text>
+          </View>
 
-const FeatureRow = ({ label, freeValue, proValue }: FeatureRowProps) => {
-  return (
-    <View className="flex-row items-center py-1.5">
-      <View className="flex-1">
-        <Text className="text-xs font-medium text-white/85">{label}</Text>
-      </View>
-      <View className="w-16 items-center">
-        <Text className="text-[11px] text-white/60">{freeValue}</Text>
-      </View>
-      <View className="w-16 items-center">
-        <Text className="text-[11px] font-semibold text-amber-300">
-          {proValue}
-        </Text>
-      </View>
+          {__DEV__ && process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE ? (
+            <View className="mt-5 rounded-2xl border border-dashed border-amber-400/50 bg-amber-500/10 p-3">
+              <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                Test purchase mode
+              </Text>
+              <Text className="mt-1 text-[11px] text-amber-100/90">
+                Mode: {process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE}
+              </Text>
+              {errorMessage ? (
+                <Text className="mt-1 text-[11px] text-red-300">{errorMessage}</Text>
+              ) : null}
+              <Text className="mt-1 text-[10px] text-white/40">
+                isPro: {isPro ? "yes" : "no"}
+              </Text>
+            </View>
+          ) : null}
+        </ScrollView>
+
+        <PaywallStickyFooter
+          primaryLabel={primaryLabel}
+          primaryDisabled={isPurchasing || !canPurchase}
+          isPurchasing={isPurchasing}
+          isRestoring={isRestoring}
+          onPurchase={() => {
+            handlePrimaryPress().catch(() => undefined);
+          }}
+          onRestore={() => {
+            handleRestorePress().catch(() => undefined);
+          }}
+          onDismiss={onClose}
+        />
+      </SafeAreaView>
     </View>
   );
 };

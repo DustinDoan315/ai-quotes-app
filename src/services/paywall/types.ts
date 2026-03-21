@@ -1,4 +1,6 @@
-export type RevenueCatPackageId = "$rc_monthly" | "$rc_annual" | "$rc_lifetime";
+export type OfferingsFetchStatus = "idle" | "loading" | "success" | "error";
+
+export type RevenueCatPackageId = string;
 
 export type RevenueCatOffering = {
   identifier: string;

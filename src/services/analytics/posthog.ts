@@ -1,4 +1,5 @@
-import PostHog from 'posthog-react-native';
+import type { PostHogEventProperties } from "@posthog/core";
+import PostHog from "posthog-react-native";
 
 let posthog: PostHog | null = null;
 
@@ -15,7 +16,7 @@ export const initPostHog = (apiKey: string, host?: string) => {
 
 export const trackEvent = (
   eventName: string,
-  properties?: Record<string, unknown>,
+  properties?: PostHogEventProperties,
 ) => {
   if (!posthog) {
     return;
@@ -30,7 +31,7 @@ export const trackEvent = (
 
 export const identifyUser = (
   userId: string,
-  properties?: Record<string, unknown>,
+  properties?: PostHogEventProperties,
 ) => {
   if (!posthog) {
     return;

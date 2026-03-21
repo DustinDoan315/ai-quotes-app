@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { revenuecatClient } from "@/services/paywall/revenuecatClient";
 import {
+  type OfferingsFetchStatus,
   type RevenueCatOffering,
   type RevenueCatCustomerInfo,
   type RevenueCatPackageId,
@@ -12,11 +13,13 @@ import {
   resolvePlanFromSnapshot,
   type SubscriptionSnapshot,
 } from "@/domain/subscription/subscriptionResolver";
+import { pickBestValuePackageId } from "@/utils/paywallPackage";
 
 type SubscriptionState = {
   customerInfo: RevenueCatCustomerInfo | null;
   isPro: boolean;
   activeEntitlementId: string | null;
+  offeringsFetchStatus: OfferingsFetchStatus;
   offerings: RevenueCatOffering | null;
   selectedPackageId: RevenueCatPackageId | null;
   lastSyncedAt: number | null;
@@ -50,6 +53,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       customerInfo: null,
       isPro: false,
       activeEntitlementId: null,
+      offeringsFetchStatus: "idle",
       offerings: null,
       selectedPackageId: null,
       lastSyncedAt: null,
@@ -86,28 +90,38 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         }
       },
       loadOfferings: async () => {
-        set({ isLoading: true, errorMessage: null });
+        if (get().offeringsFetchStatus === "loading") {
+          return;
+        }
+        set({
+          isLoading: true,
+          errorMessage: null,
+          offeringsFetchStatus: "loading",
+        });
         try {
           const { currentOffering } = await revenuecatClient.getOfferings();
+          const packageIds =
+            currentOffering?.availablePackages.map((p) => p.identifier) ?? [];
+          const preferredId =
+            pickBestValuePackageId(packageIds) ??
+            currentOffering?.availablePackages[0]?.identifier ??
+            null;
           set({
             offerings: currentOffering,
-            selectedPackageId:
-              currentOffering?.availablePackages[0]?.identifier ?? null,
+            selectedPackageId: preferredId,
+            offeringsFetchStatus: "success",
           });
         } catch (error) {
           set({
             errorMessage:
               error instanceof Error ? error.message : "Failed to load offerings",
+            offeringsFetchStatus: "error",
           });
         } finally {
           set({ isLoading: false });
         }
       },
       purchaseSelectedPackage: async () => {
-        const { selectedPackageId } = get();
-        if (!selectedPackageId) {
-          return;
-        }
         set({ isPurchasing: true, errorMessage: null });
         try {
           if (
@@ -115,7 +129,6 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             process.env.EXPO_PUBLIC_SUBSCRIPTION_TEST_MODE === "mock_failure"
           ) {
             set({
-              isPurchasing: false,
               errorMessage: "Simulated purchase failure (debug)",
             });
             return;
@@ -130,9 +143,12 @@ export const useSubscriptionStore = create<SubscriptionState>()(
               activeEntitlementId: "debug_pro",
               plan: "pro",
               lastSyncedAt: Date.now(),
-              isPurchasing: false,
               errorMessage: null,
             });
+            return;
+          }
+          const { selectedPackageId } = get();
+          if (!selectedPackageId) {
             return;
           }
           const { customerInfo } = await revenuecatClient.purchasePackage(

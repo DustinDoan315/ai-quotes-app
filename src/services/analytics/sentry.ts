@@ -3,7 +3,6 @@ import * as Sentry from '@sentry/react-native';
 export const initSentry = (dsn: string) => {
   Sentry.init({
     dsn,
-    enableInExpoDevelopment: false,
     debug: false,
   });
 };
