@@ -1,7 +1,10 @@
 import { initializeRevenueCat } from '../services/revenuecat';
 import { ToastHost } from '@/components/ToastHost';
+import { GlobalHomeBackground } from '@/features/home/GlobalHomeBackground';
+import { HomeBackgroundDevLayer } from '@/features/home/HomeBackgroundDevLayer';
 import { initPostHog } from '@/services/analytics/posthog';
 import { initSentry } from '@/services/analytics/sentry';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,6 +13,15 @@ import { syncUserProfile } from '@/features/auth/authService';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import '../global.css';
+
+const navTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: "transparent",
+    card: "transparent",
+  },
+};
 
 
 export default function RootLayout() {
@@ -52,10 +64,25 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <View style={styles.root}>
-          <Stack screenOptions={{ headerShown: false }} />
-          <ToastHost />
-        </View>
+        <ThemeProvider value={navTheme}>
+          <View style={styles.root}>
+            <View
+              pointerEvents="none"
+              style={[StyleSheet.absoluteFillObject, styles.bgLayer]}>
+              <GlobalHomeBackground />
+            </View>
+            <View style={styles.stackLayer}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: "transparent" },
+                }}
+              />
+            </View>
+            <HomeBackgroundDevLayer />
+            <ToastHost />
+          </View>
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -63,4 +90,10 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  bgLayer: { zIndex: 0 },
+  stackLayer: {
+    flex: 1,
+    zIndex: 1,
+    backgroundColor: "transparent",
+  },
 });

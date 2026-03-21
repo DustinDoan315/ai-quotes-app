@@ -96,7 +96,7 @@ export default function ScanQrModal() {
   }, [error, handleResult, isGranted, isLoading, requestPermission]);
 
   return (
-    <View className="flex-1 bg-black" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-transparent" style={{ paddingTop: insets.top }}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={handleClose}

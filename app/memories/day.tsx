@@ -50,15 +50,15 @@ export default function MemoriesDayScreen() {
 
   if (!hasHydrated) {
     return (
-      <View className="flex-1 items-center justify-center bg-black">
+      <View className="flex-1 items-center justify-center bg-transparent">
         <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-black">
-      <View className="border-b border-white/10 bg-black px-4 pt-14 pb-5">
+    <View className="flex-1 bg-transparent">
+      <View className="border-b border-white/10 bg-transparent px-4 pt-14 pb-5">
         <Pressable
           onPress={() => router.back()}
           className="mb-4 h-10 w-10 items-center justify-center rounded-full bg-white/10"

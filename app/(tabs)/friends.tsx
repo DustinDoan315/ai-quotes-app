@@ -9,9 +9,11 @@ import {
   ActivityIndicator,
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Share,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -84,7 +86,7 @@ export default function FriendsScreen() {
   if (!userId) {
     return (
       <View
-        className="flex-1 items-center justify-center bg-black px-6"
+        className="flex-1 items-center justify-center bg-transparent px-6"
         style={{ paddingTop: insets.top }}>
         <Text className="mb-6 text-center text-white/80">
           Sign in to add and invite friends.
@@ -107,7 +109,7 @@ export default function FriendsScreen() {
   if (loading) {
     return (
       <View
-        className="flex-1 items-center justify-center bg-black"
+        className="flex-1 items-center justify-center bg-transparent"
         style={{ paddingTop: insets.top }}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
@@ -116,7 +118,7 @@ export default function FriendsScreen() {
 
   return (
     <View
-      className="flex-1 bg-black"
+      className="flex-1 bg-transparent"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
         <Pressable
@@ -213,11 +215,22 @@ export default function FriendsScreen() {
         visible={qrOpen && !!inviteUrl}
         transparent
         animationType="fade"
+        presentationStyle={
+          Platform.OS === "ios" ? "overFullScreen" : undefined
+        }
+        statusBarTranslucent
         onRequestClose={() => setQrOpen(false)}>
-        <View className="flex-1 items-center justify-center bg-black/70 px-4">
-          <Pressable onPress={() => setQrOpen(false)} className="absolute inset-0" />
+        <View
+          className="flex-1 items-center justify-center px-4"
+          style={{ backgroundColor: "transparent" }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close invite QR"
+            onPress={() => setQrOpen(false)}
+            style={StyleSheet.absoluteFillObject}
+          />
           {inviteUrl ? (
-            <View className="w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-zinc-950">
+            <View className="z-10 w-full max-w-sm overflow-hidden rounded-3xl border border-white/25 bg-black/35">
               <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
                 <Text className="text-base font-semibold text-white">Your invite QR</Text>
                 <Pressable

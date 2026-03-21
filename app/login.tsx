@@ -58,7 +58,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 bg-black"
+      className="flex-1 bg-transparent"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View className="flex-1 px-6">
         <View className="mt-4">

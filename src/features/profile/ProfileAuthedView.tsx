@@ -213,9 +213,9 @@ export function ProfileAuthedView({
   const titleName = profile?.display_name || profile?.username || "Profile";
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-transparent">
       {(saving || avatarSaving) && (
-        <View className="absolute inset-0 z-10 items-center justify-center bg-black/40">
+        <View className="absolute inset-0 z-10 items-center justify-center bg-black/30">
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}

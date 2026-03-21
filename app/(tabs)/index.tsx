@@ -6,18 +6,14 @@ import { useUserStore } from "@/appState/userStore";
 import { CameraActionsBar } from "@/components/CameraActionsBar";
 import { HomeHeader } from "@/components/HomeHeader";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
-import { HomeBackground } from "@/features/home/HomeBackground";
-import { HomeBackgroundDevControl } from "@/features/home/HomeBackgroundDevControl";
 import { HomeCameraSection } from "@/features/home/HomeCameraSection";
+import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
 import { useRouter } from "expo-router";
 import { strings } from "@/theme/strings";
-import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
-import { getDailyHomeBackground } from "@/utils/homeBackgroundRoll";
-import { useUserStoreHydrated } from "@/utils/useUserStoreHydrated";
 import { MotiView } from "moti";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -52,8 +48,6 @@ export default function HomeScreen() {
   const persona = useUserStore((s) => s.persona);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
   const guestId = useUserStore((s) => s.guestId);
-  const ensureGuestId = useUserStore((s) => s.ensureGuestId);
-  const userStoreHydrated = useUserStoreHydrated();
   const inviteNudgeDismissed = useUserStore((s) => s.inviteNudgeDismissed);
   const setInviteNudgeDismissed = useUserStore(
     (s) => s.setInviteNudgeDismissed,
@@ -111,53 +105,10 @@ export default function HomeScreen() {
     onMilestoneReached: setMilestone,
   });
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
-  const [devBgIndex, setDevBgIndex] = useState<number | null>(null);
   const [isOnFeed, setIsOnFeed] = useState(false);
   const listRef = useRef<FlatList>(null);
   const today = new Date().toISOString().split("T")[0];
-  const identityKey = useMemo(() => {
-    if (profile?.user_id) {
-      return profile.user_id;
-    }
-    if (!userStoreHydrated) {
-      return null;
-    }
-    return guestId ?? ensureGuestId();
-  }, [profile?.user_id, guestId, ensureGuestId, userStoreHydrated]);
-  const dailyBackground = useMemo(() => {
-    if (identityKey == null) {
-      return {
-        palette: HOME_BACKGROUNDS[0],
-        luckPercent: 0,
-      };
-    }
-    return getDailyHomeBackground(identityKey, today);
-  }, [identityKey, today]);
-  const effectiveDaily = useMemo(() => {
-    if (__DEV__ && devBgIndex != null) {
-      const palette = HOME_BACKGROUNDS[devBgIndex];
-      return {
-        palette,
-        luckPercent: 50 + (devBgIndex % 7),
-      };
-    }
-    return dailyBackground;
-  }, [devBgIndex, dailyBackground]);
-  const vibeHint = useMemo(() => {
-    if (
-      identityKey == null &&
-      !(__DEV__ && devBgIndex != null)
-    ) {
-      return null;
-    }
-    const { palette, luckPercent } = effectiveDaily;
-    return {
-      vibeName: strings.home.vibes[palette.vibeKey],
-      rarityLabel: strings.home.vibeRarity[palette.rarity],
-      rarity: palette.rarity,
-      luckPercent,
-    };
-  }, [identityKey, effectiveDaily, devBgIndex]);
+  const { vibeHint } = useHomeBackgroundPalette();
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const pastMemories = useMemo(() => {
     const target = new Date(today);
@@ -231,18 +182,6 @@ export default function HomeScreen() {
 
   function handleOpenMemories() {
     router.push("/memories" as never);
-  }
-
-  function handleDevBgCycle() {
-    setDevBgIndex((prev) => {
-      if (prev === null) {
-        return 0;
-      }
-      if (prev >= HOME_BACKGROUNDS.length - 1) {
-        return null;
-      }
-      return prev + 1;
-    });
   }
 
   function handleCameraButtonPress() {
@@ -321,7 +260,7 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-black">
+      <View className="flex-1 items-center justify-center bg-transparent">
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -329,7 +268,7 @@ export default function HomeScreen() {
 
   if (!isGranted) {
     return (
-      <View className="flex-1 items-center justify-center bg-black px-8">
+      <View className="flex-1 items-center justify-center bg-transparent px-8">
         <Text className="mb-4 text-center text-white">
           {strings.home.cameraPermissionRequired}
         </Text>
@@ -344,11 +283,6 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1">
-      <HomeBackground palette={effectiveDaily.palette} />
-      <HomeBackgroundDevControl
-        index={devBgIndex}
-        onPress={handleDevBgCycle}
-      />
       <MilestoneCelebration
         milestone={milestone}
         onDismiss={() => setMilestone(null)}

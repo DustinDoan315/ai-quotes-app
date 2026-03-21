@@ -163,7 +163,7 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
   };
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-transparent">
       <PaywallAmbientBackground />
       <SafeAreaView className="flex-1 w-full max-w-full" edges={["top"]}>
         <View className="flex-row items-center justify-end px-4 pb-2">

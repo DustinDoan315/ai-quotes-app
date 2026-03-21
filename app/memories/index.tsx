@@ -13,7 +13,7 @@ export default function MemoriesIndexScreen() {
   }
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-transparent">
       <MemoriesCalendarScreen onPressDay={handlePressDay} />
     </View>
   );

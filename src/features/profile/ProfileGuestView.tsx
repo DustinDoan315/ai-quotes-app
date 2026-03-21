@@ -32,7 +32,7 @@ export function ProfileGuestView({
       : "Growing Through Moments";
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-transparent">
       <View className="flex-row items-center border-b border-white/10 px-4 py-3">
         <Pressable
           onPress={onBack}

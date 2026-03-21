@@ -14,7 +14,7 @@ export default function ProfileScreen() {
   if (isGuest) {
     return (
       <View
-        className="flex-1 bg-black"
+        className="flex-1 bg-transparent"
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <ProfileGuestView
           onBack={() => router.back()}
@@ -32,7 +32,7 @@ export default function ProfileScreen() {
 
   return (
     <View
-      className="flex-1 bg-black"
+      className="flex-1 bg-transparent"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <ProfileAuthedView
         onBack={() => router.back()}

@@ -227,8 +227,8 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   });
 
   return (
-    <View className="flex-1 bg-black">
-      <View className="border-b border-white/10 bg-black px-5 pt-14 pb-6">
+    <View className="flex-1 bg-transparent">
+      <View className="border-b border-white/10 bg-transparent px-5 pt-14 pb-6">
         <View className="mb-3 flex-row items-center justify-between">
           <Pressable
             onPress={() => router.back()}

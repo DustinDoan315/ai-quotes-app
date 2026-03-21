@@ -76,7 +76,7 @@ export default function InviteByCodeScreen() {
 
   return (
     <View
-      className="flex-1 items-center justify-center bg-black px-6"
+      className="flex-1 items-center justify-center bg-transparent px-6"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       {status === "loading" && (
         <>

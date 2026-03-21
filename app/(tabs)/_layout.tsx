@@ -3,6 +3,7 @@ import { Tabs } from "expo-router";
 const screenOptions = {
   headerShown: false,
   tabBarStyle: { display: "none" as const },
+  sceneContainerStyle: { backgroundColor: "transparent" },
 };
 
 export default function TabsLayout() {
