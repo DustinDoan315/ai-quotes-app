@@ -59,6 +59,7 @@ export default function HomeScreen() {
     refresh: refreshFeed,
     refreshSilently,
   } = useQuotePhotoFeed();
+  const { vibeHint, palette } = useHomeBackgroundPalette();
   const {
     isLoading,
     isGranted,
@@ -103,12 +104,12 @@ export default function HomeScreen() {
       }, 1800);
     },
     onMilestoneReached: setMilestone,
+    homeVibeKey: palette.vibeKey,
   });
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
   const [isOnFeed, setIsOnFeed] = useState(false);
   const listRef = useRef<FlatList>(null);
   const today = new Date().toISOString().split("T")[0];
-  const { vibeHint } = useHomeBackgroundPalette();
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const pastMemories = useMemo(() => {
     const target = new Date(today);

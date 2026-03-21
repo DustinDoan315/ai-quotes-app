@@ -8,6 +8,7 @@ export type UserProfile = {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  home_vibe_key: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -108,7 +109,13 @@ export async function ensureUserProfile(userId: string): Promise<UserProfile | n
 
 export async function updateUserProfile(
   userId: string,
-  updates: { username?: string; display_name?: string; avatar_url?: string; bio?: string },
+  updates: {
+    username?: string;
+    display_name?: string;
+    avatar_url?: string;
+    bio?: string;
+    home_vibe_key?: string | null;
+  },
 ): Promise<{ data: UserProfile | null; error: unknown }> {
   const { data, error } = await supabase
     .from("user_profiles")

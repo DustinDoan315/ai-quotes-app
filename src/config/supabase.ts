@@ -31,6 +31,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export type Database = {
   public: {
     Tables: {
+      home_backgrounds: {
+        Row: {
+          vibe_key: string;
+          rarity: string;
+          sort_order: number;
+        };
+        Insert: {
+          vibe_key: string;
+          rarity: string;
+          sort_order?: number;
+        };
+        Update: {
+          vibe_key?: string;
+          rarity?: string;
+          sort_order?: number;
+        };
+      };
       user_profiles: {
         Row: {
           id: string;
@@ -39,6 +56,7 @@ export type Database = {
           display_name: string | null;
           avatar_url: string | null;
           bio: string | null;
+          home_vibe_key: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -49,6 +67,7 @@ export type Database = {
           display_name?: string | null;
           avatar_url?: string | null;
           bio?: string | null;
+          home_vibe_key?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -59,6 +78,7 @@ export type Database = {
           display_name?: string | null;
           avatar_url?: string | null;
           bio?: string | null;
+          home_vibe_key?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -70,6 +90,7 @@ export type Database = {
           guest_id: string | null;
           image_url: string;
           storage_path: string;
+          home_vibe_key: string | null;
           created_at: string;
         };
         Insert: {
@@ -78,6 +99,7 @@ export type Database = {
           guest_id?: string | null;
           image_url: string;
           storage_path: string;
+          home_vibe_key?: string | null;
           created_at?: string;
         };
         Update: {
@@ -86,6 +108,7 @@ export type Database = {
           guest_id?: string | null;
           image_url?: string;
           storage_path?: string;
+          home_vibe_key?: string | null;
           created_at?: string;
         };
       };

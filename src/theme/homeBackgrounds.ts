@@ -72,3 +72,10 @@ export const HOME_BACKGROUNDS = [
     end: { x: 1, y: 0.5 },
   },
 ] as const satisfies readonly HomeBackgroundPalette[];
+
+export function getHomeBackgroundPaletteByKey(
+  vibeKey: string,
+): HomeBackgroundPalette {
+  const match = HOME_BACKGROUNDS.find((p) => p.vibeKey === vibeKey);
+  return match ?? HOME_BACKGROUNDS[0];
+}

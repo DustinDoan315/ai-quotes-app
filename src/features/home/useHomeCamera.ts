@@ -55,11 +55,13 @@ export type PinchGesture = ReturnType<typeof Gesture.Pinch>;
 type UseHomeCameraOptions = {
   onPhotoSaved?: () => void;
   onMilestoneReached?: (streak: number) => void;
+  homeVibeKey?: string;
 };
 
 export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const onPhotoSaved = options?.onPhotoSaved;
   const onMilestoneReached = options?.onMilestoneReached;
+  const homeVibeKey = options?.homeVibeKey;
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -272,6 +274,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         orientation: isPortrait ? "portrait" : "landscape",
         styleFontId: quoteFontSize,
         styleColorSchemeId: quoteColorScheme,
+        homeVibeKey: homeVibeKey ?? null,
       });
       if (!result) {
         showToast(strings.camera.errors.failedToSavePhoto, "error");

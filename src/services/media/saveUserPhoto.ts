@@ -15,6 +15,7 @@ type SaveUserPhotoParams = {
   orientation?: QuoteOrientation;
   styleFontId?: "small" | "medium" | "large";
   styleColorSchemeId?: "light" | "amber" | "pink";
+  homeVibeKey?: string | null;
 };
 
 type SaveUserPhotoResult = {
@@ -70,6 +71,7 @@ export const saveUserPhoto = async (
     orientation = "portrait",
     styleFontId = "medium",
     styleColorSchemeId = "light",
+    homeVibeKey = null,
   } = params;
 
   if (!localUri) {
@@ -153,6 +155,7 @@ export const saveUserPhoto = async (
     quote: quote ?? "",
     style_font_id: styleFontId,
     style_color_scheme_id: styleColorSchemeId,
+    home_vibe_key: homeVibeKey,
   });
 
   if (insertError) {

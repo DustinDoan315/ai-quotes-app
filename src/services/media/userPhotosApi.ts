@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { supabase } from "@/config/supabase";
+import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
+import type { HomeVibeKey } from "@/types/homeBackground";
 
 const quotePhotoRowSchema = z.object({
   id: z.string(),
@@ -10,6 +12,7 @@ const quotePhotoRowSchema = z.object({
   guest_id: z.string().nullable().optional(),
   style_font_id: z.string().nullable().optional(),
   style_color_scheme_id: z.string().nullable().optional(),
+  home_vibe_key: z.string().nullable().optional(),
 });
 
 export type QuotePhotoCard = {
@@ -23,6 +26,7 @@ export type QuotePhotoCard = {
   authorAvatarUrl: string | null;
   styleFontId: "small" | "medium" | "large";
   styleColorSchemeId: "light" | "amber" | "pink";
+  homeVibeKey: HomeVibeKey | null;
 };
 
 type ListQuotePhotoCardsParams = {
@@ -38,7 +42,7 @@ export const listQuotePhotoCards = async (
   let query = supabase
     .from("user_photos")
     .select(
-      "id, image_url, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id",
+      "id, image_url, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key",
     )
     .order("created_at", { ascending: false });
 
@@ -110,6 +114,9 @@ export const listQuotePhotoCards = async (
         (row.style_font_id as "small" | "medium" | "large") ?? "medium",
       styleColorSchemeId:
         (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
+      homeVibeKey: row.home_vibe_key
+        ? getHomeBackgroundPaletteByKey(row.home_vibe_key).vibeKey
+        : null,
     };
   });
 };

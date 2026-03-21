@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Image } from "expo-image";
+import { HomeBackground } from "@/features/home/HomeBackground";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
+import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
+import { Image } from "expo-image";
+import { useState } from "react";
 import { LayoutChangeEvent, Text, View } from "react-native";
 
 type Props = {
@@ -27,6 +29,13 @@ const QuoteMomentCard = ({
   authorAvatarUrl,
 }: QuoteMomentCardProps) => {
   const [aspectRatio, setAspectRatio] = useState<number>(FALLBACK_ASPECT);
+  const [bgLayout, setBgLayout] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const bgPalette = item.homeVibeKey
+    ? getHomeBackgroundPaletteByKey(item.homeVibeKey)
+    : null;
   const displayName = item.authorDisplayName ?? authorName;
   const displayAvatar = item.authorAvatarUrl ?? authorAvatarUrl;
 
@@ -58,9 +67,22 @@ const QuoteMomentCard = ({
     >
       <View className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50">
         <View
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            if (width > 0 && height > 0) {
+              setBgLayout({ width, height });
+            }
+          }}
           style={{ aspectRatio }}
           className="relative overflow-hidden bg-black"
         >
+          {bgLayout && bgPalette ? (
+            <HomeBackground
+              palette={bgPalette}
+              width={bgLayout.width}
+              height={bgLayout.height}
+            />
+          ) : null}
           <Image
             source={{ uri: item.imageUrl }}
             style={{ width: "100%", height: "100%" }}
