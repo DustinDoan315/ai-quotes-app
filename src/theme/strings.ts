@@ -57,6 +57,11 @@ export const strings = {
       superRare: "SR",
       superLegend: "★",
     },
+    momentsFeed: {
+      watermarkBrand: "AI Quotes",
+      watermarkTagline: "Your daily quote",
+      momentEyebrow: "Moment",
+    },
   },
   subscription: {
     aiLimitReachedTitle: "You reached today’s free AI limit.",
