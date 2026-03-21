@@ -1,13 +1,17 @@
 import { Image, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { HOME_VIBE_RARITY_STYLE } from "@/theme/homeVibeRarity";
+import { strings } from "@/theme/strings";
+import type { HomeVibeHintParts } from "@/types/homeBackground";
 import { getStreakTier } from "@/utils/streakMilestones";
 import { useUserStore } from "@/appState/userStore";
 
 interface HomeHeaderProps {
-  currentStreak: number;
-  onPressProfile?: () => void;
-  onPressFriends?: () => void;
-  onPressSignIn?: () => void;
+  readonly currentStreak: number;
+  readonly onPressProfile?: () => void;
+  readonly onPressFriends?: () => void;
+  readonly onPressSignIn?: () => void;
+  readonly vibeHint?: HomeVibeHintParts | null;
 }
 
 export function HomeHeader({
@@ -15,6 +19,7 @@ export function HomeHeader({
   onPressProfile,
   onPressFriends,
   onPressSignIn,
+  vibeHint,
 }: HomeHeaderProps) {
   const tier = getStreakTier(currentStreak);
   const profile = useUserStore((state) => state.profile);
@@ -69,6 +74,31 @@ export function HomeHeader({
           </View>
         </View>
       </View>
+      {vibeHint ? (
+        <View className="mt-1.5 flex-row flex-wrap items-center gap-x-1 px-1">
+          <Text className="text-[11px] font-medium text-white/85">
+            {vibeHint.vibeName}
+          </Text>
+          <Text className="text-[11px] text-white/45">·</Text>
+          <View className="flex-row items-center gap-1">
+            <View
+              className={`h-1.5 w-1.5 rounded-full ${
+                HOME_VIBE_RARITY_STYLE[vibeHint.rarity].dot
+              }`}
+            />
+            <Text
+              className={`text-[11px] font-semibold ${
+                HOME_VIBE_RARITY_STYLE[vibeHint.rarity].text
+              }`}>
+              {vibeHint.rarityLabel}
+            </Text>
+          </View>
+          <Text className="text-[11px] text-white/45">·</Text>
+          <Text className="text-[11px] font-medium text-white/70">
+            {strings.home.luckLabel} {vibeHint.luckPercent}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }

@@ -6,6 +6,7 @@ import { useUserStore } from "@/appState/userStore";
 import { CameraActionsBar } from "@/components/CameraActionsBar";
 import { HomeHeader } from "@/components/HomeHeader";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
+import { HomeBackground } from "@/features/home/HomeBackground";
 import { HomeCameraSection } from "@/features/home/HomeCameraSection";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
@@ -13,6 +14,7 @@ import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
 import { useRouter } from "expo-router";
 import { strings } from "@/theme/strings";
+import { getDailyHomeBackground } from "@/utils/homeBackgroundRoll";
 import { MotiView } from "moti";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -47,6 +49,7 @@ export default function HomeScreen() {
   const persona = useUserStore((s) => s.persona);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
   const guestId = useUserStore((s) => s.guestId);
+  const ensureGuestId = useUserStore((s) => s.ensureGuestId);
   const inviteNudgeDismissed = useUserStore((s) => s.inviteNudgeDismissed);
   const setInviteNudgeDismissed = useUserStore(
     (s) => s.setInviteNudgeDismissed,
@@ -107,6 +110,25 @@ export default function HomeScreen() {
   const [isOnFeed, setIsOnFeed] = useState(false);
   const listRef = useRef<FlatList>(null);
   const today = new Date().toISOString().split("T")[0];
+  const identityKey = useMemo(() => {
+    if (profile?.user_id) {
+      return profile.user_id;
+    }
+    return guestId ?? ensureGuestId();
+  }, [profile?.user_id, guestId, ensureGuestId]);
+  const dailyBackground = useMemo(
+    () => getDailyHomeBackground(identityKey, today),
+    [identityKey, today],
+  );
+  const vibeHint = useMemo(() => {
+    const { palette, luckPercent } = dailyBackground;
+    return {
+      vibeName: strings.home.vibes[palette.vibeKey],
+      rarityLabel: strings.home.vibeRarity[palette.rarity],
+      rarity: palette.rarity,
+      luckPercent,
+    };
+  }, [dailyBackground]);
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const pastMemories = useMemo(() => {
     const target = new Date(today);
@@ -280,7 +302,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-gray-500">
+    <View className="flex-1">
+      <HomeBackground palette={dailyBackground.palette} />
       <MilestoneCelebration
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
@@ -296,7 +319,7 @@ export default function HomeScreen() {
       )}
       <FlatList
         ref={listRef}
-        className="flex-1"
+        className="flex-1 bg-transparent"
         showsVerticalScrollIndicator={false}
         scrollEnabled={!isCaptureFlowActive}
         snapToAlignment="start"
@@ -333,6 +356,7 @@ export default function HomeScreen() {
                   params: { returnTo: "/(tabs)" },
                 } as never)
               }
+              vibeHint={vibeHint}
             />
             {pastMemories.length > 0 && (
               <Pressable
