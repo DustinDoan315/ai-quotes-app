@@ -7,7 +7,7 @@ type StreakState = {
   currentStreak: number;
   longestStreak: number;
   lastQuoteDate: string | null;
-  incrementStreak: () => void;
+  incrementStreak: () => boolean;
   resetStreak: () => void;
   updateLastQuoteDate: (date: string) => void;
 };
@@ -46,7 +46,7 @@ export const useStreakStore = create<StreakState>()(
         const state = get();
 
         if (state.lastQuoteDate === today) {
-          return;
+          return false;
         }
 
         const yesterdayString = getYesterdayString();
@@ -58,6 +58,7 @@ export const useStreakStore = create<StreakState>()(
           longestStreak: Math.max(newStreak, state.longestStreak),
           lastQuoteDate: today,
         });
+        return true;
       },
       resetStreak: () =>
         set({

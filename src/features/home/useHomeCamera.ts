@@ -301,12 +301,12 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           isFavorite: false,
         });
       }
-      useStreakStore.getState().incrementStreak();
+      const streakIncremented = useStreakStore.getState().incrementStreak();
       const newStreak = useStreakStore.getState().currentStreak;
-      if (newStreak > 0) {
+      if (streakIncremented && newStreak > 0) {
         analyticsEvents.streakIncremented(newStreak);
       }
-      if (isStreakMilestone(newStreak)) {
+      if (streakIncremented && isStreakMilestone(newStreak)) {
         onMilestoneReached?.(newStreak);
       }
       setSelectedImageUri(null);
