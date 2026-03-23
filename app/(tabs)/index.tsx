@@ -8,12 +8,14 @@ import { HomeCameraSection } from "@/features/home/HomeCameraSection";
 import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
+import { QuoteStackEntry } from "@/features/quotes/quoteStack/QuoteStackEntry";
+import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/groupQuotePhotoCardsIntoStacks";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
 import { strings } from "@/theme/strings";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -44,6 +46,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [milestone, setMilestone] = useState<number | null>(null);
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
+  const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
@@ -61,6 +64,10 @@ export default function HomeScreen() {
     refresh: refreshFeed,
     refreshSilently,
   } = useQuotePhotoFeed();
+  const quoteStacks = useMemo(
+    () => groupQuotePhotoCardsIntoStacks(feedItems),
+    [feedItems],
+  );
   const { vibeHint, palette } = useHomeBackgroundPalette();
   const {
     isLoading,
@@ -129,8 +136,12 @@ export default function HomeScreen() {
   const authorName =
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
-  const currentPhotoId =
-    feedItems.length > 0 ? (feedItems[currentFeedIndex]?.id ?? null) : null;
+  const currentPhotoId = activeQuoteId;
+  useEffect(() => {
+    if (!isOnFeed) return;
+    const nextId = quoteStacks[currentFeedIndex]?.quotes[0]?.id ?? null;
+    setActiveQuoteId((prev) => (prev === nextId ? prev : nextId));
+  }, [currentFeedIndex, isOnFeed, quoteStacks]);
   const viewabilityConfig = useRef({
     viewAreaCoveragePercentThreshold: 50,
   }).current;
@@ -139,6 +150,7 @@ export default function HomeScreen() {
       const hasItems = viewableItems.length > 0;
       setIsOnFeed(hasItems);
       if (!hasItems) {
+        setActiveQuoteId(null);
         return;
       }
       const first = viewableItems[0];
@@ -154,7 +166,7 @@ export default function HomeScreen() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
   const [justSavedMemory, setJustSavedMemory] = useState(false);
-  const shouldShowMessageBar = isOnFeed && currentPhotoId;
+  const shouldShowMessageBar = Boolean(isOnFeed && currentPhotoId);
   const actionBarBottomPadding = insets.bottom;
   const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
   const getItemLayout = useMemo(
@@ -168,10 +180,10 @@ export default function HomeScreen() {
   const snapOffsets = useMemo(
     () =>
       Array.from(
-        { length: feedItems.length + 1 },
+        { length: quoteStacks.length + 1 },
         (_, i) => i * viewportHeight,
       ),
-    [feedItems.length, viewportHeight],
+    [quoteStacks.length, viewportHeight],
   );
   const isCaptureFlowActive =
     isCapturing ||
@@ -226,11 +238,12 @@ export default function HomeScreen() {
       });
     }
     const idsToRemove = new Set(bursts.map((b) => b.id));
+    const shouldKeepBurst = (b: EmojiBurst) => !idsToRemove.has(b.id);
     setEmojiBursts((prev) => [...prev, ...bursts]);
     const maxDelay = (count - 1) * delayStepMs;
     const removeAfter = durationMs + maxDelay + 100;
     setTimeout(() => {
-      setEmojiBursts((prev) => prev.filter((b) => !idsToRemove.has(b.id)));
+      setEmojiBursts((prev) => prev.filter(shouldKeepBurst));
     }, removeAfter);
   }
 
@@ -309,7 +322,7 @@ export default function HomeScreen() {
         snapToAlignment="start"
         snapToOffsets={snapOffsets}
         decelerationRate="fast"
-        data={feedItems}
+        data={quoteStacks}
         keyExtractor={(item) => item.id}
         getItemLayout={getItemLayout}
         refreshControl={
@@ -430,13 +443,16 @@ export default function HomeScreen() {
             authorAvatarUrl={authorAvatarUrl}
           />
         }
-        renderItem={({ item }) => (
-          <QuoteMomentsFeed
-            items={[item]}
+        renderItem={({ item, index }) => (
+          <QuoteStackEntry
+            stack={item}
             screenHeight={viewportHeight}
-            onFeedLayoutYChange={() => {}}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
+            isActive={isOnFeed && index === currentFeedIndex}
+            onActiveQuoteIdChange={(quoteId) =>
+              setActiveQuoteId(quoteId)
+            }
           />
         )}
       />
@@ -507,7 +523,7 @@ export default function HomeScreen() {
               className="px-4 pt-2"
               style={{ paddingBottom: insets.bottom }}
               pointerEvents="box-none">
-              {isOnFeed && currentPhotoId && (
+              {isOnFeed && Boolean(currentPhotoId) && (
                 <View className="flex-row items-center justify-between rounded-full bg-gray-500/90 px-3 py-2">
                   <TextInput
                     autoFocus
