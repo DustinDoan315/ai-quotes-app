@@ -121,3 +121,108 @@ export const listQuotePhotoCards = async (
   });
 };
 
+type ListQuotePhotoCardsForDayParams = {
+  dateKey: string;
+  feedUserIds?: string[];
+  guestId?: string | null;
+  limit?: number;
+};
+
+function getUtcDayRange(dateKey: string): { startIso: string; endIso: string } {
+  const start = new Date(`${dateKey}T00:00:00.000Z`);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { startIso: start.toISOString(), endIso: end.toISOString() };
+}
+
+export const listQuotePhotoCardsForDay = async (
+  params: ListQuotePhotoCardsForDayParams,
+): Promise<QuotePhotoCard[]> => {
+  const { dateKey, feedUserIds, guestId, limit } = params;
+  const { startIso, endIso } = getUtcDayRange(dateKey);
+
+  let query = supabase
+    .from("user_photos")
+    .select(
+      "id, image_url, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key",
+    )
+    .order("created_at", { ascending: false })
+    .gte("created_at", startIso)
+    .lt("created_at", endIso);
+
+  if (feedUserIds && feedUserIds.length > 0) {
+    query = query.in("user_id", feedUserIds);
+  } else if (guestId) {
+    query = query.eq("guest_id", guestId);
+  }
+
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    console.error("Failed to load quote photo cards for day", { error });
+    return [];
+  }
+
+  const parsed = z.array(quotePhotoRowSchema).safeParse(data);
+
+  if (!parsed.success) {
+    console.error("Failed to parse quote photo cards for day rows", {
+      issues: parsed.error.issues,
+    });
+    return [];
+  }
+
+  const userIds = [
+    ...new Set(
+      parsed.data.map((r) => r.user_id).filter((id): id is string => id != null),
+    ),
+  ];
+
+  let profileMap = new Map<
+    string,
+    { displayName: string | null; avatarUrl: string | null }
+  >();
+
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("user_id, display_name, username, avatar_url")
+      .in("user_id", userIds);
+
+    profileMap = new Map(
+      (profiles ?? []).map((p) => [
+        p.user_id,
+        {
+          displayName: p.display_name ?? p.username ?? null,
+          avatarUrl: p.avatar_url ?? null,
+        },
+      ]),
+    );
+  }
+
+  return parsed.data.map((row) => {
+    const profile = row.user_id ? profileMap.get(row.user_id) : undefined;
+    return {
+      id: row.id,
+      imageUrl: row.image_url,
+      createdAt: row.created_at,
+      quote: row.quote ?? "",
+      userId: row.user_id ?? null,
+      guestId: row.guest_id ?? null,
+      authorDisplayName: profile?.displayName ?? null,
+      authorAvatarUrl: profile?.avatarUrl ?? null,
+      styleFontId:
+        (row.style_font_id as "small" | "medium" | "large") ?? "medium",
+      styleColorSchemeId:
+        (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
+      homeVibeKey: row.home_vibe_key
+        ? getHomeBackgroundPaletteByKey(row.home_vibe_key).vibeKey
+        : null,
+    };
+  });
+};
+

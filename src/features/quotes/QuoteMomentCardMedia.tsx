@@ -17,6 +17,7 @@ interface QuoteMomentCardMediaProps {
   onBgLayout: (width: number, height: number) => void;
   watermarkForExport: boolean;
   displayName: string;
+  avatarFallbackName: string;
   displayAvatar: string | null;
   createdTimeLabel: string;
   createdDateLabel: string;
@@ -34,6 +35,7 @@ export const QuoteMomentCardMedia = ({
   onBgLayout,
   watermarkForExport,
   displayName,
+  avatarFallbackName,
   displayAvatar,
   createdTimeLabel,
   createdDateLabel,
@@ -140,7 +142,7 @@ export const QuoteMomentCardMedia = ({
               ) : (
                 <View className="h-full w-full items-center justify-center">
                   <Text className="text-sm font-semibold text-white/90">
-                    {displayName.trim().slice(0, 1).toUpperCase()}
+                    {avatarFallbackName.trim().slice(0, 1).toUpperCase()}
                   </Text>
                 </View>
               )}

@@ -8,13 +8,14 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useMemoryStore } from "@/appState";
+import { useMemoryStore, useUserStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
 import { MemoryCard } from "@/components/MemoryCard";
 import { strings } from "@/theme/strings";
+import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemoriesForDay";
 
-type Layer = "mine" | "friends" | "public";
+type Layer = "mine" | "friends";
 
 export default function MemoriesDayScreen() {
   const router = useRouter();
@@ -27,10 +28,32 @@ export default function MemoriesDayScreen() {
   const [layer, setLayer] = useState<Layer>("mine");
   const hasHydrated = useMemoryStore((s: MemoryState) => s._hasHydrated);
   const memories = useMemoryStore((s: MemoryState) => s.memories);
-  const mineMemories = useMemo(
+  const profile = useUserStore((s) => s.profile);
+  const guestId = useUserStore((s) => s.guestId);
+  const dayMemories = useMemo(
     () => memories.filter((m: QuoteMemory) => m.date === dateKey),
     [memories, dateKey],
   );
+
+  const mineMemories = useMemo(() => {
+    const userId = profile?.user_id ?? null;
+    const hasIdentity = Boolean(userId || guestId);
+    const isMine = (m: QuoteMemory) => {
+      if (!hasIdentity) {
+        return m.visibility === "private";
+      }
+      return (
+        (userId ? m.ownerUserId === userId : false) ||
+        (guestId ? m.ownerGuestId === guestId : false)
+      );
+    };
+    return dayMemories.filter((m) => isMine(m));
+  }, [dayMemories, guestId, profile?.user_id]);
+
+  const {
+    cards: friendCards,
+    isLoading: friendsLoading,
+  } = useFriendsMemoriesForDay(dateKey);
   const title = new Date(dateKey).toLocaleDateString(undefined, {
     month: "long",
     day: "numeric",
@@ -40,13 +63,13 @@ export default function MemoriesDayScreen() {
     weekday: "long",
   });
 
-  const activeMemories = layer === "mine" ? mineMemories : [];
+  const activeCount = layer === "mine" ? mineMemories.length : friendCards.length;
   const memoryCountLabel =
-    activeMemories.length === 0
+    activeCount === 0
       ? "No memories saved"
-      : activeMemories.length === 1
+      : activeCount === 1
         ? "1 memory saved"
-        : `${activeMemories.length} memories saved`;
+        : `${activeCount} memories saved`;
 
   if (!hasHydrated) {
     return (
@@ -70,14 +93,12 @@ export default function MemoriesDayScreen() {
         </Text>
         <Text className="mt-0.5 text-2xl font-bold text-white">{title}</Text>
         <View className="mt-4 flex-row rounded-xl bg-white/5 p-1">
-          {(["mine", "friends", "public"] as Layer[]).map((key) => {
+          {(["mine", "friends"] as Layer[]).map((key) => {
             const isActive = layer === key;
             const label =
               key === "mine"
                 ? "Mine"
-                : key === "friends"
-                  ? "Friends"
-                  : "Public";
+                : "Friends";
             return (
               <Pressable
                 key={key}
@@ -112,46 +133,65 @@ export default function MemoriesDayScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
         className="flex-1">
-        {layer === "friends" || layer === "public" ? (
+        {layer === "mine" ? (
+          mineMemories.length === 0 ? (
+            <View className="mt-16 items-center px-6">
+              <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+                <Ionicons name="calendar-outline" size={32} color="#ffffff" />
+              </View>
+              <Text className="text-center text-base font-medium text-white/90">
+                {strings.memories.emptyForDay}
+              </Text>
+              <Text className="mt-2 text-center text-sm text-white/50">
+                Save a quote from the camera to see it here
+              </Text>
+            </View>
+          ) : (
+            mineMemories.map((memory: QuoteMemory) => (
+              <MemoryCard
+                key={memory.id}
+                quote={memory.quoteText}
+                author="Me"
+                photoBackgroundUri={memory.photoBackgroundUri}
+                photoOrientation={memory.photoOrientation}
+                isFavorite={memory.isFavorite}
+                createdAt={memory.createdAt}
+                styleFontId={
+                  memory.styleFontId as "small" | "medium" | "large"
+                }
+                styleColorSchemeId={
+                  memory.styleColorSchemeId as "light" | "amber" | "pink"
+                }
+              />
+            ))
+          )
+        ) : friendsLoading ? (
+          <View className="mt-16 items-center">
+            <ActivityIndicator size="large" color="#ffffff" />
+          </View>
+        ) : friendCards.length === 0 ? (
           <View className="mt-16 items-center px-6">
             <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
               <Ionicons name="people-outline" size={32} color="#ffffff" />
             </View>
             <Text className="text-center text-base font-medium text-white/90">
-              {layer === "friends"
-                ? strings.memories.friendsPlaceholder
-                : strings.memories.publicPlaceholder}
+              {strings.memories.friendsPlaceholder}
             </Text>
             <Text className="mt-2 text-center text-sm text-white/50">
-              Coming soon
-            </Text>
-          </View>
-        ) : activeMemories.length === 0 ? (
-          <View className="mt-16 items-center px-6">
-            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
-              <Ionicons name="calendar-outline" size={32} color="#ffffff" />
-            </View>
-            <Text className="text-center text-base font-medium text-white/90">
               {strings.memories.emptyForDay}
-            </Text>
-            <Text className="mt-2 text-center text-sm text-white/50">
-              Save a quote from the camera to see it here
             </Text>
           </View>
         ) : (
-          activeMemories.map((memory: QuoteMemory) => (
+          friendCards.map((card) => (
             <MemoryCard
-              key={memory.id}
-              quote={memory.quoteText}
-              author={memory.author}
-              photoBackgroundUri={memory.photoBackgroundUri}
-              photoOrientation={memory.photoOrientation}
-              isFavorite={memory.isFavorite}
-              createdAt={memory.createdAt}
-              styleFontId={memory.styleFontId as "small" | "medium" | "large"}
-              styleColorSchemeId={
-                memory.styleColorSchemeId as "light" | "amber" | "pink"
-              }
+              key={card.id}
+              quote={card.quote}
+              author={card.authorDisplayName}
+              photoBackgroundUri={card.imageUrl}
+              isFavorite={false}
+              createdAt={card.createdAt}
+              styleFontId={card.styleFontId}
+              styleColorSchemeId={card.styleColorSchemeId}
             />
           ))
         )}

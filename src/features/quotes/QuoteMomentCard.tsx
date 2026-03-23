@@ -8,6 +8,7 @@ import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
+import { useUserStore } from "@/appState";
 
 export interface QuoteMomentCardProps {
   item: QuotePhotoCard;
@@ -24,6 +25,8 @@ export const QuoteMomentCard = ({
   authorName,
   authorAvatarUrl,
 }: QuoteMomentCardProps) => {
+  const profile = useUserStore((s) => s.profile);
+  const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =
     useQuoteMomentShare();
   const [aspectRatio, setAspectRatio] = useState<number>(FALLBACK_ASPECT);
@@ -39,7 +42,11 @@ export const QuoteMomentCard = ({
     ? getHomeBackgroundPaletteByKey(item.homeVibeKey)
     : null;
   const chrome = bgPalette ? getHomeVibeFeedChrome(bgPalette) : null;
-  const displayName = item.authorDisplayName ?? authorName;
+  const baseDisplayName = item.authorDisplayName ?? authorName;
+  const isMine =
+    (profile?.user_id && item.userId && item.userId === profile.user_id) ||
+    (guestId && item.guestId && item.guestId === guestId);
+  const displayName = isMine ? "Me" : baseDisplayName;
   const displayAvatar = item.authorAvatarUrl ?? authorAvatarUrl;
 
   const createdTimeLabel = new Date(item.createdAt).toLocaleTimeString(
@@ -74,6 +81,7 @@ export const QuoteMomentCard = ({
       onBgLayout={(width, height) => setBgLayout({ width, height })}
       watermarkForExport={watermarkForExport}
       displayName={displayName}
+      avatarFallbackName={baseDisplayName}
       displayAvatar={displayAvatar}
       createdTimeLabel={createdTimeLabel}
       createdDateLabel={createdDateLabel}
