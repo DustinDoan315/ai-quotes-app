@@ -37,6 +37,7 @@ type EmojiBurst = {
   emoji: string;
   x: number;
   delay: number;
+  scale: number;
 };
 
 export default function HomeScreen() {
@@ -204,7 +205,12 @@ export default function HomeScreen() {
     if (!success) {
       return;
     }
-    const emoji = type === "love" ? "❤️" : type === "clap" ? "👏" : "🔥";
+    const emojiByType: Record<"love" | "clap" | "fire", string> = {
+      love: "❤️",
+      clap: "👏",
+      fire: "🔥",
+    };
+    const emoji = emojiByType[type];
     const bursts: EmojiBurst[] = [];
     const count = 24;
     const baseId = Date.now().toString();
@@ -216,14 +222,15 @@ export default function HomeScreen() {
         emoji,
         x: 10 + Math.random() * 80,
         delay: i * delayStepMs,
+        scale: 0.6 + Math.random() * 0.8,
       });
     }
-    const idsToRemove = bursts.map((b) => b.id);
+    const idsToRemove = new Set(bursts.map((b) => b.id));
     setEmojiBursts((prev) => [...prev, ...bursts]);
     const maxDelay = (count - 1) * delayStepMs;
     const removeAfter = durationMs + maxDelay + 100;
     setTimeout(() => {
-      setEmojiBursts((prev) => prev.filter((b) => !idsToRemove.includes(b.id)));
+      setEmojiBursts((prev) => prev.filter((b) => !idsToRemove.has(b.id)));
     }, removeAfter);
   }
 
@@ -462,7 +469,7 @@ export default function HomeScreen() {
                 <Pressable
                   onPress={() => handleReact("clap")}
                   className="rounded-full bg-white/15 px-3 py-1">
-                  <Text className="text-base">😍</Text>
+                  <Text className="text-base">👏</Text>
                 </Pressable>
               </View>
             </View>
@@ -528,7 +535,7 @@ export default function HomeScreen() {
           </KeyboardAvoidingView>
         </>
       )}
-      {lastSentLabel && !isComposerOpen && (
+      {lastSentLabel !== null && !isComposerOpen && (
         <View className="absolute inset-x-0 bottom-[72px] items-center">
           <View className="rounded-full bg-black/80 px-3 py-1">
             <Text className="text-[10px] font-medium text-white/80">
@@ -541,16 +548,20 @@ export default function HomeScreen() {
         {emojiBursts.map((burst) => (
           <MotiView
             key={burst.id}
-            from={{ opacity: 1, translateY: SCREEN_HEIGHT * 0.1, scale: 0.9 }}
+            from={{
+              opacity: 1,
+              translateY: SCREEN_HEIGHT * 0.25,
+              scale: 0.9 * burst.scale,
+            }}
             animate={{
               opacity: 1,
               translateY: -SCREEN_HEIGHT * 1.2,
-              scale: 1.6,
+              scale: 1.6 * burst.scale,
             }}
             exit={{
               opacity: 0,
               translateY: -SCREEN_HEIGHT * 1.6,
-              scale: 1.4,
+              scale: 1.4 * burst.scale,
             }}
             transition={{
               type: "timing",
