@@ -49,6 +49,10 @@ export const QuoteMomentCard = ({
       minute: "2-digit",
     },
   );
+  const createdDateLabel = new Date(item.createdAt).toLocaleDateString(
+    undefined,
+    { month: "short", day: "numeric" },
+  );
 
   const fontSize =
     item.styleFontId === "small" ? 16 : item.styleFontId === "large" ? 24 : 18;
@@ -72,6 +76,7 @@ export const QuoteMomentCard = ({
       displayName={displayName}
       displayAvatar={displayAvatar}
       createdTimeLabel={createdTimeLabel}
+      createdDateLabel={createdDateLabel}
       fontSize={fontSize}
       textColor={textColor}
     />

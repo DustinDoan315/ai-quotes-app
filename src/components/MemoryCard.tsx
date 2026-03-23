@@ -35,6 +35,10 @@ export function MemoryCard({
   const aspect = getCardAspect(photoOrientation);
   const cardWidth = MAX_WIDTH;
   const cardHeight = cardWidth / aspect;
+  const createdDateLabel = new Date(createdAt).toLocaleDateString(
+    undefined,
+    { month: "short", day: "numeric" },
+  );
   const createdTimeLabel = new Date(createdAt).toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
@@ -51,74 +55,61 @@ export function MemoryCard({
 
   return (
     <View
-      className="mb-4 overflow-hidden rounded-2xl border border-white/10 bg-black/50"
+      className="mb-4 overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50"
       style={{ width: cardWidth, height: cardHeight }}>
       {photoBackgroundUri ? (
-        <>
-          <Image
-            source={{ uri: photoBackgroundUri }}
-            style={{
-              position: "absolute",
-              width: cardWidth,
-              height: cardHeight,
-            }}
-            contentFit="cover"
-          />
-          <View className="absolute inset-x-0 bottom-0 z-10 bg-black/60 px-4 pb-3 pt-4">
-            <Text
-              className="font-semibold"
-              style={{ fontSize, color: textColor }}
-              numberOfLines={3}>
-              {quote}
+        <Image
+          source={{ uri: photoBackgroundUri }}
+          style={{
+            position: "absolute",
+            width: cardWidth,
+            height: cardHeight,
+          }}
+          contentFit="cover"
+        />
+      ) : null}
+
+      <View
+        pointerEvents="none"
+        className="absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25"
+      />
+
+      {isFavorite ? (
+        <View className="absolute right-2 top-2 z-[20] rounded-full bg-amber-400/95 px-1.5 py-0.5">
+          <Text className="text-[10px]">⭐</Text>
+        </View>
+      ) : null}
+
+      <View className="absolute inset-x-0 bottom-0 z-10 rounded-t-2xl bg-black/60 px-5 pb-4 pt-3">
+        <Text
+          className="mt-1 font-semibold leading-snug"
+          style={{ fontSize, color: textColor }}
+          numberOfLines={4}>
+          {quote}
+        </Text>
+        <View className="mt-2 flex-row items-center justify-between">
+          {author ? (
+            <Text className="text-[11px] text-white/80" numberOfLines={1}>
+              — {author}
             </Text>
-            <View className="mt-1 flex-row items-center justify-between">
-              {author ? (
-                <Text
-                  className="text-[11px] text-white/80"
-                  numberOfLines={1}>
-                  — {author}
-                </Text>
-              ) : (
-                <View />
-              )}
-              <Text className="text-[11px] font-medium text-white/80">
+          ) : (
+            <View />
+          )}
+          <View className="items-end">
+            <View className="flex-row items-center">
+              <Text className="text-[10px] text-white/55" numberOfLines={1}>
+                {createdDateLabel}
+              </Text>
+              <Text className="mx-1 text-[10px] text-white/35">/</Text>
+              <Text
+                className="text-[11px] font-medium text-white/80"
+                numberOfLines={1}>
                 {createdTimeLabel}
               </Text>
             </View>
           </View>
-          {isFavorite ? (
-            <View className="absolute right-2 top-2 z-20 rounded-full bg-amber-400/95 px-1.5 py-0.5">
-              <Text className="text-[10px]">⭐</Text>
-            </View>
-          ) : null}
-        </>
-      ) : (
-        <View className="h-full w-full justify-center bg-white/5 px-5">
-          <Text
-            className="font-semibold"
-            style={{ fontSize, color: textColor }}
-            numberOfLines={3}>
-            {quote}
-          </Text>
-          <View className="mt-2 flex-row items-center justify-between">
-            {author ? (
-              <Text className="text-[11px] text-white/70" numberOfLines={1}>
-                — {author}
-              </Text>
-            ) : (
-              <View />
-            )}
-            <Text className="text-[11px] font-medium text-white/80">
-              {createdTimeLabel}
-            </Text>
-          </View>
-          {isFavorite ? (
-            <View className="absolute right-2 top-2 rounded-full bg-amber-400/95 px-1.5 py-0.5">
-              <Text className="text-[10px]">⭐</Text>
-            </View>
-          ) : null}
         </View>
-      )}
+      </View>
     </View>
   );
 }

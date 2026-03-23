@@ -64,7 +64,9 @@ function buildMonthDays(
 
 function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
   if (!summary) {
-    return <View className="h-14 w-14 items-center justify-center" />;
+    return (
+      <View className="h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 opacity-30" />
+    );
   }
   const hasMine = summary.hasMine;
   const hasFavorite = summary.hasFavorite;
@@ -74,11 +76,8 @@ function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
   return (
     <Pressable
       onPress={() => onPress(summary.date)}
-      className="h-14 w-14 items-center justify-center rounded-2xl overflow-hidden"
+      className="h-14 w-14 items-center justify-center rounded-2xl overflow-hidden border border-white/10 bg-white/5"
       style={({ pressed }) => ({
-        backgroundColor: "transparent",
-        borderWidth: 0,
-        borderColor: "transparent",
         opacity: pressed ? 0.85 : 1,
       })}>
       {hasThumb && summary.thumbnailUri ? (

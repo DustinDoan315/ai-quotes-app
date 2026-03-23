@@ -1,7 +1,7 @@
 export type QuoteOrientation = "portrait" | "landscape";
 
 export const QUOTE_ASPECT = {
-  portrait: { width: 3, height: 3.75 },
+  portrait: { width: 3, height: 4 },
   landscape: { width: 3.5, height: 3 },
 } as const;
 

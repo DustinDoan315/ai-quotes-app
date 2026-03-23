@@ -19,6 +19,7 @@ interface QuoteMomentCardMediaProps {
   displayName: string;
   displayAvatar: string | null;
   createdTimeLabel: string;
+  createdDateLabel: string;
   fontSize: number;
   textColor: string;
 }
@@ -35,6 +36,7 @@ export const QuoteMomentCardMedia = ({
   displayName,
   displayAvatar,
   createdTimeLabel,
+  createdDateLabel,
   fontSize,
   textColor,
 }: QuoteMomentCardMediaProps) => {
@@ -149,9 +151,19 @@ export const QuoteMomentCardMedia = ({
                 numberOfLines={1}>
                 {displayName}
               </Text>
-              <Text className="text-[11px] text-white/65">
-                {createdTimeLabel}
-              </Text>
+              <View className="flex-row items-center">
+                <Text
+                  className="text-[10px] text-white/55"
+                  numberOfLines={1}>
+                  {createdDateLabel}
+                </Text>
+                <Text className="mx-1 text-[10px] text-white/35">/</Text>
+                <Text
+                  className="text-[11px] font-medium text-white/65"
+                  numberOfLines={1}>
+                  {createdTimeLabel}
+                </Text>
+              </View>
             </View>
           </View>
           {watermarkForExport ? (
