@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "ai-quotes-app",
-    "slug": "ai-quotes-app",
+    "name": "Inkly: Daily Vibes",
+    "slug": "inkly-daily-vibes",
     "version": "1.0.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "aiquotesapp",
+    "scheme": "inkly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dustindoan.aiquotesapp",
+      "bundleIdentifier": "com.dustindoan.inkly",
       "infoPlist": {
-        "NSCameraUsageDescription": "Allow AI Quotes to access your camera for taking photos."
+        "NSCameraUsageDescription": "Allow Inkly to access your camera for taking photos."
       }
     },
     "android": {
@@ -27,7 +27,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dustindoan.aiquotesapp"
+      "package": "com.dustindoan.inkly"
     },
     "web": {
       "output": "static",

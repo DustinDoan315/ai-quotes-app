@@ -1,10 +1,12 @@
+import { APP_DISPLAY_NAME } from "../src/theme/appBrand";
+
 export const setupExample = {
   getProject: async () => {
   },
 
   createApp: {
     project_id: "your_project_id",
-    name: "AI Quotes App Test",
+    name: `${APP_DISPLAY_NAME} Test`,
     type: "test_store",
   },
 

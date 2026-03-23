@@ -1,3 +1,5 @@
+import { APP_BRAND_MARK } from "@/theme/appBrand";
+
 export const strings = {
   camera: {
     errors: {
@@ -24,7 +26,7 @@ export const strings = {
   },
   home: {
     cameraPermissionRequired: "We need camera access to take photos.",
-    inviteFriendsTitle: "Invite friends to share quotes with",
+    inviteFriendsTitle: `Invite friends on ${APP_BRAND_MARK}`,
     inviteSkip: "Skip",
     inviteCta: "Invite",
     messagePlaceholder: "Send a message…",
@@ -58,8 +60,8 @@ export const strings = {
       superLegend: "★",
     },
     momentsFeed: {
-      watermarkBrand: "AI Quotes",
-      watermarkTagline: "Your daily quote",
+      watermarkBrand: APP_BRAND_MARK,
+      watermarkTagline: "Daily vibes",
       momentEyebrow: "Moment",
       shareMomentA11y: "Share this moment with branding",
     },
@@ -84,11 +86,11 @@ export const strings = {
       "Pro unlocks full persona controls so the AI matches your voice.",
     featureHeader: "What you get",
     featureHeaderHighlight: "Compare plans",
-    featureDailyQuotes: "Daily AI quotes",
+    featureDailyQuotes: "Daily AI vibes",
     featureExports: "Daily exports",
     featurePremiumThemes: "Premium themes",
     featureAdvancedPersona: "Advanced persona tuning",
-    featureWatermark: "App watermark",
+    featureWatermark: `${APP_BRAND_MARK} watermark`,
     freeLabel: "Free",
     proLabel: "Pro",
     freeDailyQuotesValue: "3 / day",

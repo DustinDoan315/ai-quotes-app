@@ -1,5 +1,6 @@
 import { supabase } from "@/config/supabase";
 import { captureException } from "@/services/analytics/sentry";
+import { APP_URL_SCHEME } from "@/theme/appBrand";
 
 const CODE_LENGTH = 8;
 const CODE_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -66,8 +67,7 @@ export async function getOrCreateMyInvite(userId: string): Promise<{
 }
 
 export function buildInviteUrl(code: string): string {
-  const scheme = "aiquotesapp";
-  return `${scheme}://invite/${code}`;
+  return `${APP_URL_SCHEME}://invite/${code}`;
 }
 
 export async function resolveInviteCode(code: string): Promise<string | null> {

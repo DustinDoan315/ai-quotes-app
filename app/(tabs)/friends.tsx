@@ -1,4 +1,5 @@
 import { useUserStore } from "@/appState/userStore";
+import { APP_DISPLAY_NAME } from "@/theme/appBrand";
 import {
   getOrCreateMyInvite,
   listMyFriends,
@@ -63,9 +64,9 @@ export default function FriendsScreen() {
     setSharing(true);
     try {
       await Share.share({
-        message: `Add me on AI Quotes – ${inviteUrl}`,
+        message: `Add me on ${APP_DISPLAY_NAME} – ${inviteUrl}`,
         url: inviteUrl,
-        title: "Invite to AI Quotes",
+        title: `Invite to ${APP_DISPLAY_NAME}`,
       });
     } finally {
       setSharing(false);
