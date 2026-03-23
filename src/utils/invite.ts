@@ -1,15 +1,13 @@
 import { APP_URL_SCHEME } from "@/theme/appBrand";
 
-const INVITE_LINK_SCHEMES = `${APP_URL_SCHEME}|aiquotesapp`;
-
 export function parseInviteCode(value: string): string | null {
   const raw = value.trim();
   if (!raw) return null;
 
   const schemeMatch = raw.match(
-    new RegExp(`^(${INVITE_LINK_SCHEMES}):\\/\\/invite\\/([a-z0-9]{6,64})`, "i"),
+    new RegExp(`^${APP_URL_SCHEME}:\\/\\/invite\\/([a-z0-9]{6,64})`, "i"),
   );
-  if (schemeMatch?.[2]) return schemeMatch[2].toLowerCase();
+  if (schemeMatch?.[1]) return schemeMatch[1].toLowerCase();
 
   try {
     const url = new URL(raw);
@@ -23,4 +21,3 @@ export function parseInviteCode(value: string): string | null {
 
   return null;
 }
-
