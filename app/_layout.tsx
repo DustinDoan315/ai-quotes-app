@@ -1,4 +1,5 @@
-import { initializeRevenueCat } from '../services/revenuecat';
+import { initializeRevenueCat, isRevenueCatInitialized } from '../services/revenuecat';
+import { useSubscriptionStore } from '@/appState/subscriptionStore';
 import { ToastHost } from '@/components/ToastHost';
 import { GlobalHomeBackground } from '@/features/home/GlobalHomeBackground';
 import { initPostHog } from '@/services/analytics/posthog';
@@ -25,21 +26,28 @@ const navTheme = {
 
 export default function RootLayout() {
   useEffect(() => {
-    initializeRevenueCat().catch((error) => {
-      console.error("Failed to initialize RevenueCat:", error);
-    });
+    initializeRevenueCat()
+      .then(() => {
+        if (isRevenueCatInitialized()) {
+          return useSubscriptionStore.getState().initSubscription();
+        }
+        return undefined;
+      })
+      .catch((error) => {
+        console.error("Failed to initialize RevenueCat:", error);
+      });
 
     supabase.auth
       .getSession()
       .then(async ({ data: { session } }) => {
-        if (!session) {
-          const { signInAnonymously } = await import("@/services/supabase-auth");
-          const { user, error } = await signInAnonymously();
-          if (!error && user) {
-            syncUserProfile(user);
-          }
-        } else {
+        if (session) {
           syncUserProfile(session.user);
+          return;
+        }
+        const { signInAnonymously } = await import("@/services/supabase-auth");
+        const { user, error } = await signInAnonymously();
+        if (!error && user) {
+          syncUserProfile(user);
         }
       })
       .catch((error) => {

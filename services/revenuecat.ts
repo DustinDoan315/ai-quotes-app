@@ -1,4 +1,4 @@
-import { RevenueCatConfig } from '../config/revenuecat';
+import { RevenueCatConfig } from '@/config/revenuecat';
 import Purchases, {
   CustomerInfo,
   LOG_LEVEL,

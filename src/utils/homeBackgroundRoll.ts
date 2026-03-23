@@ -1,3 +1,4 @@
+import { isPremiumHomeBackgroundPalette } from "@/domain/subscription/homeVibePremium";
 import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import type { HomeBackgroundPalette, HomeVibeRarity } from "@/types/homeBackground";
 
@@ -53,4 +54,30 @@ export function getDailyHomeBackground(
   const base = RARITY_BASE_LUCK[palette.rarity];
   const luckPercent = Math.min(99, base + jitter);
   return { palette, luckPercent };
+}
+
+export function getDailyHomeBackgroundWithoutPremium(
+  identityKey: string,
+  calendarDate: string,
+): DailyHomeBackground {
+  let salt = 0;
+  for (;;) {
+    const seed = hashString(`${identityKey}|${calendarDate}|v1|np|${salt}`);
+    const variantIndex = pickVariantIndex(seed);
+    const palette = HOME_BACKGROUNDS[variantIndex];
+    if (!isPremiumHomeBackgroundPalette(palette)) {
+      const jitter = seed % 7;
+      const base = RARITY_BASE_LUCK[palette.rarity];
+      const luckPercent = Math.min(99, base + jitter);
+      return { palette, luckPercent };
+    }
+    salt += 1;
+    if (salt > 64) {
+      const palette = HOME_BACKGROUNDS[0];
+      return {
+        palette,
+        luckPercent: Math.min(99, RARITY_BASE_LUCK[palette.rarity]),
+      };
+    }
+  }
 }

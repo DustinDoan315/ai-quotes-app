@@ -10,3 +10,5 @@ export const PRO_DAILY_EXPORT_LIMIT = Number.POSITIVE_INFINITY;
 
 export const SUBSCRIPTION_WATERMARK_ENABLED_FOR_FREE = true;
 
+export const ADVANCED_PERSONA_IDS: readonly string[] = [];
+

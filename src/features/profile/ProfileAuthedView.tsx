@@ -6,6 +6,7 @@ import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
 import { ProfilePhoneCard } from "@/features/profile/ProfilePhoneCard";
 import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
+import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
 import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
@@ -240,6 +241,8 @@ export function ProfileAuthedView({
         ) : null}
 
         <ProfileQuoteLanguageSection />
+
+        <ProfileLegalLinks />
 
         <ProfileSignOutButton onPress={handleSignOut} />
       </ScrollView>

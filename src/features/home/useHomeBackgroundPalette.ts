@@ -1,4 +1,6 @@
+import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUserStore } from "@/appState/userStore";
+import { isPremiumHomeBackgroundPalette } from "@/domain/subscription/homeVibePremium";
 import { strings } from "@/theme/strings";
 import {
   HOME_BACKGROUNDS,
@@ -8,7 +10,10 @@ import type {
   HomeBackgroundPalette,
   HomeVibeHintParts,
 } from "@/types/homeBackground";
-import { getDailyHomeBackground } from "@/utils/homeBackgroundRoll";
+import {
+  getDailyHomeBackground,
+  getDailyHomeBackgroundWithoutPremium,
+} from "@/utils/homeBackgroundRoll";
 import { useUserStoreHydrated } from "@/utils/useUserStoreHydrated";
 import { useEffect, useMemo } from "react";
 
@@ -16,6 +21,7 @@ export function useHomeBackgroundPalette(): {
   palette: HomeBackgroundPalette;
   vibeHint: HomeVibeHintParts | null;
 } {
+  const isPro = useSubscriptionStore((s) => s.isPro);
   const profile = useUserStore((s) => s.profile);
   const authState = useUserStore((s) => s.authState);
   const guestId = useUserStore((s) => s.guestId);
@@ -53,8 +59,11 @@ export function useHomeBackgroundPalette(): {
         luckPercent: 0,
       };
     }
-    return getDailyHomeBackground(identityKey, today);
-  }, [identityKey, today]);
+    if (isPro) {
+      return getDailyHomeBackground(identityKey, today);
+    }
+    return getDailyHomeBackgroundWithoutPremium(identityKey, today);
+  }, [identityKey, today, isPro]);
   const effectiveDaily = useMemo(() => {
     const rawKey = profile?.home_vibe_key;
     const serverKey =
@@ -64,13 +73,20 @@ export function useHomeBackgroundPalette(): {
         ? String(rawKey).trim()
         : null;
     if (serverKey) {
+      const fromServer = getHomeBackgroundPaletteByKey(serverKey);
+      if (!isPro && isPremiumHomeBackgroundPalette(fromServer)) {
+        return {
+          palette: HOME_BACKGROUNDS[0],
+          luckPercent: dailyBackground.luckPercent,
+        };
+      }
       return {
-        palette: getHomeBackgroundPaletteByKey(serverKey),
+        palette: fromServer,
         luckPercent: dailyBackground.luckPercent,
       };
     }
     return dailyBackground;
-  }, [profile?.user_id, profile?.home_vibe_key, dailyBackground]);
+  }, [profile?.user_id, profile?.home_vibe_key, dailyBackground, isPro]);
   const vibeHint = useMemo(() => {
     if (identityKey == null) {
       return null;

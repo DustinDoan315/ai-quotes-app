@@ -67,6 +67,8 @@ export const strings = {
   subscription: {
     aiLimitReachedTitle: "You reached today’s free AI limit.",
     aiLimitReachedBody: "Upgrade to Pro for unlimited quote generations.",
+    personaLockedTitle: "This persona needs Pro.",
+    personaLockedBody: "Upgrade to unlock advanced persona controls.",
     paywallHeroTitle: "Create better quote cards without limits",
     paywallHeroSubtitle: "Unlimited quotes, exports, and premium styles.",
     paywallBullet1: "Generate as many AI quotes as you want — no daily cap.",

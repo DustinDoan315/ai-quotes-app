@@ -5,6 +5,7 @@ import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUsageStore } from "@/appState/usageStore";
+import { ADVANCED_PERSONA_IDS } from "@/domain/subscription/subscriptionConstants";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { strings } from "@/theme/strings";
 import { router } from "expo-router";
@@ -53,6 +54,18 @@ export const useGenerateQuote = () => {
       ? { activeEntitlementIds: customerInfo.activeEntitlementIds }
       : null;
     const guards = createSubscriptionGuards(snapshot);
+    const isAdvancedPersona =
+      persona != null && ADVANCED_PERSONA_IDS.includes(persona.id);
+    const personaGuard = guards.canUsePersonaLevel(isAdvancedPersona);
+    if (!personaGuard.allowed) {
+      showToast(
+        `${strings.subscription.personaLockedTitle} ${strings.subscription.personaLockedBody}`,
+        "info",
+      );
+      router.push("/modal/paywall?reason=persona_locked" as never);
+      return null;
+    }
+
     const guardResult = guards.canGenerateQuote(dailyAiCount);
 
     if (!guardResult.allowed) {

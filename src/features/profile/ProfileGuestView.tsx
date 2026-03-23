@@ -1,5 +1,6 @@
 import { useUserStore } from "@/appState/userStore";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
+import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
 import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -82,6 +83,8 @@ export function ProfileGuestView({
             Invite friends
           </Text>
         </Pressable>
+
+        <ProfileLegalLinks />
       </ScrollView>
     </View>
   );
