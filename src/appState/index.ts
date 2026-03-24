@@ -3,3 +3,4 @@ export { useStreakStore } from "./streakStore";
 export { useUIStore } from "./uiStore";
 export { useUserStore } from "./userStore";
 export { useMemoryStore } from "./memoryStore";
+export { useReminderStore } from "./reminderStore";

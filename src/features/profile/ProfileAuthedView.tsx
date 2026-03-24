@@ -5,7 +5,7 @@ import { ProfileAuthedHeader } from "@/features/profile/ProfileAuthedHeader";
 import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
 import { ProfilePhoneCard } from "@/features/profile/ProfilePhoneCard";
-import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
+import { ProfileAuthedSettingsSections } from "@/features/profile/ProfileAuthedSettingsSections";
 import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
 import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
@@ -240,9 +240,7 @@ export function ProfileAuthedView({
           </View>
         ) : null}
 
-        <ProfileQuoteLanguageSection />
-
-        <ProfileLegalLinks />
+        <ProfileAuthedSettingsSections />
 
         <ProfileSignOutButton onPress={handleSignOut} />
       </ScrollView>

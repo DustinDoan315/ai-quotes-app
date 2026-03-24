@@ -1,5 +1,11 @@
-import { initializeRevenueCat, isRevenueCatInitialized } from '../services/revenuecat';
-import { useSubscriptionStore } from '@/appState/subscriptionStore';
+import { useReminderStore } from "@/appState/reminderStore";
+import { initializeRevenueCat, isRevenueCatInitialized } from "../services/revenuecat";
+import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import {
+  configureNotificationHandler,
+  ensureReminderNotificationChannel,
+  syncDailyReminderSchedule,
+} from "@/services/notifications/dailyReminder";
 import { ToastHost } from '@/components/ToastHost';
 import { GlobalHomeBackground } from '@/features/home/GlobalHomeBackground';
 import { initPostHog } from '@/services/analytics/posthog';
@@ -26,6 +32,23 @@ const navTheme = {
 
 export default function RootLayout() {
   useEffect(() => {
+    configureNotificationHandler();
+    void ensureReminderNotificationChannel();
+    const applyReminderSync = () => {
+      const snapshot = useReminderStore.getState();
+      void syncDailyReminderSchedule(snapshot).then((patch) => {
+        useReminderStore.setState(patch);
+      });
+    };
+    let unsubHydration: (() => void) | undefined;
+    if (useReminderStore.persist.hasHydrated()) {
+      applyReminderSync();
+    } else {
+      unsubHydration = useReminderStore.persist.onFinishHydration(() => {
+        applyReminderSync();
+      });
+    }
+
     initializeRevenueCat()
       .then(() => {
         if (isRevenueCatInitialized()) {
@@ -33,7 +56,7 @@ export default function RootLayout() {
         }
         return undefined;
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error("Failed to initialize RevenueCat:", error);
       });
 
@@ -65,7 +88,9 @@ export default function RootLayout() {
       initSentry(process.env.EXPO_PUBLIC_SENTRY_DSN);
     }
 
-    return () => {};
+    return () => {
+      unsubHydration?.();
+    };
   }, []);
 
   return (
