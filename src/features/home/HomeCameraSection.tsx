@@ -1,3 +1,4 @@
+import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
@@ -7,7 +8,6 @@ import type {
   HomeVibeHintParts,
 } from "@/types/homeBackground";
 import type { RewriteTone } from "@/services/ai/types";
-import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import { Image } from "expo-image";
@@ -142,23 +142,7 @@ export const HomeCameraSection = ({
   );
 
   const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating);
-  const isExplainActive = selectedAiTool === "explain";
-  const isFutureActive = selectedAiTool === "future";
   const cameraPreviewScale = 1.35;
-
-  const getAiChipStyle = (isActive: boolean, isPending: boolean) => ({
-    backgroundColor: isActive ? "#22C55E" : "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: isActive
-      ? "#4ADE80"
-      : isPending
-        ? "rgba(34,197,94,0.55)"
-        : "rgba(255,255,255,0.12)",
-    opacity: isPending ? 0.85 : 1,
-  });
-
-  const getAiChipTextColor = (isActive: boolean) =>
-    isActive ? "#FFFFFF" : "#FFFFFF";
 
   const handleCameraFlipPress = () => {
     flipIconRotation.value = withTiming(flipIconRotation.value + 180, {
@@ -465,92 +449,19 @@ export const HomeCameraSection = ({
                 </Pressable>
               </View>
             </View>
-            <View className="mt-3">
-              <View className="flex-row flex-wrap items-center gap-2">
-                <View className="mr-1 flex-row items-center">
-                  <Ionicons name="sparkles-outline" size={14} color="#FBBF24" />
-                  <Text className="ml-1 text-[11px] font-semibold text-white/70">
-                    {strings.home.aiTools.title}
-                  </Text>
-                </View>
-                <Pressable
-                  disabled={aiToolsLoading}
-                  onPress={onExplainQuote}
-                  className="rounded-full px-3 py-2"
-                  style={({ pressed }) => ({
-                    ...getAiChipStyle(
-                      isExplainActive,
-                      pendingAiTool === "explain",
-                    ),
-                    opacity:
-                      pressed || aiToolsLoading || pendingAiTool === "explain"
-                        ? 0.75
-                        : 1,
-                  })}>
-                  <Text
-                    className="text-xs font-semibold"
-                    style={{ color: getAiChipTextColor(isExplainActive) }}>
-                    {strings.home.aiTools.explain}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  disabled={aiToolsLoading}
-                  onPress={onFutureQuote}
-                  className="rounded-full px-3 py-2"
-                  style={({ pressed }) => ({
-                    ...getAiChipStyle(
-                      isFutureActive,
-                      pendingAiTool === "future",
-                    ),
-                    opacity:
-                      pressed || aiToolsLoading || pendingAiTool === "future"
-                        ? 0.75
-                        : 1,
-                  })}>
-                  <Text
-                    className="text-xs font-semibold"
-                    style={{ color: getAiChipTextColor(isFutureActive) }}>
-                    {strings.home.aiTools.future}
-                  </Text>
-                </Pressable>
-                {(["calm", "funny", "savage"] as RewriteTone[]).map((tone) => {
-                  const isToneActive = selectedAiTool === tone;
-                  const isTonePending = pendingAiTool === tone;
-
-                  return (
-                  <Pressable
-                    key={tone}
-                    disabled={aiToolsLoading}
-                    onPress={() => onRewriteQuote(tone)}
-                    className="rounded-full px-3 py-2"
-                    style={({ pressed }) => ({
-                      ...getAiChipStyle(isToneActive, isTonePending),
-                      opacity:
-                        pressed || aiToolsLoading || isTonePending ? 0.75 : 1,
-                    })}>
-                    <Text
-                      className="text-xs font-semibold"
-                      style={{ color: getAiChipTextColor(isToneActive) }}>
-                      {tone === "calm"
-                        ? strings.home.aiTools.calm
-                        : tone === "funny"
-                          ? strings.home.aiTools.funny
-                          : strings.home.aiTools.savage}
-                    </Text>
-                  </Pressable>
-                  );
-                })}
-                {aiToolsLoading ? (
-                  <View className="rounded-full bg-white/8 px-3 py-2">
-                    <Text className="text-[11px] text-white/70" numberOfLines={1}>
-                      {aiToolsLoadingLabel ?? strings.home.aiTools.loadingExplain}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
+            <View className="mt-6">
+              <AiToolsRow
+                selectedAiTool={selectedAiTool}
+                pendingAiTool={pendingAiTool}
+                aiToolsLoading={aiToolsLoading}
+                aiToolsLoadingLabel={aiToolsLoadingLabel}
+                onExplainQuote={onExplainQuote}
+                onFutureQuote={onFutureQuote}
+                onRewriteQuote={onRewriteQuote}
+              />
               {aiResultTitle && aiResultBody ? (
-                <View className="mt-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
-                  <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                <View className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-950/20 px-4 py-4">
+                  <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-500">
                     {aiResultTitle}
                   </Text>
                   <Text className="mt-2 text-sm leading-5 text-white/90">

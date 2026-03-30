@@ -5,6 +5,7 @@ import { CameraActionsBar } from "@/components/CameraActionsBar";
 import { HomeHeader } from "@/components/HomeHeader";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { HomeCameraSection } from "@/features/home/HomeCameraSection";
+import { RewriteQuoteReviewModal } from "@/features/home/RewriteQuoteReviewModal";
 import {
   useExplainQuote,
   useFutureQuote,
@@ -178,6 +179,10 @@ export default function HomeScreen() {
     title: string;
     body: string;
   } | null>(null);
+  const [rewriteDraft, setRewriteDraft] = useState<{
+    tone: RewriteTone;
+    text: string;
+  } | null>(null);
   const [selectedAiTool, setSelectedAiTool] = useState<ActiveAiTool | null>(
     null,
   );
@@ -201,13 +206,22 @@ export default function HomeScreen() {
       ),
     [quoteStacks.length, viewportHeight],
   );
+  const flatListExtraData = useMemo(
+    () =>
+      `${selectedAiTool ?? ""}|${pendingAiTool ?? ""}|${aiResult?.title ?? ""}|${rewriteDraft ? "rw" : ""}`,
+    [selectedAiTool, pendingAiTool, aiResult?.title, rewriteDraft],
+  );
   const isCaptureFlowActive =
     isCapturing ||
     isSavingPhoto ||
     isGenerating ||
     (!!selectedImageUri && !hasSavedCurrentPhoto);
   const { loading: isExplainingQuote, explain } = useExplainQuote(dailyQuoteText);
-  const { loading: isRewritingQuote, rewrite } = useRewriteQuote();
+  const {
+    loading: isRewritingQuote,
+    previewRewrite,
+    applyRewrittenQuote,
+  } = useRewriteQuote();
   const { loading: isGeneratingFutureQuote, generate: generateFutureQuote } =
     useFutureQuote();
   const isAiToolLoading =
@@ -216,6 +230,7 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!dailyQuoteText) {
       setAiResult(null);
+      setRewriteDraft(null);
       setSelectedAiTool(null);
       setPendingAiTool(null);
     }
@@ -223,6 +238,7 @@ export default function HomeScreen() {
 
   function clearAiToolState() {
     setAiResult(null);
+    setRewriteDraft(null);
     setSelectedAiTool(null);
     setPendingAiTool(null);
   }
@@ -266,17 +282,31 @@ export default function HomeScreen() {
 
   async function handleRewriteQuote(tone: RewriteTone) {
     setPendingAiTool(tone);
-    const updatedQuote = await rewrite(tone);
-    if (!updatedQuote) {
-      setPendingAiTool(null);
+    const text = await previewRewrite(tone);
+    setPendingAiTool(null);
+    if (!text) {
       return;
     }
+    setRewriteDraft({ tone, text });
+  }
+
+  function handleApproveRewrite(editedText: string) {
+    const trimmed = editedText.trim();
+    if (!trimmed || !rewriteDraft) {
+      return;
+    }
+    const tone = rewriteDraft.tone;
+    applyRewrittenQuote(trimmed);
+    setRewriteDraft(null);
     setAiResult({
       title: strings.home.aiTools.rewriteResult,
-      body: updatedQuote.text,
+      body: trimmed,
     });
     setSelectedAiTool(tone);
-    setPendingAiTool(null);
+  }
+
+  function handleCancelRewrite() {
+    setRewriteDraft(null);
   }
 
   function handleCameraButtonPress() {
@@ -404,6 +434,12 @@ export default function HomeScreen() {
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
       />
+      <RewriteQuoteReviewModal
+        visible={rewriteDraft !== null}
+        initialText={rewriteDraft?.text ?? ""}
+        onApprove={handleApproveRewrite}
+        onCancel={handleCancelRewrite}
+      />
       {justSavedMemory && (
         <View className="absolute left-0 right-0 top-10 z-10 items-center">
           <View className="rounded-full bg-black/85 px-4 py-2">
@@ -422,6 +458,7 @@ export default function HomeScreen() {
         snapToOffsets={snapOffsets}
         decelerationRate="fast"
         data={quoteStacks}
+        extraData={flatListExtraData}
         keyExtractor={(item) => item.id}
         getItemLayout={getItemLayout}
         refreshControl={
@@ -540,9 +577,7 @@ export default function HomeScreen() {
                     ? strings.home.aiTools.loadingExplain
                     : isGeneratingFutureQuote
                       ? strings.home.aiTools.loadingFuture
-                      : isRewritingQuote
-                        ? strings.home.aiTools.loadingRewrite
-                        : null
+                      : null
                 }
                 vibeHint={vibeHint}
                 cardPalette={palette}

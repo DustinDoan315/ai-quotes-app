@@ -48,9 +48,11 @@ export const useRewriteQuote = () => {
   const showToast = useUIStore((s) => s.showToast);
   const [loading, setLoading] = useState(false);
 
-  const rewrite = useCallback(
+  const previewRewrite = useCallback(
     async (tone: RewriteTone) => {
-      if (!dailyQuote) return null;
+      if (!dailyQuote) {
+        return null;
+      }
       const traits =
         persona && persona.traits && persona.traits.length > 0
           ? persona.traits
@@ -69,23 +71,37 @@ export const useRewriteQuote = () => {
           }
           return null;
         }
-        const updated = {
-          ...dailyQuote,
-          id: Date.now().toString(),
-          text: response.quote,
-          createdAt: Date.now(),
-        };
-        setDailyQuote(updated);
-        addToHistory(updated);
-        return updated;
+        return response.quote;
       } finally {
         setLoading(false);
       }
     },
-    [dailyQuote, persona, quoteLanguage, setDailyQuote, addToHistory, showToast],
+    [dailyQuote, persona, quoteLanguage, showToast],
   );
 
-  return { loading, rewrite };
+  const applyRewrittenQuote = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed) {
+        return;
+      }
+      const dq = useQuoteStore.getState().dailyQuote;
+      if (!dq) {
+        return;
+      }
+      const updated = {
+        ...dq,
+        id: Date.now().toString(),
+        text: trimmed,
+        createdAt: Date.now(),
+      };
+      setDailyQuote(updated);
+      addToHistory(updated);
+    },
+    [setDailyQuote, addToHistory],
+  );
+
+  return { loading, previewRewrite, applyRewrittenQuote };
 };
 
 export const useFutureQuote = () => {
