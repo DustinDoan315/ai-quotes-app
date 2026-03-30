@@ -6,6 +6,8 @@ import type {
   HomeBackgroundPalette,
   HomeVibeHintParts,
 } from "@/types/homeBackground";
+import type { RewriteTone } from "@/services/ai/types";
+import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import { Image } from "expo-image";
@@ -21,6 +23,7 @@ import Animated, {
 
 type QuoteFontSize = "small" | "medium" | "large";
 type QuoteColor = "light" | "amber" | "pink";
+type ActiveAiTool = "explain" | "future" | RewriteTone;
 
 type Props = {
   cameraRef: React.RefObject<CameraView | null>;
@@ -47,6 +50,15 @@ type Props = {
   onClearImage: () => void;
   onClearQuote: () => void;
   onRegenerateQuote: () => void;
+  onExplainQuote: () => void;
+  onFutureQuote: () => void;
+  onRewriteQuote: (tone: RewriteTone) => void;
+  selectedAiTool: ActiveAiTool | null;
+  pendingAiTool: ActiveAiTool | null;
+  aiResultTitle: string | null;
+  aiResultBody: string | null;
+  aiToolsLoading: boolean;
+  aiToolsLoadingLabel: string | null;
   vibeHint: HomeVibeHintParts | null;
   cardPalette: HomeBackgroundPalette;
 };
@@ -76,6 +88,15 @@ export const HomeCameraSection = ({
   onClearImage,
   onClearQuote,
   onRegenerateQuote,
+  onExplainQuote,
+  onFutureQuote,
+  onRewriteQuote,
+  selectedAiTool,
+  pendingAiTool,
+  aiResultTitle,
+  aiResultBody,
+  aiToolsLoading,
+  aiToolsLoadingLabel,
   vibeHint,
   cardPalette,
 }: Props) => {
@@ -101,6 +122,15 @@ export const HomeCameraSection = ({
     }
     return 18;
   }, [quoteFontSize]);
+  const quoteTextColor = useMemo(() => {
+    if (quoteColorScheme === "amber") {
+      return "#FBBF24";
+    }
+    if (quoteColorScheme === "pink") {
+      return "#F9A8D4";
+    }
+    return "#FFFFFF";
+  }, [quoteColorScheme]);
 
   const createdTimeLabel = useMemo(
     () =>
@@ -112,6 +142,23 @@ export const HomeCameraSection = ({
   );
 
   const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating);
+  const isExplainActive = selectedAiTool === "explain";
+  const isFutureActive = selectedAiTool === "future";
+  const cameraPreviewScale = 1.35;
+
+  const getAiChipStyle = (isActive: boolean, isPending: boolean) => ({
+    backgroundColor: isActive ? "#22C55E" : "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: isActive
+      ? "#4ADE80"
+      : isPending
+        ? "rgba(34,197,94,0.55)"
+        : "rgba(255,255,255,0.12)",
+    opacity: isPending ? 0.85 : 1,
+  });
+
+  const getAiChipTextColor = (isActive: boolean) =>
+    isActive ? "#FFFFFF" : "#FFFFFF";
 
   const handleCameraFlipPress = () => {
     flipIconRotation.value = withTiming(flipIconRotation.value + 180, {
@@ -161,13 +208,31 @@ export const HomeCameraSection = ({
                   ) : null}
                 </View>
               ) : (
-                <CameraView
-                  ref={cameraRef}
-                  style={{ flex: 1 }}
-                  facing={facing}
-                  zoom={zoom}
-                  onCameraReady={onCameraReady}
-                />
+                <View className="flex-1 overflow-hidden">
+                  <CameraView
+                    ref={cameraRef}
+                    style={{
+                      position: "absolute",
+                      width: shellSize
+                        ? shellSize.width * cameraPreviewScale
+                        : undefined,
+                      height: shellSize
+                        ? shellSize.height * cameraPreviewScale
+                        : undefined,
+                      top: shellSize
+                        ? -((shellSize.height * cameraPreviewScale) - shellSize.height) / 2
+                        : 0,
+                      left: shellSize
+                        ? -((shellSize.width * cameraPreviewScale) - shellSize.width) / 2
+                        : 0,
+                      right: shellSize ? undefined : 0,
+                      bottom: shellSize ? undefined : 0,
+                    }}
+                    facing={facing}
+                    zoom={zoom}
+                    onCameraReady={onCameraReady}
+                  />
+                </View>
               )}
               <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
               <View pointerEvents="none" style={chrome.photoBorder} />
@@ -230,8 +295,8 @@ export const HomeCameraSection = ({
                   </View>
                   <View className="rounded-2xl border border-white/20 px-3 py-2">
                     <Text
-                      className="text-center font-semibold text-white"
-                      style={{ fontSize: fontSizeValue }}
+                      className="text-center font-semibold"
+                      style={{ fontSize: fontSizeValue, color: quoteTextColor }}
                       numberOfLines={4}>
                       {dailyQuoteText}
                     </Text>
@@ -355,8 +420,10 @@ export const HomeCameraSection = ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
                       quoteColorScheme === "light" ? "#ffffff" : "rgba(148,163,184,0.4)",
+                    borderWidth: quoteColorScheme === "light" ? 2 : 0,
+                    borderColor: quoteColorScheme === "light" ? "#FBBF24" : "transparent",
                   })}>
-                  <View className="h-3.5 w-3.5 rounded-full bg-white" />
+                  <View className="h-3.5 w-3.5 rounded-full border border-slate-300 bg-white" />
                 </Pressable>
                 <Pressable
                   onPress={() => onChangeQuoteColorScheme("amber")}
@@ -365,6 +432,8 @@ export const HomeCameraSection = ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
                       quoteColorScheme === "amber" ? "#ffffff" : "rgba(148,163,184,0.4)",
+                    borderWidth: quoteColorScheme === "amber" ? 2 : 0,
+                    borderColor: quoteColorScheme === "amber" ? "#FBBF24" : "transparent",
                   })}>
                   <View className="h-3.5 w-3.5 rounded-full bg-amber-400" />
                 </Pressable>
@@ -375,6 +444,8 @@ export const HomeCameraSection = ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
                       quoteColorScheme === "pink" ? "#ffffff" : "rgba(148,163,184,0.4)",
+                    borderWidth: quoteColorScheme === "pink" ? 2 : 0,
+                    borderColor: quoteColorScheme === "pink" ? "#FBBF24" : "transparent",
                   })}>
                   <View className="h-3.5 w-3.5 rounded-full bg-pink-400" />
                 </Pressable>
@@ -393,6 +464,100 @@ export const HomeCameraSection = ({
                   <Ionicons name="refresh-outline" size={16} color="#000000" />
                 </Pressable>
               </View>
+            </View>
+            <View className="mt-3">
+              <View className="flex-row flex-wrap items-center gap-2">
+                <View className="mr-1 flex-row items-center">
+                  <Ionicons name="sparkles-outline" size={14} color="#FBBF24" />
+                  <Text className="ml-1 text-[11px] font-semibold text-white/70">
+                    {strings.home.aiTools.title}
+                  </Text>
+                </View>
+                <Pressable
+                  disabled={aiToolsLoading}
+                  onPress={onExplainQuote}
+                  className="rounded-full px-3 py-2"
+                  style={({ pressed }) => ({
+                    ...getAiChipStyle(
+                      isExplainActive,
+                      pendingAiTool === "explain",
+                    ),
+                    opacity:
+                      pressed || aiToolsLoading || pendingAiTool === "explain"
+                        ? 0.75
+                        : 1,
+                  })}>
+                  <Text
+                    className="text-xs font-semibold"
+                    style={{ color: getAiChipTextColor(isExplainActive) }}>
+                    {strings.home.aiTools.explain}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  disabled={aiToolsLoading}
+                  onPress={onFutureQuote}
+                  className="rounded-full px-3 py-2"
+                  style={({ pressed }) => ({
+                    ...getAiChipStyle(
+                      isFutureActive,
+                      pendingAiTool === "future",
+                    ),
+                    opacity:
+                      pressed || aiToolsLoading || pendingAiTool === "future"
+                        ? 0.75
+                        : 1,
+                  })}>
+                  <Text
+                    className="text-xs font-semibold"
+                    style={{ color: getAiChipTextColor(isFutureActive) }}>
+                    {strings.home.aiTools.future}
+                  </Text>
+                </Pressable>
+                {(["calm", "funny", "savage"] as RewriteTone[]).map((tone) => {
+                  const isToneActive = selectedAiTool === tone;
+                  const isTonePending = pendingAiTool === tone;
+
+                  return (
+                  <Pressable
+                    key={tone}
+                    disabled={aiToolsLoading}
+                    onPress={() => onRewriteQuote(tone)}
+                    className="rounded-full px-3 py-2"
+                    style={({ pressed }) => ({
+                      ...getAiChipStyle(isToneActive, isTonePending),
+                      opacity:
+                        pressed || aiToolsLoading || isTonePending ? 0.75 : 1,
+                    })}>
+                    <Text
+                      className="text-xs font-semibold"
+                      style={{ color: getAiChipTextColor(isToneActive) }}>
+                      {tone === "calm"
+                        ? strings.home.aiTools.calm
+                        : tone === "funny"
+                          ? strings.home.aiTools.funny
+                          : strings.home.aiTools.savage}
+                    </Text>
+                  </Pressable>
+                  );
+                })}
+                {aiToolsLoading ? (
+                  <View className="rounded-full bg-white/8 px-3 py-2">
+                    <Text className="text-[11px] text-white/70" numberOfLines={1}>
+                      {aiToolsLoadingLabel ?? strings.home.aiTools.loadingExplain}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              {aiResultTitle && aiResultBody ? (
+                <View className="mt-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
+                  <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                    {aiResultTitle}
+                  </Text>
+                  <Text className="mt-2 text-sm leading-5 text-white/90">
+                    {aiResultBody}
+                  </Text>
+                </View>
+              ) : null}
             </View>
           </View>
         ) : null}

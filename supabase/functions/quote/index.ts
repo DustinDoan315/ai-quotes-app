@@ -1,4 +1,15 @@
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
+import {
+  MAX_BASE64_LENGTH,
+  OPENAI_API_KEY,
+  callOpenAI,
+  cleanBase64Image,
+  cleanQuote,
+  extractOutputText,
+  jsonResponse,
+  normalizeLanguage,
+  normalizeTraits,
+  safeParseJson,
+} from "../_shared/ai.ts";
 
 if (!OPENAI_API_KEY) {
   console.error("Missing OPENAI_API_KEY in Supabase environment");
@@ -25,74 +36,6 @@ type ImageDetectionResult = {
   colors: string[];
   mood: string[];
   confidence_note: string;
-};
-
-const MAX_TRAITS = 8;
-const MAX_TRAIT_LENGTH = 40;
-const MAX_BASE64_LENGTH = 2_000_000;
-const MAX_QUOTE_LENGTH = 180;
-
-const JSON_HEADERS = {
-  "Content-Type": "application/json; charset=utf-8",
-};
-
-const normalizeTraits = (traits: string[]): string[] =>
-  traits
-    .filter((t) => typeof t === "string" && t.trim().length > 0)
-    .map((t) => t.trim().slice(0, MAX_TRAIT_LENGTH))
-    .slice(0, MAX_TRAITS);
-
-const normalizeLanguage = (lang?: string): SupportedLanguage => {
-  if (!lang) return "vi";
-
-  const value = lang.trim().toLowerCase();
-
-  if (value === "en" || value === "english") return "en";
-  return "vi";
-};
-
-const cleanBase64Image = (value?: string): string => {
-  if (typeof value !== "string" || !value.trim()) return "";
-
-  return value.trim().replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
-};
-
-const safeParseJson = <T>(value: string): T | null => {
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-};
-
-const extractOutputText = (data: unknown): string => {
-  const d = data as { output?: Array<{ content?: Array<{ text?: string }> }> };
-  if (!Array.isArray(d?.output)) return "";
-
-  for (const item of d.output) {
-    if (!Array.isArray(item?.content)) continue;
-
-    for (const part of item.content) {
-      if (typeof part?.text === "string" && part.text.trim()) {
-        return part.text.trim();
-      }
-    }
-  }
-
-  return "";
-};
-
-const cleanQuote = (value: string): string => {
-  let quote = value
-    .replace(/^[\"'""'']+|[\"'""'']+$/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (quote.length > MAX_QUOTE_LENGTH) {
-    quote = quote.slice(0, MAX_QUOTE_LENGTH - 3).trimEnd() + "...";
-  }
-
-  return quote;
 };
 
 const buildQuoteSystemPrompt = (language: SupportedLanguage): string => {
@@ -155,19 +98,6 @@ const buildVisionPrompt = (language: SupportedLanguage): string => {
   - mood: cảm xúc hoặc không khí mà ảnh gợi ra
   - confidence_note: ghi chú ngắn về mức độ chắc chắn
   `.trim();
-};
-
-const callOpenAI = async (body: unknown) => {
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json; charset=utf-8",
-    },
-    body: JSON.stringify(body),
-  });
-
-  return response;
 };
 
 const detectImage = async (
@@ -392,10 +322,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     if (!OPENAI_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "Missing OPENAI_API_KEY in environment" }),
-        { status: 500, headers: JSON_HEADERS },
-      );
+      return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
 
     const body = (await req.json()) as QuoteRequestBody;
@@ -408,19 +335,13 @@ Deno.serve(async (req: Request) => {
     } = body;
 
     if (!Array.isArray(personaTraits) || personaTraits.length === 0) {
-      return new Response(JSON.stringify({ error: "Missing persona traits" }), {
-        status: 400,
-        headers: JSON_HEADERS,
-      });
+      return jsonResponse({ error: "Missing persona traits" }, 400);
     }
 
     const normalizedTraits = normalizeTraits(personaTraits);
 
     if (normalizedTraits.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Missing valid persona traits" }),
-        { status: 400, headers: JSON_HEADERS },
-      );
+      return jsonResponse({ error: "Missing valid persona traits" }, 400);
     }
 
     const normalizedLanguage = normalizeLanguage(language);
@@ -429,10 +350,7 @@ Deno.serve(async (req: Request) => {
     const cleanedBase64 = cleanBase64Image(base64Image);
 
     if (cleanedBase64 && cleanedBase64.length > MAX_BASE64_LENGTH) {
-      return new Response(JSON.stringify({ error: "Image too large" }), {
-        status: 400,
-        headers: JSON_HEADERS,
-      });
+      return jsonResponse({ error: "Image too large" }, 400);
     }
 
     let visionDebug: ImageDetectionResult | null = null;
@@ -463,18 +381,15 @@ Deno.serve(async (req: Request) => {
           language: normalizedLanguage,
         };
 
-    return new Response(JSON.stringify(payload), {
-      status: 200,
-      headers: JSON_HEADERS,
-    });
+    return jsonResponse(payload);
   } catch (err) {
     console.error("Unhandled error in quote function:", err);
 
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         error: err instanceof Error ? err.message : "Internal server error",
-      }),
-      { status: 500, headers: JSON_HEADERS },
+      },
+      500,
     );
   }
 });

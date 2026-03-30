@@ -6,7 +6,6 @@ import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
 import { ProfilePhoneCard } from "@/features/profile/ProfilePhoneCard";
 import { ProfileAuthedSettingsSections } from "@/features/profile/ProfileAuthedSettingsSections";
-import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
 import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";

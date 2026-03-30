@@ -5,6 +5,11 @@ import { CameraActionsBar } from "@/components/CameraActionsBar";
 import { HomeHeader } from "@/components/HomeHeader";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { HomeCameraSection } from "@/features/home/HomeCameraSection";
+import {
+  useExplainQuote,
+  useFutureQuote,
+  useRewriteQuote,
+} from "@/features/ai/useQuoteAIExtras";
 import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
@@ -31,6 +36,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
+import type { RewriteTone } from "@/services/ai/types";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -41,6 +47,8 @@ type EmojiBurst = {
   delay: number;
   scale: number;
 };
+
+type ActiveAiTool = "explain" | "future" | RewriteTone;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -166,6 +174,14 @@ export default function HomeScreen() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
   const [justSavedMemory, setJustSavedMemory] = useState(false);
+  const [aiResult, setAiResult] = useState<{
+    title: string;
+    body: string;
+  } | null>(null);
+  const [selectedAiTool, setSelectedAiTool] = useState<ActiveAiTool | null>(
+    null,
+  );
+  const [pendingAiTool, setPendingAiTool] = useState<ActiveAiTool | null>(null);
   const shouldShowMessageBar = Boolean(isOnFeed && currentPhotoId);
   const actionBarBottomPadding = insets.bottom;
   const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
@@ -190,9 +206,77 @@ export default function HomeScreen() {
     isSavingPhoto ||
     isGenerating ||
     (!!selectedImageUri && !hasSavedCurrentPhoto);
+  const { loading: isExplainingQuote, explain } = useExplainQuote(dailyQuoteText);
+  const { loading: isRewritingQuote, rewrite } = useRewriteQuote();
+  const { loading: isGeneratingFutureQuote, generate: generateFutureQuote } =
+    useFutureQuote();
+  const isAiToolLoading =
+    isExplainingQuote || isRewritingQuote || isGeneratingFutureQuote;
+
+  useEffect(() => {
+    if (!dailyQuoteText) {
+      setAiResult(null);
+      setSelectedAiTool(null);
+      setPendingAiTool(null);
+    }
+  }, [dailyQuoteText]);
+
+  function clearAiToolState() {
+    setAiResult(null);
+    setSelectedAiTool(null);
+    setPendingAiTool(null);
+  }
 
   function handleOpenMemories() {
     router.push("/memories" as never);
+  }
+
+  async function handleExplainQuote() {
+    setPendingAiTool("explain");
+    const result = await explain();
+    if (!result) {
+      setPendingAiTool(null);
+      return;
+    }
+    setAiResult({
+      title: strings.home.aiTools.explanationResult,
+      body: result,
+    });
+    setSelectedAiTool("explain");
+    setPendingAiTool(null);
+  }
+
+  async function handleFutureQuotePress() {
+    if (!dailyQuoteText) {
+      return;
+    }
+    setPendingAiTool("future");
+    const result = await generateFutureQuote(dailyQuoteText);
+    if (!result) {
+      setPendingAiTool(null);
+      return;
+    }
+    setAiResult({
+      title: strings.home.aiTools.futureResult,
+      body: result,
+    });
+    setSelectedAiTool("future");
+    setPendingAiTool(null);
+  }
+
+  async function handleRewriteQuote(tone: RewriteTone) {
+    setPendingAiTool(tone);
+    const updatedQuote = await rewrite(tone);
+    if (!updatedQuote) {
+      setPendingAiTool(null);
+      return;
+    }
+    setAiResult({
+      title: strings.home.aiTools.rewriteResult,
+      body: updatedQuote.text,
+    });
+    setSelectedAiTool(tone);
+    setPendingAiTool(null);
   }
 
   function handleCameraButtonPress() {
@@ -201,6 +285,21 @@ export default function HomeScreen() {
     } else {
       handleCapture();
     }
+  }
+
+  async function handleRegenerateQuote() {
+    clearAiToolState();
+    await handleGenerateAI();
+  }
+
+  function handleClearCurrentQuote() {
+    clearAiToolState();
+    handleClearQuote();
+  }
+
+  function handleClearCurrentImage() {
+    clearAiToolState();
+    clearSelectedImage();
   }
 
   async function handleReact(type: "love" | "clap" | "fire") {
@@ -425,9 +524,26 @@ export default function HomeScreen() {
                 onCameraReady={handleCameraReady}
                 onZoomPresetPress={handleZoomPreset}
                 onToggleFacing={handleToggleFacing}
-                onClearImage={clearSelectedImage}
-                onClearQuote={handleClearQuote}
-                onRegenerateQuote={handleGenerateAI}
+                onClearImage={handleClearCurrentImage}
+                onClearQuote={handleClearCurrentQuote}
+                onRegenerateQuote={handleRegenerateQuote}
+                onExplainQuote={handleExplainQuote}
+                onFutureQuote={handleFutureQuotePress}
+                onRewriteQuote={handleRewriteQuote}
+                selectedAiTool={selectedAiTool}
+                pendingAiTool={pendingAiTool}
+                aiResultTitle={aiResult?.title ?? null}
+                aiResultBody={aiResult?.body ?? null}
+                aiToolsLoading={isAiToolLoading}
+                aiToolsLoadingLabel={
+                  isExplainingQuote
+                    ? strings.home.aiTools.loadingExplain
+                    : isGeneratingFutureQuote
+                      ? strings.home.aiTools.loadingFuture
+                      : isRewritingQuote
+                        ? strings.home.aiTools.loadingRewrite
+                        : null
+                }
                 vibeHint={vibeHint}
                 cardPalette={palette}
               />

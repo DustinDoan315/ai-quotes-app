@@ -84,10 +84,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const { showToast } = useUIStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
-  const addMemory = useMemoryStore(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.addMemory,
-  );
+  const addMemory = useMemoryStore((state) => state.addMemory);
 
   zoomRef.current = zoom;
 
