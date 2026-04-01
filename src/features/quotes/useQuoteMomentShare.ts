@@ -1,9 +1,9 @@
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { getCapabilitiesForPlan } from "@/domain/subscription/subscriptionCapabilities";
+import { openPaywall } from "@/features/paywall/openPaywall";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUsageStore } from "@/appState/usageStore";
 import { waitTwoFrames } from "@/utils/waitTwoFrames";
-import { router } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Platform, Share, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
@@ -36,7 +36,10 @@ export function useQuoteMomentShare() {
     const guards = createSubscriptionGuards(snapshot);
     const guardResult = guards.canExportQuote(dailyExportCount);
     if (!guardResult.allowed) {
-      router.push("/modal/paywall?reason=export_limit" as never);
+      openPaywall({
+        reason: "export_limit",
+        source: "quote_share",
+      });
       return;
     }
 

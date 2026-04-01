@@ -7,8 +7,8 @@ import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUsageStore } from "@/appState/usageStore";
 import { ADVANCED_PERSONA_IDS } from "@/domain/subscription/subscriptionConstants";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
+import { openPaywall } from "@/features/paywall/openPaywall";
 import { strings } from "@/theme/strings";
-import { router } from "expo-router";
 
 const MAX_PERSONA_TRAITS = 8;
 const MAX_PERSONA_TRAIT_LENGTH = 40;
@@ -62,7 +62,10 @@ export const useGenerateQuote = () => {
         `${strings.subscription.personaLockedTitle} ${strings.subscription.personaLockedBody}`,
         "info",
       );
-      router.push("/modal/paywall?reason=persona_locked" as never);
+      openPaywall({
+        reason: "persona_locked",
+        source: "persona_gate",
+      });
       return null;
     }
 
@@ -73,7 +76,10 @@ export const useGenerateQuote = () => {
         `${strings.subscription.aiLimitReachedTitle} ${strings.subscription.aiLimitReachedBody}`,
         "info",
       );
-      router.push("/modal/paywall?reason=ai_limit" as never);
+      openPaywall({
+        reason: "ai_limit",
+        source: "ai_generate",
+      });
       return null;
     }
 

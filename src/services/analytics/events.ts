@@ -1,5 +1,5 @@
 import { trackEvent } from './posthog';
-import type { PaywallReason } from "@/features/paywall/types";
+import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
 
 export const analyticsEvents = {
   quizCompleted: (personaId: string) => {
@@ -18,19 +18,31 @@ export const analyticsEvents = {
     trackEvent("streak_incremented", { streak });
   },
 
-  paywallViewed: (reason: PaywallReason) => {
-    trackEvent("paywall_viewed", { reason });
+  paywallOpenRequested: (reason: PaywallReason, source: PaywallSource) => {
+    trackEvent("paywall_open_requested", { reason, source });
   },
 
-  paywallCheckoutStarted: (reason: PaywallReason, packageId: string) => {
-    trackEvent("paywall_checkout_started", { reason, packageId });
+  paywallViewed: (reason: PaywallReason, source: PaywallSource) => {
+    trackEvent("paywall_viewed", { reason, source });
   },
 
-  paywallPurchaseSucceeded: (reason: PaywallReason, packageId: string) => {
-    trackEvent("paywall_purchase_succeeded", { reason, packageId });
+  paywallCheckoutStarted: (
+    reason: PaywallReason,
+    source: PaywallSource,
+    packageId: string,
+  ) => {
+    trackEvent("paywall_checkout_started", { reason, source, packageId });
   },
 
-  paywallRestoreSucceeded: (reason: PaywallReason) => {
-    trackEvent("paywall_restore_succeeded", { reason });
+  paywallPurchaseSucceeded: (
+    reason: PaywallReason,
+    source: PaywallSource,
+    packageId: string,
+  ) => {
+    trackEvent("paywall_purchase_succeeded", { reason, source, packageId });
+  },
+
+  paywallRestoreSucceeded: (reason: PaywallReason, source: PaywallSource) => {
+    trackEvent("paywall_restore_succeeded", { reason, source });
   },
 };

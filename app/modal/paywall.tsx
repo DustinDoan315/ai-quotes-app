@@ -1,9 +1,10 @@
 import { PaywallScreen } from "@/features/paywall/PaywallScreen";
-import type { PaywallReason } from "@/features/paywall/types";
+import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 type PaywallParams = {
   reason?: Exclude<PaywallReason, "generic">;
+  source?: PaywallSource;
 };
 
 export default function PaywallModal() {
@@ -17,6 +18,7 @@ export default function PaywallModal() {
   return (
     <PaywallScreen
       reason={params.reason ?? "generic"}
+      source={params.source ?? "manual"}
       onClose={handleClose}
     />
   );

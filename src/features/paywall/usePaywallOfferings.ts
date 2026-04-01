@@ -1,9 +1,12 @@
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { analyticsEvents } from "@/services/analytics/events";
 import { useEffect } from "react";
-import type { PaywallReason } from "@/features/paywall/types";
+import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
 
-export function usePaywallOfferings(reason: PaywallReason) {
+export function usePaywallOfferings(
+  reason: PaywallReason,
+  source: PaywallSource,
+) {
   const offeringsFetchStatus = useSubscriptionStore(
     (s) => s.offeringsFetchStatus,
   );
@@ -12,9 +15,9 @@ export function usePaywallOfferings(reason: PaywallReason) {
   const refreshCustomerInfo = useSubscriptionStore((s) => s.refreshCustomerInfo);
 
   useEffect(() => {
-    analyticsEvents.paywallViewed(reason);
+    analyticsEvents.paywallViewed(reason, source);
     refreshCustomerInfo().catch(() => undefined);
-  }, [reason, refreshCustomerInfo]);
+  }, [reason, source, refreshCustomerInfo]);
 
   useEffect(() => {
     if (

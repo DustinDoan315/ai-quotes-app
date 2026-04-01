@@ -10,7 +10,7 @@ import { PaywallAmbientBackground } from "@/features/paywall/PaywallAmbientBackg
 import { PaywallInfoStrip } from "@/features/paywall/PaywallInfoStrip";
 import { PaywallScrollContent } from "@/features/paywall/PaywallScrollContent";
 import { PaywallStickyFooter } from "@/features/paywall/PaywallStickyFooter";
-import type { PaywallReason } from "@/features/paywall/types";
+import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
 import { usePaywallOfferings } from "@/features/paywall/usePaywallOfferings";
 import { analyticsEvents } from "@/services/analytics/events";
 import { strings } from "@/theme/strings";
@@ -18,10 +18,15 @@ import { pickBestValuePackageId } from "@/utils/paywallPackage";
 
 type Props = {
   reason?: PaywallReason;
+  source?: PaywallSource;
   onClose: () => void;
 };
 
-export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
+export const PaywallScreen = ({
+  reason = "generic",
+  source = "manual",
+  onClose,
+}: Props) => {
   const plan = useSubscriptionStore((s) => s.plan);
   const offerings = useSubscriptionStore((s) => s.offerings);
   const selectedPackageId = useSubscriptionStore((s) => s.selectedPackageId);
@@ -39,7 +44,10 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
 
   const showToast = useUIStore((s) => s.showToast);
 
-  const { offeringsFetchStatus, loadOfferings } = usePaywallOfferings(reason);
+  const { offeringsFetchStatus, loadOfferings } = usePaywallOfferings(
+    reason,
+    source,
+  );
 
   useEffect(() => {
     if (plan !== "pro" || isPurchasing || isRestoring) {
@@ -147,7 +155,7 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
       setSelectedPackageId(fallbackPackageId);
     }
 
-    analyticsEvents.paywallCheckoutStarted(reason, fallbackPackageId);
+    analyticsEvents.paywallCheckoutStarted(reason, source, fallbackPackageId);
     const result = await purchaseSelectedPackage();
     if (!result.ok) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -159,7 +167,11 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
       return;
     }
     if (result.becamePro) {
-      analyticsEvents.paywallPurchaseSucceeded(reason, fallbackPackageId);
+      analyticsEvents.paywallPurchaseSucceeded(
+        reason,
+        source,
+        fallbackPackageId,
+      );
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast(strings.subscription.purchaseSuccessToast, "success", 5200);
       setTimeout(() => {
@@ -182,7 +194,7 @@ export const PaywallScreen = ({ reason = "generic", onClose }: Props) => {
       return;
     }
     if (result.becamePro) {
-      analyticsEvents.paywallRestoreSucceeded(reason);
+      analyticsEvents.paywallRestoreSucceeded(reason, source);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast(strings.subscription.restoreSuccessToast, "success", 5200);
       setTimeout(() => {
