@@ -25,7 +25,7 @@ type QuoteFontSize = "small" | "medium" | "large";
 type QuoteColor = "light" | "amber" | "pink";
 type ActiveAiTool = "explain" | "future" | RewriteTone;
 
-type Props = {
+export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
   pinchGesture: PinchGesture;
   selectedImageUri: string | null;
@@ -99,7 +99,7 @@ export const HomeCameraSection = ({
   aiToolsLoadingLabel,
   vibeHint,
   cardPalette,
-}: Props) => {
+}: HomeCameraSectionProps) => {
   const [shellSize, setShellSize] = useState<{
     width: number;
     height: number;

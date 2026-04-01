@@ -9,7 +9,7 @@ import {
   getOfferings as fetchNativeOfferings,
   purchasePackage as purchaseNativePackage,
   restorePurchases as restoreNativePurchases,
-} from "../../../services/revenuecat";
+} from "@/services/paywall/nativeRevenueCat";
 import { PaywallError } from "./errors";
 import {
   type RevenueCatCustomerInfo,

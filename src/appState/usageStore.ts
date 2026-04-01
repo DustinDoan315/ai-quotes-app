@@ -1,4 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+
+import {
+  incrementUsageCounter,
+  resetUsageForDate,
+} from "@/domain/usage/usageState";
 
 type UsageState = {
   dailyAiCount: number;
@@ -14,52 +21,30 @@ const getTodayKey = (): string => {
   return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
 };
 
-export const useUsageStore = create<UsageState>((set, get) => ({
-  dailyAiCount: 0,
-  dailyExportCount: 0,
-  lastResetDate: null,
-  resetIfNewDay: () => {
-    const today = getTodayKey();
-    const lastResetDate = get().lastResetDate;
-    if (lastResetDate !== today) {
-      set({
-        dailyAiCount: 0,
-        dailyExportCount: 0,
-        lastResetDate: today,
-      });
-    }
-  },
-  incrementAiUsage: () => {
-    const today = getTodayKey();
-    const lastResetDate = get().lastResetDate;
-    if (lastResetDate !== today) {
-      set({
-        dailyAiCount: 1,
-        dailyExportCount: 0,
-        lastResetDate: today,
-      });
-      return;
-    }
-    set((state) => ({
-      dailyAiCount: state.dailyAiCount + 1,
-      lastResetDate: today,
-    }));
-  },
-  incrementExportUsage: () => {
-    const today = getTodayKey();
-    const lastResetDate = get().lastResetDate;
-    if (lastResetDate !== today) {
-      set({
-        dailyAiCount: 0,
-        dailyExportCount: 1,
-        lastResetDate: today,
-      });
-      return;
-    }
-    set((state) => ({
-      dailyExportCount: state.dailyExportCount + 1,
-      lastResetDate: today,
-    }));
-  },
-}));
-
+export const useUsageStore = create<UsageState>()(
+  persist(
+    (set, get) => ({
+      dailyAiCount: 0,
+      dailyExportCount: 0,
+      lastResetDate: null,
+      resetIfNewDay: () => {
+        set(resetUsageForDate(get(), getTodayKey()));
+      },
+      incrementAiUsage: () => {
+        set(incrementUsageCounter(get(), getTodayKey(), "dailyAiCount"));
+      },
+      incrementExportUsage: () => {
+        set(incrementUsageCounter(get(), getTodayKey(), "dailyExportCount"));
+      },
+    }),
+    {
+      name: "usage-storage",
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        dailyAiCount: state.dailyAiCount,
+        dailyExportCount: state.dailyExportCount,
+        lastResetDate: state.lastResetDate,
+      }),
+    },
+  ),
+);

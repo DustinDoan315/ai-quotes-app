@@ -1,10 +1,10 @@
-import { RevenueCatConfig } from '@/config/revenuecat';
+import { RevenueCatConfig } from "@/config/revenuecat";
 import Purchases, {
   CustomerInfo,
   LOG_LEVEL,
   PurchasesOffering,
   PurchasesPackage,
-} from 'react-native-purchases';
+} from "react-native-purchases";
 
 let isInitialized = false;
 let initPromise: Promise<void> | null = null;
@@ -12,10 +12,11 @@ let initPromise: Promise<void> | null = null;
 function installRevenueCatLogHandler(): void {
   Purchases.setLogHandler((logLevel, message) => {
     const line = `[RevenueCat] ${message}`;
-    if (logLevel === LOG_LEVEL.ERROR && message.includes('simulated successfully')) {
+    if (logLevel === LOG_LEVEL.ERROR && message.includes("simulated successfully")) {
       console.info(line);
       return;
     }
+
     switch (logLevel) {
       case LOG_LEVEL.DEBUG:
         console.debug(line);
@@ -40,10 +41,14 @@ export function isRevenueCatInitialized(): boolean {
 }
 
 export async function initializeRevenueCat(): Promise<void> {
-  if (isInitialized) return;
-  if (initPromise) return initPromise;
+  if (isInitialized) {
+    return;
+  }
+  if (initPromise) {
+    return initPromise;
+  }
 
-  const apiKey = RevenueCatConfig.apiKey?.trim() || '';
+  const apiKey = RevenueCatConfig.apiKey?.trim() || "";
   if (!apiKey) {
     return;
   }
@@ -55,7 +60,7 @@ export async function initializeRevenueCat(): Promise<void> {
       isInitialized = true;
     } catch (error) {
       initPromise = null;
-      console.error('RevenueCat init failed:', error);
+      console.error("RevenueCat init failed:", error);
     }
   })();
 
@@ -63,9 +68,15 @@ export async function initializeRevenueCat(): Promise<void> {
 }
 
 async function ensureInit(): Promise<void> {
-  if (isInitialized) return;
-  if (initPromise) await initPromise;
-  if (!isInitialized) throw new Error('RevenueCat not initialized');
+  if (isInitialized) {
+    return;
+  }
+  if (initPromise) {
+    await initPromise;
+  }
+  if (!isInitialized) {
+    throw new Error("RevenueCat not initialized");
+  }
 }
 
 export async function getCustomerInfo(): Promise<CustomerInfo> {
