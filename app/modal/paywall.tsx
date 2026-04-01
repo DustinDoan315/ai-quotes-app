@@ -1,8 +1,9 @@
 import { PaywallScreen } from "@/features/paywall/PaywallScreen";
+import type { PaywallReason } from "@/features/paywall/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 type PaywallParams = {
-  reason?: "ai_limit" | "export_limit" | "premium_theme" | "persona_locked";
+  reason?: Exclude<PaywallReason, "generic">;
 };
 
 export default function PaywallModal() {
@@ -20,4 +21,3 @@ export default function PaywallModal() {
     />
   );
 }
-

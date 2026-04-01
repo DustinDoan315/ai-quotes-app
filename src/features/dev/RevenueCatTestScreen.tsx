@@ -42,22 +42,21 @@ export function RevenueCatTestScreen() {
   }
 
   const onPurchase = async () => {
-    try {
-      await purchaseSelectedPackage();
-      Alert.alert("Success", "Purchase completed.");
-    } catch (err: unknown) {
-      const e = err as { userCancelled?: boolean; message?: string };
-      if (!e?.userCancelled) Alert.alert("Error", e?.message ?? "Purchase failed");
+    const result = await purchaseSelectedPackage();
+    if (!result.ok) {
+      Alert.alert("Error", result.errorMessage ?? "Purchase failed");
+      return;
     }
+    Alert.alert("Success", result.becamePro ? "Purchase completed." : "Purchase did not unlock Pro.");
   };
 
   const onRestore = async () => {
-    try {
-      await restorePurchases();
-      Alert.alert("Success", "Purchases restored.");
-    } catch (err: unknown) {
-      Alert.alert("Error", (err as Error)?.message ?? "Restore failed");
+    const result = await restorePurchases();
+    if (!result.ok) {
+      Alert.alert("Error", result.errorMessage ?? "Restore failed");
+      return;
     }
+    Alert.alert("Success", result.becamePro ? "Purchases restored." : "No active subscription found.");
   };
 
   const onRefresh = async () => {

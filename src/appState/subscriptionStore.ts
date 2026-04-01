@@ -15,6 +15,12 @@ import {
 } from "@/domain/subscription/subscriptionResolver";
 import { pickBestValuePackageId } from "@/utils/paywallPackage";
 
+type SubscriptionActionResult = {
+  ok: boolean;
+  becamePro?: boolean;
+  errorMessage?: string;
+};
+
 type SubscriptionState = {
   customerInfo: RevenueCatCustomerInfo | null;
   isPro: boolean;
@@ -29,11 +35,11 @@ type SubscriptionState = {
   errorMessage: string | null;
   plan: SubscriptionPlanId;
   setSelectedPackageId: (id: RevenueCatPackageId) => void;
-  initSubscription: () => Promise<void>;
-  loadOfferings: () => Promise<void>;
-  purchaseSelectedPackage: () => Promise<void>;
-  restorePurchases: () => Promise<void>;
-  refreshCustomerInfo: () => Promise<void>;
+  initSubscription: () => Promise<SubscriptionActionResult>;
+  loadOfferings: () => Promise<SubscriptionActionResult>;
+  purchaseSelectedPackage: () => Promise<SubscriptionActionResult>;
+  restorePurchases: () => Promise<SubscriptionActionResult>;
+  refreshCustomerInfo: () => Promise<SubscriptionActionResult>;
 };
 
 const createSnapshotFromCustomerInfo = (
@@ -66,7 +72,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       initSubscription: async () => {
         const current = get();
         if (current.isLoading) {
-          return;
+          return { ok: true, becamePro: current.plan === "pro" };
         }
         set({ isLoading: true, errorMessage: null });
         try {
@@ -80,18 +86,21 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
+          return { ok: true, becamePro: plan === "pro" };
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Failed to sync subscription";
           set({
-            errorMessage:
-              error instanceof Error ? error.message : "Failed to sync subscription",
+            errorMessage,
           });
+          return { ok: false, errorMessage };
         } finally {
           set({ isLoading: false });
         }
       },
       loadOfferings: async () => {
         if (get().offeringsFetchStatus === "loading") {
-          return;
+          return { ok: true };
         }
         set({
           isLoading: true,
@@ -100,23 +109,38 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         });
         try {
           const { currentOffering } = await revenuecatClient.getOfferings();
+          if (!currentOffering?.availablePackages?.length) {
+            const errorMessage = "No subscription plans are available right now.";
+            set({
+              offerings: null,
+              selectedPackageId: null,
+              errorMessage,
+              offeringsFetchStatus: "error",
+            });
+            return { ok: false, errorMessage };
+          }
           const packageIds =
-            currentOffering?.availablePackages.map((p) => p.identifier) ?? [];
+            currentOffering.availablePackages.map((p) => p.identifier);
           const preferredId =
             pickBestValuePackageId(packageIds) ??
-            currentOffering?.availablePackages[0]?.identifier ??
+            currentOffering.availablePackages[0]?.identifier ??
             null;
           set({
             offerings: currentOffering,
             selectedPackageId: preferredId,
             offeringsFetchStatus: "success",
           });
+          return { ok: true };
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Failed to load offerings";
           set({
-            errorMessage:
-              error instanceof Error ? error.message : "Failed to load offerings",
+            offerings: null,
+            selectedPackageId: null,
+            errorMessage,
             offeringsFetchStatus: "error",
           });
+          return { ok: false, errorMessage };
         } finally {
           set({ isLoading: false });
         }
@@ -126,7 +150,9 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         try {
           const { selectedPackageId } = get();
           if (!selectedPackageId) {
-            return;
+            const errorMessage = "Select a plan before continuing.";
+            set({ errorMessage });
+            return { ok: false, errorMessage };
           }
           const { customerInfo } = await revenuecatClient.purchasePackage(
             selectedPackageId,
@@ -140,11 +166,14 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
+          return { ok: true, becamePro: plan === "pro" };
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Failed to complete purchase";
           set({
-            errorMessage:
-              error instanceof Error ? error.message : "Failed to complete purchase",
+            errorMessage,
           });
+          return { ok: false, errorMessage };
         } finally {
           set({ isPurchasing: false });
         }
@@ -162,11 +191,14 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
+          return { ok: true, becamePro: plan === "pro" };
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Failed to restore purchases";
           set({
-            errorMessage:
-              error instanceof Error ? error.message : "Failed to restore purchases",
+            errorMessage,
           });
+          return { ok: false, errorMessage };
         } finally {
           set({ isRestoring: false });
         }
@@ -184,11 +216,14 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
+          return { ok: true, becamePro: plan === "pro" };
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Failed to refresh subscription";
           set({
-            errorMessage:
-              error instanceof Error ? error.message : "Failed to refresh subscription",
+            errorMessage,
           });
+          return { ok: false, errorMessage };
         } finally {
           set({ isLoading: false });
         }
@@ -207,4 +242,3 @@ export const useSubscriptionStore = create<SubscriptionState>()(
     },
   ),
 );
-
