@@ -79,6 +79,17 @@ async function ensureInit(): Promise<void> {
   }
 }
 
+export async function logInRevenueCat(appUserId: string): Promise<CustomerInfo> {
+  await ensureInit();
+  const { customerInfo } = await Purchases.logIn(appUserId);
+  return customerInfo;
+}
+
+export async function logOutRevenueCat(): Promise<CustomerInfo> {
+  await ensureInit();
+  return Purchases.logOut();
+}
+
 export async function getCustomerInfo(): Promise<CustomerInfo> {
   await ensureInit();
   return Purchases.getCustomerInfo();
@@ -86,12 +97,8 @@ export async function getCustomerInfo(): Promise<CustomerInfo> {
 
 export async function getOfferings(): Promise<PurchasesOffering | null> {
   await ensureInit();
-  try {
-    const offerings = await Purchases.getOfferings();
-    return offerings.current ?? null;
-  } catch {
-    return null;
-  }
+  const offerings = await Purchases.getOfferings();
+  return offerings.current ?? null;
 }
 
 export async function purchasePackage(pkg: PurchasesPackage): Promise<CustomerInfo> {

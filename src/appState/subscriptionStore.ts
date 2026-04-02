@@ -37,7 +37,9 @@ type SubscriptionState = {
   setSelectedPackageId: (id: RevenueCatPackageId) => void;
   initSubscription: () => Promise<SubscriptionActionResult>;
   loadOfferings: () => Promise<SubscriptionActionResult>;
-  purchaseSelectedPackage: () => Promise<SubscriptionActionResult>;
+  purchaseSelectedPackage: (
+    packageId?: RevenueCatPackageId | null,
+  ) => Promise<SubscriptionActionResult>;
   restorePurchases: () => Promise<SubscriptionActionResult>;
   refreshCustomerInfo: () => Promise<SubscriptionActionResult>;
 };
@@ -145,10 +147,10 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ isLoading: false });
         }
       },
-      purchaseSelectedPackage: async () => {
+      purchaseSelectedPackage: async (packageId) => {
         set({ isPurchasing: true, errorMessage: null });
         try {
-          const { selectedPackageId } = get();
+          const selectedPackageId = packageId ?? get().selectedPackageId;
           if (!selectedPackageId) {
             const errorMessage = "Select a plan before continuing.";
             set({ errorMessage });

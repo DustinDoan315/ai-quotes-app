@@ -7,6 +7,8 @@ import type {
 import {
   getCustomerInfo as fetchNativeCustomerInfo,
   getOfferings as fetchNativeOfferings,
+  logInRevenueCat as logInNativeRevenueCat,
+  logOutRevenueCat as logOutNativeRevenueCat,
   purchasePackage as purchaseNativePackage,
   restorePurchases as restoreNativePurchases,
 } from "@/services/paywall/nativeRevenueCat";
@@ -26,6 +28,14 @@ type PurchaseResponse = {
 };
 
 type RestoreResponse = {
+  customerInfo: RevenueCatCustomerInfo;
+};
+
+type LogInResponse = {
+  customerInfo: RevenueCatCustomerInfo;
+};
+
+type LogOutResponse = {
   customerInfo: RevenueCatCustomerInfo;
 };
 
@@ -112,6 +122,28 @@ export const revenuecatClient = {
     } catch (error) {
       throw new PaywallError(
         error instanceof Error ? error.message : "Failed to restore purchases",
+      );
+    }
+  },
+
+  logIn: async (appUserId: string): Promise<LogInResponse> => {
+    try {
+      const info = await logInNativeRevenueCat(appUserId);
+      return { customerInfo: mapCustomerInfo(info) };
+    } catch (error) {
+      throw new PaywallError(
+        error instanceof Error ? error.message : "Failed to link subscription",
+      );
+    }
+  },
+
+  logOut: async (): Promise<LogOutResponse> => {
+    try {
+      const info = await logOutNativeRevenueCat();
+      return { customerInfo: mapCustomerInfo(info) };
+    } catch (error) {
+      throw new PaywallError(
+        error instanceof Error ? error.message : "Failed to reset subscription",
       );
     }
   },

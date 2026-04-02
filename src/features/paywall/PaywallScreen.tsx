@@ -156,7 +156,7 @@ export const PaywallScreen = ({
     }
 
     analyticsEvents.paywallCheckoutStarted(reason, source, fallbackPackageId);
-    const result = await purchaseSelectedPackage();
+    const result = await purchaseSelectedPackage(fallbackPackageId);
     if (!result.ok) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
