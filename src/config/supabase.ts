@@ -48,6 +48,29 @@ export type Database = {
           sort_order?: number;
         };
       };
+      subscription_plan_settings: {
+        Row: {
+          plan_id: "free" | "pro";
+          daily_ai_limit: number | null;
+          daily_export_limit: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          plan_id: "free" | "pro";
+          daily_ai_limit?: number | null;
+          daily_export_limit?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          plan_id?: "free" | "pro";
+          daily_ai_limit?: number | null;
+          daily_export_limit?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       user_profiles: {
         Row: {
           id: string;
@@ -115,4 +138,3 @@ export type Database = {
     };
   };
 };
-

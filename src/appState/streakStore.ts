@@ -1,6 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getTodayLocalDateKey, getYesterdayLocalDateKey } from "@/utils/dateKey";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 
 type StreakState = {
@@ -12,12 +13,10 @@ type StreakState = {
   updateLastQuoteDate: (date: string) => void;
 };
 
-const getTodayString = () => new Date().toISOString().split("T")[0];
+const getTodayString = () => getTodayLocalDateKey();
 
 function getYesterdayString() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split("T")[0];
+  return getYesterdayLocalDateKey();
 }
 
 export function getDisplayStreak(state: {

@@ -15,6 +15,7 @@ import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { compressImageForUpload } from "@/utils/imageProcessor";
+import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
 import { strings } from "@/theme/strings";
@@ -256,8 +257,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       clearDailyQuote();
-      const today = new Date().toISOString().split("T")[0];
-      const now = new Date().toISOString();
+      const nowDate = new Date();
+      const today = formatLocalDateKey(nowDate);
+      const now = nowDate.toISOString();
       if (quoteText) {
         addMemory({
           id: `${today}-${Date.now().toString(36)}`,

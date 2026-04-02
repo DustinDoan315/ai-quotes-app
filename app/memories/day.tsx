@@ -13,6 +13,7 @@ import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
 import { MemoryCard } from "@/components/MemoryCard";
 import { strings } from "@/theme/strings";
+import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemoriesForDay";
 
 type Layer = "mine" | "friends";
@@ -24,7 +25,7 @@ export default function MemoriesDayScreen() {
   const dateKey =
     typeof dateParam === "string" && dateParam.length > 0
       ? dateParam
-      : new Date().toISOString().split("T")[0];
+      : getTodayLocalDateKey();
   const [layer, setLayer] = useState<Layer>("mine");
   const hasHydrated = useMemoryStore((s: MemoryState) => s._hasHydrated);
   const memories = useMemoryStore((s: MemoryState) => s.memories);
@@ -199,4 +200,3 @@ export default function MemoriesDayScreen() {
     </View>
   );
 }
-

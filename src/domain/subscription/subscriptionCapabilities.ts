@@ -1,8 +1,8 @@
 import {
+  DEFAULT_PLAN_LIMITS,
   FREE_DAILY_AI_LIMIT,
   FREE_DAILY_EXPORT_LIMIT,
-  PRO_DAILY_AI_LIMIT,
-  PRO_DAILY_EXPORT_LIMIT,
+  type PlanLimitConfig,
   SUBSCRIPTION_WATERMARK_ENABLED_FOR_FREE,
   type SubscriptionPlanId,
 } from "./subscriptionConstants";
@@ -17,11 +17,16 @@ export type SubscriptionCapabilities = {
 
 export const getCapabilitiesForPlan = (
   plan: SubscriptionPlanId,
+  planLimits?: Record<SubscriptionPlanId, PlanLimitConfig>,
 ): SubscriptionCapabilities => {
+  const effectivePlanLimits = planLimits ?? DEFAULT_PLAN_LIMITS;
+
   if (plan === "pro") {
     return {
-      maxDailyAiGenerations: PRO_DAILY_AI_LIMIT,
-      maxDailyExports: PRO_DAILY_EXPORT_LIMIT,
+      maxDailyAiGenerations:
+        effectivePlanLimits.pro.dailyAiLimit ?? Number.POSITIVE_INFINITY,
+      maxDailyExports:
+        effectivePlanLimits.pro.dailyExportLimit ?? Number.POSITIVE_INFINITY,
       canUsePremiumThemes: true,
       canUseAdvancedPersona: true,
       hasWatermark: false,
@@ -29,11 +34,12 @@ export const getCapabilitiesForPlan = (
   }
 
   return {
-    maxDailyAiGenerations: FREE_DAILY_AI_LIMIT,
-    maxDailyExports: FREE_DAILY_EXPORT_LIMIT,
+    maxDailyAiGenerations:
+      effectivePlanLimits.free.dailyAiLimit ?? FREE_DAILY_AI_LIMIT,
+    maxDailyExports:
+      effectivePlanLimits.free.dailyExportLimit ?? FREE_DAILY_EXPORT_LIMIT,
     canUsePremiumThemes: false,
     canUseAdvancedPersona: false,
     hasWatermark: SUBSCRIPTION_WATERMARK_ENABLED_FOR_FREE,
   };
 };
-

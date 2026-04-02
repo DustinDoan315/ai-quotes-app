@@ -1,4 +1,8 @@
 import { getCapabilitiesForPlan } from "./subscriptionCapabilities";
+import type {
+  PlanLimitConfig,
+  SubscriptionPlanId,
+} from "./subscriptionConstants";
 import { resolvePlanFromSnapshot, type SubscriptionSnapshot } from "./subscriptionResolver";
 
 type GuardReason =
@@ -12,9 +16,12 @@ export type GuardResult = {
   reason?: GuardReason;
 };
 
-export const createSubscriptionGuards = (snapshot: SubscriptionSnapshot | null) => {
+export const createSubscriptionGuards = (
+  snapshot: SubscriptionSnapshot | null,
+  planLimits?: Record<SubscriptionPlanId, PlanLimitConfig>,
+) => {
   const plan = resolvePlanFromSnapshot(snapshot);
-  const capabilities = getCapabilitiesForPlan(plan);
+  const capabilities = getCapabilitiesForPlan(plan, planLimits);
 
   const canGenerateQuote = (dailyCount: number): GuardResult => {
     if (dailyCount >= capabilities.maxDailyAiGenerations) {
@@ -53,4 +60,3 @@ export const createSubscriptionGuards = (snapshot: SubscriptionSnapshot | null) 
     canUsePersonaLevel,
   };
 };
-

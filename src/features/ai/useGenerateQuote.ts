@@ -3,6 +3,7 @@ import { useAIStore } from "./aiStore";
 import { useQuoteStore } from "@/appState/quoteStore";
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
+import { useSubscriptionConfigStore } from "@/appState/subscriptionConfigStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUsageStore } from "@/appState/usageStore";
 import { ADVANCED_PERSONA_IDS } from "@/domain/subscription/subscriptionConstants";
@@ -37,6 +38,7 @@ export const useGenerateQuote = () => {
   const { persona, quoteLanguage } = useUserStore();
   const { showToast } = useUIStore();
   const { customerInfo } = useSubscriptionStore();
+  const planLimits = useSubscriptionConfigStore((s) => s.planLimits);
   const { dailyAiCount, resetIfNewDay, incrementAiUsage } = useUsageStore();
 
   const generate = async (
@@ -53,7 +55,7 @@ export const useGenerateQuote = () => {
     const snapshot = customerInfo
       ? { activeEntitlementIds: customerInfo.activeEntitlementIds }
       : null;
-    const guards = createSubscriptionGuards(snapshot);
+    const guards = createSubscriptionGuards(snapshot, planLimits);
     const isAdvancedPersona =
       persona != null && ADVANCED_PERSONA_IDS.includes(persona.id);
     const personaGuard = guards.canUsePersonaLevel(isAdvancedPersona);

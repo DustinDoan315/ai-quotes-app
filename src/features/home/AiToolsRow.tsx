@@ -4,15 +4,12 @@ import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, ScrollView, Text, View, Platform } from "react-native";
 
-type ActiveAiTool = "explain" | "future" | RewriteTone;
+type ActiveAiTool = RewriteTone;
 
 type Props = {
   selectedAiTool: ActiveAiTool | null;
   pendingAiTool: ActiveAiTool | null;
   aiToolsLoading: boolean;
-  aiToolsLoadingLabel: string | null;
-  onExplainQuote: () => void;
-  onFutureQuote: () => void;
   onRewriteQuote: (tone: RewriteTone) => void;
 };
 
@@ -150,9 +147,6 @@ export function AiToolsRow({
   selectedAiTool,
   pendingAiTool,
   aiToolsLoading,
-  aiToolsLoadingLabel,
-  onExplainQuote,
-  onFutureQuote,
   onRewriteQuote,
 }: Props) {
   return (
@@ -178,22 +172,6 @@ export function AiToolsRow({
           paddingRight: 20,
         }}
         style={{ width: "100%" }}>
-        <AiToolButton
-          isActive={selectedAiTool === "explain"}
-          isPending={pendingAiTool === "explain"}
-          loading={aiToolsLoading}
-          onPress={onExplainQuote}
-          icon="chatbubble-ellipses-outline"
-          label={strings.home.aiTools.explain}
-        />
-        <AiToolButton
-          isActive={selectedAiTool === "future"}
-          isPending={pendingAiTool === "future"}
-          loading={aiToolsLoading}
-          onPress={onFutureQuote}
-          icon="arrow-redo-outline"
-          label={strings.home.aiTools.future}
-        />
         {tones.map((tone) => {
           const isActive = selectedAiTool === tone;
           const isPending = pendingAiTool === tone;
@@ -215,27 +193,6 @@ export function AiToolsRow({
             />
           );
         })}
-        {aiToolsLoading && aiToolsLoadingLabel ? (
-          <View
-            style={{
-              ...baseButton,
-              ...shadowSoft,
-              borderWidth: 2,
-              borderColor: T.amber700,
-              backgroundColor: "rgba(245,158,11,0.2)",
-              paddingHorizontal: 18,
-            }}>
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: T.slate50,
-              }}
-              numberOfLines={1}>
-              {aiToolsLoadingLabel}
-            </Text>
-          </View>
-        ) : null}
       </ScrollView>
     </View>
   );

@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { formatLocalDateKey } from "@/utils/dateKey";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { QuoteMemory, QuoteVisibility, QuoteImageOrientation } from "../types/memory";
@@ -44,7 +45,7 @@ export const useMemoryStore = create<MemoryState>()(
         styleFontId,
         styleColorSchemeId,
       }) => {
-        const today = new Date(quote.createdAt).toISOString().split("T")[0];
+        const today = formatLocalDateKey(new Date(quote.createdAt));
         const createdAtIso = new Date(quote.createdAt).toISOString();
         return {
           id: `${today}-${quote.id}`,
@@ -130,4 +131,3 @@ export const useMemoryStore = create<MemoryState>()(
     },
   ),
 );
-

@@ -6,6 +6,7 @@ import {
   HOME_BACKGROUNDS,
   getHomeBackgroundPaletteByKey,
 } from "@/theme/homeBackgrounds";
+import { getTodayLocalDateKey } from "@/utils/dateKey";
 import type {
   HomeBackgroundPalette,
   HomeVibeHintParts,
@@ -27,7 +28,7 @@ export function useHomeBackgroundPalette(): {
   const guestId = useUserStore((s) => s.guestId);
   const ensureGuestId = useUserStore((s) => s.ensureGuestId);
   const userStoreHydrated = useUserStoreHydrated();
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayLocalDateKey();
   useEffect(() => {
     if (!userStoreHydrated) {
       return;

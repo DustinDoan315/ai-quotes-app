@@ -15,6 +15,7 @@ import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/gro
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
 import { strings } from "@/theme/strings";
+import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import {
@@ -101,7 +102,7 @@ export default function HomeScreen() {
     homeVibeKey: palette.vibeKey,
   });
   const listRef = useRef<FlatList<QuoteStack>>(null);
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayLocalDateKey();
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const pastMemories = useMemo(() => {
     const target = new Date(today);
@@ -152,7 +153,6 @@ export default function HomeScreen() {
     selectedAiTool,
     pendingAiTool,
     clearAiToolState,
-    handleExplainQuote,
     handleFutureQuotePress,
     handleRewriteQuote,
     handleApproveRewrite,
@@ -326,9 +326,8 @@ export default function HomeScreen() {
               onToggleFacing: handleToggleFacing,
               onClearImage: handleClearCurrentImage,
               onClearQuote: handleClearCurrentQuote,
-              onRegenerateQuote: handleRegenerateQuote,
-              onExplainQuote: handleExplainQuote,
               onFutureQuote: handleFutureQuotePress,
+              onRegenerateQuote: handleRegenerateQuote,
               onRewriteQuote: handleRewriteQuote,
               selectedAiTool,
               pendingAiTool,

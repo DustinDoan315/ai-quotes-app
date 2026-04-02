@@ -7,6 +7,11 @@ import type { MemoryState } from "@/appState/memoryStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import {
+  formatLocalDateKey,
+  formatLocalMonthKey,
+  getTodayLocalDateKey,
+} from "@/utils/dateKey";
 
 type DaySummary = {
   date: string;
@@ -25,11 +30,11 @@ type CalendarDayProps = {
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function getMonthKey(date: Date) {
-  return date.toISOString().slice(0, 7);
+  return formatLocalMonthKey(date);
 }
 
 function formatDateKey(date: Date) {
-  return date.toISOString().split("T")[0];
+  return formatLocalDateKey(date);
 }
 
 type MonthSummaryWithoutStreak = {
@@ -138,6 +143,44 @@ function getThumbnailsForMonth(
   return out;
 }
 
+function getHistoricalStreakDates(
+  memories: { date: string }[],
+  activeStreakDate: string | null,
+  activeStreakLength: number,
+): Set<string> {
+  const uniqueDates = Array.from(new Set(memories.map((memory) => memory.date))).sort();
+  const streakDates = new Set<string>();
+
+  for (let index = 0; index < uniqueDates.length; index += 1) {
+    const current = uniqueDates[index];
+    const previous = uniqueDates[index - 1] ?? null;
+    const next = uniqueDates[index + 1] ?? null;
+
+    const currentDate = new Date(`${current}T12:00:00`);
+    const previousDate = previous ? new Date(`${previous}T12:00:00`) : null;
+    const nextDate = next ? new Date(`${next}T12:00:00`) : null;
+
+    const hasPreviousNeighbor =
+      previousDate != null &&
+      formatDateKey(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1)) ===
+        previous;
+    const hasNextNeighbor =
+      nextDate != null &&
+      formatDateKey(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1)) ===
+        next;
+
+    if (hasPreviousNeighbor || hasNextNeighbor) {
+      streakDates.add(current);
+    }
+  }
+
+  if (activeStreakDate && activeStreakLength > 0) {
+    streakDates.add(activeStreakDate);
+  }
+
+  return streakDates;
+}
+
 export function MemoriesCalendarScreen({ onPressDay }: Props) {
   const router = useRouter();
   const [cursorMonth, setCursorMonth] = useState(() => new Date());
@@ -160,18 +203,8 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   );
 
   const streakDates = useMemo(() => {
-    const dates = new Set<string>();
-    if (!lastQuoteDate || currentStreak === 0) {
-      return dates;
-    }
-    const lastDate = new Date(lastQuoteDate);
-    for (let i = 0; i < currentStreak; i += 1) {
-      const d = new Date(lastDate);
-      d.setDate(lastDate.getDate() - i);
-      dates.add(formatDateKey(d));
-    }
-    return dates;
-  }, [lastQuoteDate, currentStreak]);
+    return getHistoricalStreakDates(memories, lastQuoteDate, currentStreak);
+  }, [currentStreak, lastQuoteDate, memories]);
 
   const year = cursorMonth.getFullYear();
   const monthIndex = cursorMonth.getMonth();
@@ -203,7 +236,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
     thumbnails,
   );
 
-  const todayKey = formatDateKey(new Date());
+  const todayKey = getTodayLocalDateKey();
 
   const firstWeekday = new Date(year, monthIndex, 1).getDay();
   const gridDays: (DaySummary | null)[] = [];

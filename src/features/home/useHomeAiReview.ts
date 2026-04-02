@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 
 import {
-  useExplainQuote,
   useFutureQuote,
   useRewriteQuote,
 } from "@/features/ai/useQuoteAIExtras";
 import type { RewriteTone } from "@/services/ai/types";
 import { strings } from "@/theme/strings";
 
-export type HomeAiTool = "explain" | "future" | RewriteTone;
+export type HomeAiTool = "future" | RewriteTone;
 
 type AiResult = {
   title: string;
@@ -26,7 +25,6 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
   const [selectedAiTool, setSelectedAiTool] = useState<HomeAiTool | null>(null);
   const [pendingAiTool, setPendingAiTool] = useState<HomeAiTool | null>(null);
 
-  const { loading: isExplainingQuote, explain } = useExplainQuote(dailyQuoteText);
   const {
     loading: isRewritingQuote,
     previewRewrite,
@@ -48,21 +46,6 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     setAiResult(null);
     setRewriteDraft(null);
     setSelectedAiTool(null);
-    setPendingAiTool(null);
-  }
-
-  async function handleExplainQuote() {
-    setPendingAiTool("explain");
-    const result = await explain();
-    if (!result) {
-      setPendingAiTool(null);
-      return;
-    }
-    setAiResult({
-      title: strings.home.aiTools.explanationResult,
-      body: result,
-    });
-    setSelectedAiTool("explain");
     setPendingAiTool(null);
   }
 
@@ -119,17 +102,13 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     selectedAiTool,
     pendingAiTool,
     clearAiToolState,
-    handleExplainQuote,
     handleFutureQuotePress,
     handleRewriteQuote,
     handleApproveRewrite,
     handleCancelRewrite,
-    isAiToolLoading:
-      isExplainingQuote || isRewritingQuote || isGeneratingFutureQuote,
-    aiToolsLoadingLabel: isExplainingQuote
-      ? strings.home.aiTools.loadingExplain
-      : isGeneratingFutureQuote
-        ? strings.home.aiTools.loadingFuture
-        : null,
+    isAiToolLoading: isRewritingQuote || isGeneratingFutureQuote,
+    aiToolsLoadingLabel: isGeneratingFutureQuote
+      ? strings.home.aiTools.loadingFuture
+      : null,
   };
 }

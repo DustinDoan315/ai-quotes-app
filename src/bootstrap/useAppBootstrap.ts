@@ -1,3 +1,4 @@
+import { useSubscriptionConfigStore } from "@/appState/subscriptionConfigStore";
 import { useReminderStore } from "@/appState/reminderStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { syncUserProfile } from "@/features/auth/authService";
@@ -74,6 +75,13 @@ export function useAppBootstrap(): void {
   useEffect(() => {
     const unsubscribeReminderHydration = syncReminderOnBoot();
     bootstrapTelemetry();
+
+    void useSubscriptionConfigStore
+      .getState()
+      .loadPlanLimits()
+      .catch((error: unknown) => {
+        console.error("Failed to load subscription plan settings:", error);
+      });
 
     void bootstrapRevenueCat().catch((error: unknown) => {
       console.error("Failed to initialize RevenueCat:", error);

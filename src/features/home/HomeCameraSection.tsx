@@ -2,6 +2,7 @@ import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
+import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import type {
   HomeBackgroundPalette,
@@ -23,7 +24,7 @@ import Animated, {
 
 type QuoteFontSize = "small" | "medium" | "large";
 type QuoteColor = "light" | "amber" | "pink";
-type ActiveAiTool = "explain" | "future" | RewriteTone;
+type ActiveAiTool = "future" | RewriteTone;
 
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
@@ -49,9 +50,8 @@ export type HomeCameraSectionProps = {
   onToggleFacing: () => void;
   onClearImage: () => void;
   onClearQuote: () => void;
-  onRegenerateQuote: () => void;
-  onExplainQuote: () => void;
   onFutureQuote: () => void;
+  onRegenerateQuote: () => void;
   onRewriteQuote: (tone: RewriteTone) => void;
   selectedAiTool: ActiveAiTool | null;
   pendingAiTool: ActiveAiTool | null;
@@ -87,9 +87,8 @@ export const HomeCameraSection = ({
   onToggleFacing,
   onClearImage,
   onClearQuote,
-  onRegenerateQuote,
-  onExplainQuote,
   onFutureQuote,
+  onRegenerateQuote,
   onRewriteQuote,
   selectedAiTool,
   pendingAiTool,
@@ -112,7 +111,7 @@ export const HomeCameraSection = ({
   const flipIconStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${flipIconRotation.value}deg` }],
   }));
-  const cardAspect = 3 / 3.75;
+  const cardAspect = getQuoteAspectRatio("portrait");
   const fontSizeValue = useMemo(() => {
     if (quoteFontSize === "small") {
       return 16;
@@ -131,6 +130,7 @@ export const HomeCameraSection = ({
     }
     return "#FFFFFF";
   }, [quoteColorScheme]);
+  const isFutureLoading = aiToolsLoading && pendingAiTool === "future";
 
   const createdTimeLabel = useMemo(
     () =>
@@ -142,7 +142,10 @@ export const HomeCameraSection = ({
   );
 
   const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating);
-  const cameraPreviewScale = 1.35;
+  const selectedRewriteTool =
+    selectedAiTool === "future" ? null : selectedAiTool;
+  const pendingRewriteTool =
+    pendingAiTool === "future" ? null : pendingAiTool;
 
   const handleCameraFlipPress = () => {
     flipIconRotation.value = withTiming(flipIconRotation.value + 180, {
@@ -197,20 +200,10 @@ export const HomeCameraSection = ({
                     ref={cameraRef}
                     style={{
                       position: "absolute",
-                      width: shellSize
-                        ? shellSize.width * cameraPreviewScale
-                        : undefined,
-                      height: shellSize
-                        ? shellSize.height * cameraPreviewScale
-                        : undefined,
-                      top: shellSize
-                        ? -((shellSize.height * cameraPreviewScale) - shellSize.height) / 2
-                        : 0,
-                      left: shellSize
-                        ? -((shellSize.width * cameraPreviewScale) - shellSize.width) / 2
-                        : 0,
-                      right: shellSize ? undefined : 0,
-                      bottom: shellSize ? undefined : 0,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      left: 0,
                     }}
                     facing={facing}
                     zoom={zoom}
@@ -288,6 +281,39 @@ export const HomeCameraSection = ({
                 </View>
               </View>
             ) : null}
+            {isFutureLoading ? (
+              <View className="absolute inset-0 z-[8] items-center justify-center bg-black/75 px-8">
+                <MotiView
+                  from={{ opacity: 0.6, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "timing", duration: 500 }}
+                  className="w-full max-w-[280px] rounded-[28px] border border-white/15 bg-slate-950/90 px-6 py-7">
+                  <View className="mb-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
+                    <MotiView
+                      from={{ translateX: -180 }}
+                      animate={{ translateX: 180 }}
+                      transition={{
+                        type: "timing",
+                        duration: 950,
+                        loop: true,
+                      }}
+                      style={{
+                        height: "100%",
+                        width: "55%",
+                        borderRadius: 999,
+                        backgroundColor: "#F59E0B",
+                      }}
+                    />
+                  </View>
+                  <Text className="text-center text-lg font-semibold text-white">
+                    Next quote
+                  </Text>
+                  <Text className="mt-2 text-center text-sm leading-5 text-white/70">
+                    {aiToolsLoadingLabel ?? "Writing the next quote you may need…"}
+                  </Text>
+                </MotiView>
+              </View>
+            ) : null}
             {vibeHint ? (
               <HomeVibeWatermark
                 vibeHint={vibeHint}
@@ -342,21 +368,25 @@ export const HomeCameraSection = ({
         ) : null}
         {dailyQuoteText && !hideQuote ? (
           <View className="my-3 w-full max-w-md self-center">
-            <View className="flex-row items-center justify-between rounded-full bg-white/10 px-3 py-2">
-              <View className="flex-row items-center gap-1.5">
+            <View className="rounded-[26px] bg-white/10 px-3 py-3">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-1.5">
                 <Pressable
                   onPress={() => onChangeQuoteFontSize("small")}
                   className="h-8 px-3 items-center justify-center rounded-full"
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
-                      quoteFontSize === "small" ? "rgba(255,255,255,0.95)" : "transparent",
+                      quoteFontSize === "small" ? "rgba(251,191,36,0.24)" : "transparent",
+                    borderWidth: quoteFontSize === "small" ? 1.5 : 0,
+                    borderColor:
+                      quoteFontSize === "small" ? "rgba(251,191,36,0.95)" : "transparent",
                   })}>
                   <Text
                     className="font-semibold"
                     style={{
                       fontSize: 12,
-                      color: quoteFontSize === "small" ? "#000000" : "#ffffff",
+                      color: quoteFontSize === "small" ? "#FCD34D" : "#ffffff",
                     }}>
                     A
                   </Text>
@@ -367,13 +397,16 @@ export const HomeCameraSection = ({
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
-                      quoteFontSize === "medium" ? "rgba(255,255,255,0.95)" : "transparent",
+                      quoteFontSize === "medium" ? "rgba(251,191,36,0.24)" : "transparent",
+                    borderWidth: quoteFontSize === "medium" ? 1.5 : 0,
+                    borderColor:
+                      quoteFontSize === "medium" ? "rgba(251,191,36,0.95)" : "transparent",
                   })}>
                   <Text
                     className="font-semibold"
                     style={{
                       fontSize: 14,
-                      color: quoteFontSize === "medium" ? "#000000" : "#ffffff",
+                      color: quoteFontSize === "medium" ? "#FCD34D" : "#ffffff",
                     }}>
                     A
                   </Text>
@@ -384,28 +417,33 @@ export const HomeCameraSection = ({
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
-                      quoteFontSize === "large" ? "rgba(255,255,255,0.95)" : "transparent",
+                      quoteFontSize === "large" ? "rgba(251,191,36,0.24)" : "transparent",
+                    borderWidth: quoteFontSize === "large" ? 1.5 : 0,
+                    borderColor:
+                      quoteFontSize === "large" ? "rgba(251,191,36,0.95)" : "transparent",
                   })}>
                   <Text
                     className="font-semibold"
                     style={{
                       fontSize: 16,
-                      color: quoteFontSize === "large" ? "#000000" : "#ffffff",
+                      color: quoteFontSize === "large" ? "#FCD34D" : "#ffffff",
                     }}>
                     A
                   </Text>
                 </Pressable>
-              </View>
-              <View className="flex-row items-center gap-1.5">
+                </View>
+                <View className="flex-row items-center gap-1.5">
                 <Pressable
                   onPress={() => onChangeQuoteColorScheme("light")}
                   className="h-7 w-7 items-center justify-center rounded-full"
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
-                      quoteColorScheme === "light" ? "#ffffff" : "rgba(148,163,184,0.4)",
+                      quoteColorScheme === "light"
+                        ? "rgba(255,255,255,0.22)"
+                        : "rgba(148,163,184,0.4)",
                     borderWidth: quoteColorScheme === "light" ? 2 : 0,
-                    borderColor: quoteColorScheme === "light" ? "#FBBF24" : "transparent",
+                    borderColor: quoteColorScheme === "light" ? "#F8FAFC" : "transparent",
                   })}>
                   <View className="h-3.5 w-3.5 rounded-full border border-slate-300 bg-white" />
                 </Pressable>
@@ -415,7 +453,9 @@ export const HomeCameraSection = ({
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
-                      quoteColorScheme === "amber" ? "#ffffff" : "rgba(148,163,184,0.4)",
+                      quoteColorScheme === "amber"
+                        ? "rgba(251,191,36,0.22)"
+                        : "rgba(148,163,184,0.4)",
                     borderWidth: quoteColorScheme === "amber" ? 2 : 0,
                     borderColor: quoteColorScheme === "amber" ? "#FBBF24" : "transparent",
                   })}>
@@ -427,14 +467,16 @@ export const HomeCameraSection = ({
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.85 : 1,
                     backgroundColor:
-                      quoteColorScheme === "pink" ? "#ffffff" : "rgba(148,163,184,0.4)",
+                      quoteColorScheme === "pink"
+                        ? "rgba(249,168,212,0.22)"
+                        : "rgba(148,163,184,0.4)",
                     borderWidth: quoteColorScheme === "pink" ? 2 : 0,
-                    borderColor: quoteColorScheme === "pink" ? "#FBBF24" : "transparent",
+                    borderColor: quoteColorScheme === "pink" ? "#F9A8D4" : "transparent",
                   })}>
                   <View className="h-3.5 w-3.5 rounded-full bg-pink-400" />
                 </Pressable>
-              </View>
-              <View className="flex-row items-center gap-2">
+                </View>
+                <View className="flex-row items-center gap-2">
                 <Pressable
                   onPress={onClearQuote}
                   className="h-8 w-8 items-center justify-center rounded-full bg-white/10"
@@ -447,16 +489,26 @@ export const HomeCameraSection = ({
                   style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
                   <Ionicons name="refresh-outline" size={16} color="#000000" />
                 </Pressable>
+                </View>
               </View>
+              <Pressable
+                onPress={onFutureQuote}
+                disabled={isFutureLoading}
+                className="mt-3 flex-row items-center justify-center rounded-2xl bg-amber-400 px-4 py-3.5"
+                style={({ pressed }) => ({
+                  opacity: pressed || isFutureLoading ? 0.85 : 1,
+                })}>
+                <Ionicons name="arrow-forward-outline" size={18} color="#111827" />
+                <Text className="ml-2 text-sm font-bold text-stone-950">
+                  Next
+                </Text>
+              </Pressable>
             </View>
             <View className="mt-6">
               <AiToolsRow
-                selectedAiTool={selectedAiTool}
-                pendingAiTool={pendingAiTool}
+                selectedAiTool={selectedRewriteTool}
+                pendingAiTool={pendingRewriteTool}
                 aiToolsLoading={aiToolsLoading}
-                aiToolsLoadingLabel={aiToolsLoadingLabel}
-                onExplainQuote={onExplainQuote}
-                onFutureQuote={onFutureQuote}
                 onRewriteQuote={onRewriteQuote}
               />
               {aiResultTitle && aiResultBody ? (

@@ -1,6 +1,7 @@
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { getCapabilitiesForPlan } from "@/domain/subscription/subscriptionCapabilities";
 import { openPaywall } from "@/features/paywall/openPaywall";
+import { useSubscriptionConfigStore } from "@/appState/subscriptionConfigStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUsageStore } from "@/appState/usageStore";
 import { waitTwoFrames } from "@/utils/waitTwoFrames";
@@ -13,6 +14,7 @@ export function useQuoteMomentShare() {
   const [watermarkForExport, setWatermarkForExport] = useState(false);
   const customerInfo = useSubscriptionStore((s) => s.customerInfo);
   const plan = useSubscriptionStore((s) => s.plan);
+  const planLimits = useSubscriptionConfigStore((s) => s.planLimits);
   const resetIfNewDay = useUsageStore((s) => s.resetIfNewDay);
   const dailyExportCount = useUsageStore((s) => s.dailyExportCount);
   const incrementExportUsage = useUsageStore((s) => s.incrementExportUsage);
@@ -25,7 +27,10 @@ export function useQuoteMomentShare() {
     [customerInfo],
   );
 
-  const capabilities = useMemo(() => getCapabilitiesForPlan(plan), [plan]);
+  const capabilities = useMemo(
+    () => getCapabilitiesForPlan(plan, planLimits),
+    [plan, planLimits],
+  );
 
   const shareMoment = useCallback(async () => {
     const target = captureRefView.current;
@@ -33,7 +38,7 @@ export function useQuoteMomentShare() {
       return;
     }
     resetIfNewDay();
-    const guards = createSubscriptionGuards(snapshot);
+    const guards = createSubscriptionGuards(snapshot, planLimits);
     const guardResult = guards.canExportQuote(dailyExportCount);
     if (!guardResult.allowed) {
       openPaywall({
@@ -71,6 +76,7 @@ export function useQuoteMomentShare() {
     resetIfNewDay,
     incrementExportUsage,
     capabilities.hasWatermark,
+    planLimits,
   ]);
 
   return {
