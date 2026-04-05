@@ -7,7 +7,7 @@ import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useUserStore } from "@/appState";
 
 export interface QuoteMomentCardProps {
@@ -15,6 +15,7 @@ export interface QuoteMomentCardProps {
   screenHeight: number;
   authorName: string;
   authorAvatarUrl: string | null;
+  counterLabel?: string | null;
 }
 
 const FALLBACK_ASPECT = 3 / 4;
@@ -24,6 +25,7 @@ export const QuoteMomentCard = ({
   screenHeight,
   authorName,
   authorAvatarUrl,
+  counterLabel,
 }: QuoteMomentCardProps) => {
   const profile = useUserStore((s) => s.profile);
   const guestId = useUserStore((s) => s.guestId);
@@ -127,6 +129,15 @@ export const QuoteMomentCard = ({
         <View ref={captureRefView} collapsable={false} className="w-full">
           {cardInner}
         </View>
+        {watermarkForExport || !counterLabel ? null : (
+          <View pointerEvents="none" className="absolute left-3 top-3 z-50">
+            <View className="flex-row items-center rounded-full border border-white/15 bg-black/45 px-3 py-1">
+              <Text className="text-[11px] font-semibold text-white/90">
+                {counterLabel}
+              </Text>
+            </View>
+          </View>
+        )}
         {watermarkForExport ? null : (
           <Pressable
             accessibilityLabel={strings.home.momentsFeed.shareMomentA11y}

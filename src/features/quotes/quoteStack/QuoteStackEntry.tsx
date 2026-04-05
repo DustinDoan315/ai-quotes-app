@@ -1,7 +1,7 @@
 import type { QuoteStack } from "./types";
 import { QuoteMomentCard } from "@/features/quotes/QuoteMomentCard";
 import { useMemo, useEffect, useState, useCallback } from "react";
-import { Text, useWindowDimensions, View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -28,6 +28,7 @@ type QuoteStackPageProps = {
   readonly authorName: string;
   readonly authorAvatarUrl: string | null;
   readonly scrollX: SharedValue<number>;
+  readonly quoteCount: number;
 };
 
 function QuoteStackPage({
@@ -38,6 +39,7 @@ function QuoteStackPage({
   authorName,
   authorAvatarUrl,
   scrollX,
+  quoteCount,
 }: QuoteStackPageProps) {
   const pageAnimatedStyle = useAnimatedStyle(() => {
     const inputRange = [
@@ -83,6 +85,7 @@ function QuoteStackPage({
         screenHeight={screenHeight}
         authorName={authorName}
         authorAvatarUrl={authorAvatarUrl}
+        counterLabel={quoteCount > 0 ? `${index + 1}/${quoteCount}` : null}
       />
     </Animated.View>
   );
@@ -131,7 +134,6 @@ export function QuoteStackEntry({
   }, [activeIndex, activeQuote, isActive, onActiveQuoteIdChange]);
 
   const quoteCount = stack.quotes.length;
-  const badgeLabel = `${Math.min(activeIndex + 1, quoteCount)}/${quoteCount}`;
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
     scrollX.value = event.contentOffset.x;
@@ -159,6 +161,7 @@ export function QuoteStackEntry({
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
             scrollX={scrollX}
+            quoteCount={quoteCount}
           />
         )}
         getItemLayout={(_, index) => ({
@@ -174,17 +177,6 @@ export function QuoteStackEntry({
           setActiveIndex(Math.max(0, Math.min(next, quoteCount - 1)));
         }}
       />
-
-      {quoteCount > 0 && (
-        <View pointerEvents="none" className="absolute left-4 top-4 z-50">
-          <View className="flex-row items-center rounded-full border border-white/15 bg-black/45 px-3 py-1">
-            <Text className="text-[11px] font-semibold text-white/90">
-              {badgeLabel}
-            </Text>
-          </View>
-        </View>
-      )}
     </View>
   );
 }
-
