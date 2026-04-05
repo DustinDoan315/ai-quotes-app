@@ -1,0 +1,37 @@
+---
+description: State, business logic, and integration boundaries for ai-quotes-app
+globs:
+  - "src/appState/**/*"
+  - "src/domain/**/*"
+  - "src/services/**/*"
+  - "src/hooks/**/*"
+  - "src/utils/**/*"
+  - "supabase/functions/**/*"
+alwaysApply: true
+---
+
+# State and Logic Boundaries
+
+## Ownership
+
+- `src/appState/`: client-side app stores and state transitions
+- `src/domain/`: business rules, capabilities, guards, resolvers
+- `src/services/`: external integrations, API clients, analytics, notifications, native SDK wrappers
+- `src/hooks/`: reusable hooks that coordinate state and services
+- `src/utils/`: pure helper functions
+- `supabase/functions/`: server-side logic and edge-function behavior
+
+## Rules
+
+- Keep business decisions in `src/domain` when possible.
+- Keep service files focused on integration behavior, not screen rendering.
+- Avoid duplicating domain rules inside UI files or stores.
+- If logic is reused across features, pull it out of the feature folder.
+- Prefer pure functions in `src/utils` for deterministic transformations.
+- Define contracts clearly when app logic and Supabase functions evolve together.
+
+## Parallel Work Guidance
+
+- UI agents should consume contracts, not invent them ad hoc.
+- Logic and backend changes should align on request and response shapes before parallel implementation.
+- If a store shape changes, update dependent hooks and tests deliberately rather than relying on incidental fixes.

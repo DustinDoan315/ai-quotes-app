@@ -1,0 +1,50 @@
+---
+description: Code conventions for TypeScript, React Native, Expo Router, and shared repo patterns
+globs:
+  - "app/**/*.{ts,tsx}"
+  - "src/**/*.{ts,tsx}"
+  - "__tests__/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# Code Conventions
+
+## General
+
+- Use TypeScript with strict typing.
+- Prefer named exports by default.
+- Prefer `@/` imports for app source code.
+- Keep files focused and avoid mixing unrelated responsibilities.
+- Follow existing naming patterns already present in the repo.
+
+## React Native and Expo Router
+
+- Keep `app/` files route-oriented and thin.
+- Move substantial UI and feature logic into `src/features`.
+- Avoid embedding business rules directly in route components.
+- Prefer extracting repeated UI into `src/components` only when truly shared.
+
+## State and Logic
+
+- App-level stores belong in `src/appState`.
+- Business rules belong in `src/domain`.
+- Integration logic belongs in `src/services`.
+- Shared hooks belong in `src/hooks`.
+- Pure helpers belong in `src/utils`.
+
+## Styling and Theme
+
+- Reuse tokens from `src/theme` before introducing new colors, typography, or strings.
+- Avoid repeated hardcoded literals when a shared token is appropriate.
+- Keep visual decisions consistent with existing app background and dark presentation patterns.
+
+## Changes to Avoid
+
+- Do not make architecture changes casually from a local UI edit.
+- Do not move files across ownership areas unless the task explicitly requires it.
+- Do not modify backend contracts, store shape, or domain rules from a UI-only task without clear instruction.
+
+## Testing
+
+- Add or update tests when changing behavior in `src/domain`, `src/services`, `src/utils`, paywall logic, subscription logic, or AI behavior.
+- Prefer focused regression coverage for changed logic instead of broad snapshots.

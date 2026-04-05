@@ -1,0 +1,35 @@
+---
+description: Testing guidance for risky and logic-heavy changes
+globs:
+  - "__tests__/**/*"
+  - "src/domain/**/*"
+  - "src/services/**/*"
+  - "src/utils/**/*"
+  - "src/features/paywall/**/*"
+  - "src/features/ai/**/*"
+alwaysApply: true
+---
+
+# Testing Guidance
+
+## Priority Areas
+
+Prefer tests when changing:
+
+- subscription and paywall rules
+- AI request and response handling
+- domain guards and resolvers
+- utility behavior
+- any logic with clear deterministic outputs
+
+## Test Style
+
+- Prefer focused behavioral tests.
+- Cover regressions for the exact logic being changed.
+- Avoid broad snapshots unless they provide real value.
+- Keep tests readable and close to user-visible behavior or business rules.
+
+## Change Expectations
+
+- If a risky logic change is made, update or add tests in `__tests__/`.
+- If no automated test is added, explain why the change is low risk or hard to automate.

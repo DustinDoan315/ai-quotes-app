@@ -1,0 +1,48 @@
+---
+description: Project architecture and folder ownership for ai-quotes-app
+globs:
+  - "app/**/*"
+  - "src/**/*"
+  - "supabase/**/*"
+alwaysApply: true
+---
+
+# Project Architecture
+
+This project is an Expo Router + React Native app with feature-first source organization.
+
+## Folder Responsibilities
+
+- `app/`: route files, layouts, and screen entry points only
+- `src/features/`: feature-specific UI and screen logic
+- `src/components/`: shared presentation components
+- `src/appState/`: app-level state stores
+- `src/domain/`: business rules, guards, resolvers, capabilities
+- `src/services/`: APIs, SDKs, analytics, notifications, and native integrations
+- `src/hooks/`: reusable hooks
+- `src/utils/`: pure helpers and low-level utilities
+- `src/theme/`: colors, typography, brand tokens, strings, gradients, and shared visual language
+- `supabase/functions/`: edge functions
+- `supabase/migrations/`: database schema changes
+- `__tests__/`: unit and regression tests
+
+## Architecture Rules
+
+- Keep route files thin. If route logic grows, move it into `src/features`.
+- Put reusable business logic in `src/domain` rather than embedding it in UI files.
+- Put external integration code in `src/services`.
+- Prefer shared components in `src/components` only when they are used across features.
+- Keep one-off feature UI inside its feature folder.
+- Avoid mixing theme token definitions into feature files.
+- Prefer pure helpers in `src/utils` for transform-style logic with no UI dependency.
+
+## Agent Ownership
+
+- Codex Lead: planning, architecture, integration, verification
+- Cursor UI Agent: `app/**`, `src/features/**`, `src/components/**`
+- Logic Agent: `src/domain/**`, `src/services/**`, `src/appState/**`, `src/hooks/**`, `src/utils/**`
+- Theme Agent: `src/theme/**`, `global.css`
+- Backend Agent: `supabase/**`
+- Test Agent: `__tests__/**`
+
+When a task crosses ownership areas, define the contract first and then split implementation by file boundary.

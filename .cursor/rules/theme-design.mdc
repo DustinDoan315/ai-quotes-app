@@ -1,0 +1,41 @@
+---
+description: Theme, brand, color, and typography guidance for ai-quotes-app
+globs:
+  - "src/theme/**/*"
+  - "app/**/*.{ts,tsx}"
+  - "src/**/*.{ts,tsx}"
+  - "global.css"
+alwaysApply: true
+---
+
+# Theme and Design Guidance
+
+This project already centralizes shared visual language in `src/theme`.
+
+## Source of Truth
+
+Use these files before creating new visual tokens:
+
+- `src/theme/colors.ts`
+- `src/theme/typography.ts`
+- `src/theme/appBrand.ts`
+- `src/theme/strings.ts`
+- related background and vibe files in `src/theme/`
+
+## Rules
+
+- Reuse existing theme tokens first.
+- Add new shared colors or typography tokens in `src/theme` instead of scattering them through feature files.
+- Keep brand naming aligned with `src/theme/appBrand.ts`.
+- Keep user-facing copy aligned with `src/theme/strings.ts` where applicable.
+- Preserve the app's immersive background-driven visual style when adding screens.
+
+## When to Add a Token
+
+Add a shared token when:
+
+- the same value appears in multiple screens
+- the value reflects brand or system meaning
+- the token improves consistency across features
+
+Keep a local inline value only when it is clearly one-off and not part of the shared design language.
