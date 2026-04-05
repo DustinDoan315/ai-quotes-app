@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SRC="$ROOT/AppIcons/appstore.png"
-PLAY="$ROOT/AppIcons/playstore.png"
+SRC="$ROOT/assets/images/icon.png"
+PLAY="$ROOT/store-assets/playstore.png"
+MONO="$ROOT/store-assets/android-icon-monochrome.png"
 DEST="$ROOT/assets/images"
 STORE="$ROOT/store-assets"
 
 if [[ ! -f "$SRC" ]]; then
-  echo "Missing $SRC — add AppIcons/appstore.png (1024×1024 PNG)."
+  echo "Missing $SRC — add assets/images/icon.png (1024×1024 PNG recommended)."
   exit 1
 fi
 
 W=$(sips -g pixelWidth "$SRC" 2>/dev/null | awk '/pixelWidth/ {print $2}')
 H=$(sips -g pixelHeight "$SRC" 2>/dev/null | awk '/pixelHeight/ {print $2}')
 if [[ "${W:-}" != "1024" || "${H:-}" != "1024" ]]; then
-  echo "Warning: AppIcons/appstore.png should be 1024×1024 for Expo (got ${W:-?}×${H:-?})."
+  echo "Warning: assets/images/icon.png should be 1024×1024 for Expo (got ${W:-?}×${H:-?})."
 fi
 
 mkdir -p "$DEST"
-cp "$SRC" "$DEST/icon.png"
 cp "$SRC" "$DEST/android-icon-foreground.png"
 cp "$SRC" "$DEST/splash-icon.png"
 sips -z 48 48 "$SRC" --out "$DEST/favicon.png" >/dev/null
-MONO="$ROOT/AppIcons/android-icon-monochrome.png"
 if [[ -f "$MONO" ]]; then
   cp "$MONO" "$DEST/android-icon-monochrome.png"
 else
@@ -36,10 +35,10 @@ if [[ -f "$PLAY" ]]; then
   PW=$(sips -g pixelWidth "$PLAY" 2>/dev/null | awk '/pixelWidth/ {print $2}')
   PH=$(sips -g pixelHeight "$PLAY" 2>/dev/null | awk '/pixelHeight/ {print $2}')
   if [[ "${PW:-}" != "512" || "${PH:-}" != "512" ]]; then
-    echo "Warning: AppIcons/playstore.png is usually 512×512 for Play high-res icon (got ${PW:-?}×${PH:-?})."
+    echo "Warning: store-assets/playstore.png is usually 512×512 for Play high-res icon (got ${PW:-?}×${PH:-?})."
   fi
 else
-  echo "Note: AppIcons/playstore.png not found — skipping store copy. Add it for Google Play uploads."
+  echo "Note: Optional $PLAY not found — left store-assets/google-play-icon-512.png unchanged (if present)."
 fi
 
 echo "Synced icons into $DEST and $STORE. Rebuild native apps (EAS or expo run) to see launcher changes."
