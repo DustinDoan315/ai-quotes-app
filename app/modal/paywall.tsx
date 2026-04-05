@@ -1,5 +1,6 @@
 import { PaywallScreen } from "@/features/paywall/PaywallScreen";
 import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 type PaywallParams = {
@@ -12,7 +13,7 @@ export default function PaywallModal() {
   const params = useLocalSearchParams<PaywallParams>();
 
   const handleClose = () => {
-    router.back();
+    goBackOrReplace(router, "/(tabs)");
   };
 
   return (

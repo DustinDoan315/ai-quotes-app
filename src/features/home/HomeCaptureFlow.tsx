@@ -33,18 +33,22 @@ export function HomeCaptureFlow({
   onPressInviteNudge,
   cameraSectionProps,
 }: Props) {
+  const shouldShowHeader = !cameraSectionProps.dailyQuoteText;
+
   return (
     <View
       style={{
         height: viewportHeight,
         paddingTop: topInset,
       }}>
-      <HomeHeader
-        currentStreak={displayStreak}
-        onPressProfile={onPressProfile}
-        onPressFriends={onPressFriends}
-        onPressSignIn={onPressSignIn}
-      />
+      {shouldShowHeader ? (
+        <HomeHeader
+          currentStreak={displayStreak}
+          onPressProfile={onPressProfile}
+          onPressFriends={onPressFriends}
+          onPressSignIn={onPressSignIn}
+        />
+      ) : null}
       {pastMemory ? (
         <Pressable
           onPress={() => onPressPastMemory(pastMemory.date)}

@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { useUserStore } from "@/appState/userStore";
 import { ProfileAuthedView } from "@/features/profile/ProfileAuthedView";
 import { ProfileGuestView } from "@/features/profile/ProfileGuestView";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -17,7 +18,7 @@ export default function ProfileScreen() {
         className="flex-1 bg-transparent"
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <ProfileGuestView
-          onBack={() => router.back()}
+          onBack={() => goBackOrReplace(router, "/(tabs)")}
           onLogin={() =>
             router.push({
               pathname: "/login",
@@ -35,10 +36,9 @@ export default function ProfileScreen() {
       className="flex-1 bg-transparent"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <ProfileAuthedView
-        onBack={() => router.back()}
+        onBack={() => goBackOrReplace(router, "/(tabs)")}
         onSignedOut={() => router.replace("/(tabs)" as never)}
       />
     </View>
   );
 }
-

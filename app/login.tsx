@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -63,7 +64,11 @@ export default function LoginScreen() {
       <View className="flex-1 px-6">
         <View className="mt-4">
           <Pressable
-            onPress={() => (step === "otp" ? backToPhone() : router.back())}
+            onPress={() =>
+              step === "otp"
+                ? backToPhone()
+                : goBackOrReplace(router, returnTo as never)
+            }
             className="self-start"
             disabled={isBusy}
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>

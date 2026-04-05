@@ -84,8 +84,6 @@ export default function HomeScreen() {
     isGenerating,
     generationProgress,
     dailyQuoteText,
-    handleClearQuote,
-    handleGenerateAI,
     quoteFontSize,
     quoteColorScheme,
     setQuoteFontSize,
@@ -153,7 +151,6 @@ export default function HomeScreen() {
     selectedAiTool,
     pendingAiTool,
     clearAiToolState,
-    handleFutureQuotePress,
     handleRewriteQuote,
     handleApproveRewrite,
     handleCancelRewrite,
@@ -198,16 +195,6 @@ export default function HomeScreen() {
     } else {
       handleCapture();
     }
-  }
-
-  async function handleRegenerateQuote() {
-    clearAiToolState();
-    await handleGenerateAI();
-  }
-
-  function handleClearCurrentQuote() {
-    clearAiToolState();
-    handleClearQuote();
   }
 
   function handleClearCurrentImage() {
@@ -325,9 +312,6 @@ export default function HomeScreen() {
               onZoomPresetPress: handleZoomPreset,
               onToggleFacing: handleToggleFacing,
               onClearImage: handleClearCurrentImage,
-              onClearQuote: handleClearCurrentQuote,
-              onFutureQuote: handleFutureQuotePress,
-              onRegenerateQuote: handleRegenerateQuote,
               onRewriteQuote: handleRewriteQuote,
               selectedAiTool,
               pendingAiTool,

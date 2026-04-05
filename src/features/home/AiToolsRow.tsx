@@ -1,8 +1,9 @@
-import type { ComponentProps } from "react";
-import type { RewriteTone } from "@/services/ai/types";
 import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, ScrollView, Text, View, Platform } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+
+import type { RewriteTone } from "@/services/ai/types";
+import type { ComponentProps } from "react";
 
 type ActiveAiTool = RewriteTone;
 
@@ -20,10 +21,10 @@ const shadowStrong =
     ? {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.18,
         shadowRadius: 8,
       }
-    : { elevation: 8 };
+    : { elevation: 4 };
 
 const shadowSoft =
   Platform.OS === "ios"
@@ -38,20 +39,22 @@ const shadowSoft =
 const T = {
   amber500: "#F59E0B",
   amber600: "#D97706",
-  amber700: "#B45309",
-  amber900: "#78350F",
+  amber200: "#FDE68A",
+  zinc900: "#18181B",
+  zinc800: "#27272A",
   slate50: "#F8FAFC",
   slate300: "#CBD5E1",
-  stone900: "#1C1917",
 } as const;
 
 const baseButton = {
   borderRadius: 16,
   paddingVertical: 14,
-  paddingHorizontal: 18,
+  paddingHorizontal: 20,
   minHeight: 56,
+  minWidth: 116,
   justifyContent: "center" as const,
   alignItems: "center" as const,
+  overflow: "hidden" as const,
 };
 
 function chipAppearance(isActive: boolean, isPending: boolean) {
@@ -60,11 +63,13 @@ function chipAppearance(isActive: boolean, isPending: boolean) {
       wrap: {
         ...baseButton,
         ...shadowStrong,
-        backgroundColor: T.amber500,
-        borderWidth: 3,
-        borderColor: T.amber900,
+        backgroundColor: "rgba(245,158,11,0.14)",
+        borderWidth: 2,
+        borderColor: T.amber200,
       },
-      fg: T.stone900,
+      highlight: "rgba(253,230,138,0.12)",
+      fg: T.slate50,
+      iconBg: "rgba(253,230,138,0.16)",
     };
   }
   if (isPending) {
@@ -72,22 +77,26 @@ function chipAppearance(isActive: boolean, isPending: boolean) {
       wrap: {
         ...baseButton,
         ...shadowSoft,
-        backgroundColor: "rgba(245,158,11,0.28)",
+        backgroundColor: "rgba(245,158,11,0.08)",
         borderWidth: 2,
         borderColor: T.amber600,
       },
+      highlight: "rgba(245,158,11,0.12)",
       fg: T.slate50,
+      iconBg: "rgba(245,158,11,0.16)",
     };
   }
   return {
     wrap: {
       ...baseButton,
       ...shadowSoft,
-      backgroundColor: "rgba(15,23,42,0.94)",
-      borderWidth: 2,
-      borderColor: "rgba(148,163,184,0.5)",
+      backgroundColor: T.zinc900,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)",
     },
-    fg: T.slate300,
+    highlight: "rgba(255,255,255,0.03)",
+    fg: T.slate50,
+    iconBg: "rgba(255,255,255,0.08)",
   };
 }
 
@@ -127,8 +136,31 @@ function AiToolButton({
         ...a.wrap,
         opacity: pressed || isPending ? 0.9 : 1,
       })}>
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "54%",
+          backgroundColor: a.highlight,
+          borderTopLeftRadius: 16,
+          borderTopRightRadius: 16,
+        }}
+      />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Ionicons name={icon} size={22} color={a.fg} />
+        <View
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 15,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: a.iconBg,
+          }}>
+          <Ionicons name={icon} size={17} color={a.fg} />
+        </View>
         <Text
           style={{
             fontSize: 14,

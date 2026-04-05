@@ -14,6 +14,7 @@ import type { QuoteMemory } from "@/types/memory";
 import { MemoryCard } from "@/components/MemoryCard";
 import { strings } from "@/theme/strings";
 import { getTodayLocalDateKey } from "@/utils/dateKey";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemoriesForDay";
 
 type Layer = "mine" | "friends";
@@ -84,7 +85,7 @@ export default function MemoriesDayScreen() {
     <View className="flex-1 bg-transparent">
       <View className="border-b border-white/10 bg-transparent px-4 pt-14 pb-5">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => goBackOrReplace(router, "/memories")}
           className="mb-4 h-10 w-10 items-center justify-center rounded-full bg-white/10"
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Ionicons name="chevron-back" size={24} color="#fff" />

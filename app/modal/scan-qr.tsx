@@ -1,4 +1,5 @@
 import { useCameraPermission } from "@/hooks/useCameraPermission";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { parseInviteCode } from "@/utils/invite";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, type BarcodeScanningResult } from "expo-camera";
@@ -16,7 +17,7 @@ export default function ScanQrModal() {
   const lastValueRef = useRef<string | null>(null);
 
   const handleClose = useCallback(() => {
-    router.back();
+    goBackOrReplace(router, "/(tabs)/friends");
   }, [router]);
 
   const handleResult = useCallback(
@@ -111,4 +112,3 @@ export default function ScanQrModal() {
     </View>
   );
 }
-

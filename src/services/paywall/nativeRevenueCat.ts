@@ -87,6 +87,10 @@ export async function logInRevenueCat(appUserId: string): Promise<CustomerInfo> 
 
 export async function logOutRevenueCat(): Promise<CustomerInfo> {
   await ensureInit();
+  const isAnonymous = await Purchases.isAnonymous();
+  if (isAnonymous) {
+    return Purchases.getCustomerInfo();
+  }
   return Purchases.logOut();
 }
 

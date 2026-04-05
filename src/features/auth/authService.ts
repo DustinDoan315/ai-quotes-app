@@ -12,7 +12,7 @@ export const syncUserProfile = async (user: User | null) => {
     try {
       if (user && !user.is_anonymous) {
         await revenuecatClient.logIn(user.id);
-      } else {
+      } else if (!user) {
         await revenuecatClient.logOut();
       }
     } catch (error) {

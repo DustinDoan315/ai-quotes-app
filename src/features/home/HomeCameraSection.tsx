@@ -26,6 +26,8 @@ type QuoteFontSize = "small" | "medium" | "large";
 type QuoteColor = "light" | "amber" | "pink";
 type ActiveAiTool = "future" | RewriteTone;
 
+const PANEL_HIGHLIGHT = "#FBBF24";
+
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
   pinchGesture: PinchGesture;
@@ -49,9 +51,6 @@ export type HomeCameraSectionProps = {
   onZoomPresetPress: (preset: 0.5 | 1 | 2) => void;
   onToggleFacing: () => void;
   onClearImage: () => void;
-  onClearQuote: () => void;
-  onFutureQuote: () => void;
-  onRegenerateQuote: () => void;
   onRewriteQuote: (tone: RewriteTone) => void;
   selectedAiTool: ActiveAiTool | null;
   pendingAiTool: ActiveAiTool | null;
@@ -86,9 +85,6 @@ export const HomeCameraSection = ({
   onZoomPresetPress,
   onToggleFacing,
   onClearImage,
-  onClearQuote,
-  onFutureQuote,
-  onRegenerateQuote,
   onRewriteQuote,
   selectedAiTool,
   pendingAiTool,
@@ -153,6 +149,18 @@ export const HomeCameraSection = ({
     });
     onToggleFacing();
   };
+
+  const fontControls = [
+    { key: "small" as const, label: "A", fontSize: 13 },
+    { key: "medium" as const, label: "A", fontSize: 16 },
+    { key: "large" as const, label: "A", fontSize: 19 },
+  ];
+
+  const colorControls = [
+    { key: "light" as const, fill: "#FFFFFF", ring: "#F8FAFC" },
+    { key: "amber" as const, fill: "#FBBF24", ring: "#FBBF24" },
+    { key: "pink" as const, fill: "#F9A8D4", ring: "#F9A8D4" },
+  ];
 
   return (
     <View className="flex-1 w-full flex-col px-2 py-6">
@@ -270,7 +278,13 @@ export const HomeCameraSection = ({
                       </Text>
                     </View>
                   </View>
-                  <View className="rounded-2xl border border-white/20 px-3 py-2">
+                  <View
+                    className="rounded-2xl px-4 py-3"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.16)",
+                      borderWidth: 1,
+                      borderColor: "rgba(255,255,255,0.28)",
+                    }}>
                     <Text
                       className="text-center font-semibold"
                       style={{ fontSize: fontSizeValue, color: quoteTextColor }}
@@ -368,143 +382,93 @@ export const HomeCameraSection = ({
         ) : null}
         {dailyQuoteText && !hideQuote ? (
           <View className="my-3 w-full max-w-md self-center">
-            <View className="rounded-[26px] bg-white/10 px-3 py-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-1.5">
-                <Pressable
-                  onPress={() => onChangeQuoteFontSize("small")}
-                  className="h-8 px-3 items-center justify-center rounded-full"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor:
-                      quoteFontSize === "small" ? "rgba(251,191,36,0.24)" : "transparent",
-                    borderWidth: quoteFontSize === "small" ? 1.5 : 0,
-                    borderColor:
-                      quoteFontSize === "small" ? "rgba(251,191,36,0.95)" : "transparent",
-                  })}>
-                  <Text
-                    className="font-semibold"
-                    style={{
-                      fontSize: 12,
-                      color: quoteFontSize === "small" ? "#FCD34D" : "#ffffff",
-                    }}>
-                    A
+            <View
+              className="rounded-[20px] px-2 py-2"
+              style={{
+                backgroundColor: "rgba(12,14,20,0.62)",
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.06)",
+              }}>
+              <View className="flex-row items-start gap-2">
+                <View
+                  className="w-[42%] rounded-[16px] px-2 py-1.5"
+                  style={{ backgroundColor: "rgba(255,255,255,0.03)" }}>
+                  <Text className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    Size
                   </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => onChangeQuoteFontSize("medium")}
-                  className="h-8 px-3 items-center justify-center rounded-full"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor:
-                      quoteFontSize === "medium" ? "rgba(251,191,36,0.24)" : "transparent",
-                    borderWidth: quoteFontSize === "medium" ? 1.5 : 0,
-                    borderColor:
-                      quoteFontSize === "medium" ? "rgba(251,191,36,0.95)" : "transparent",
-                  })}>
-                  <Text
-                    className="font-semibold"
-                    style={{
-                      fontSize: 14,
-                      color: quoteFontSize === "medium" ? "#FCD34D" : "#ffffff",
-                    }}>
-                    A
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => onChangeQuoteFontSize("large")}
-                  className="h-8 px-3 items-center justify-center rounded-full"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor:
-                      quoteFontSize === "large" ? "rgba(251,191,36,0.24)" : "transparent",
-                    borderWidth: quoteFontSize === "large" ? 1.5 : 0,
-                    borderColor:
-                      quoteFontSize === "large" ? "rgba(251,191,36,0.95)" : "transparent",
-                  })}>
-                  <Text
-                    className="font-semibold"
-                    style={{
-                      fontSize: 16,
-                      color: quoteFontSize === "large" ? "#FCD34D" : "#ffffff",
-                    }}>
-                    A
-                  </Text>
-                </Pressable>
+                  <View className="flex-row items-center gap-2">
+                    {fontControls.map((control) => {
+                      const isActive = quoteFontSize === control.key;
+                      return (
+                        <Pressable
+                          key={control.key}
+                          onPress={() => onChangeQuoteFontSize(control.key)}
+                          className="h-8 min-w-[42px] flex-1 items-center justify-center rounded-2xl"
+                          style={({ pressed }) => ({
+                            opacity: pressed ? 0.88 : 1,
+                            backgroundColor: isActive
+                              ? "rgba(251,191,36,0.10)"
+                              : "rgba(255,255,255,0.025)",
+                            borderWidth: isActive ? 1.5 : 1,
+                            borderColor: isActive
+                              ? "rgba(251,191,36,0.68)"
+                              : "rgba(255,255,255,0.045)",
+                          })}>
+                          <Text
+                            className="font-bold"
+                            style={{
+                              fontSize: control.fontSize,
+                              color: isActive ? PANEL_HIGHLIGHT : "rgba(255,255,255,0.82)",
+                            }}>
+                            {control.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
-                <View className="flex-row items-center gap-1.5">
-                <Pressable
-                  onPress={() => onChangeQuoteColorScheme("light")}
-                  className="h-7 w-7 items-center justify-center rounded-full"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor:
-                      quoteColorScheme === "light"
-                        ? "rgba(255,255,255,0.22)"
-                        : "rgba(148,163,184,0.4)",
-                    borderWidth: quoteColorScheme === "light" ? 2 : 0,
-                    borderColor: quoteColorScheme === "light" ? "#F8FAFC" : "transparent",
-                  })}>
-                  <View className="h-3.5 w-3.5 rounded-full border border-slate-300 bg-white" />
-                </Pressable>
-                <Pressable
-                  onPress={() => onChangeQuoteColorScheme("amber")}
-                  className="h-7 w-7 items-center justify-center rounded-full"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor:
-                      quoteColorScheme === "amber"
-                        ? "rgba(251,191,36,0.22)"
-                        : "rgba(148,163,184,0.4)",
-                    borderWidth: quoteColorScheme === "amber" ? 2 : 0,
-                    borderColor: quoteColorScheme === "amber" ? "#FBBF24" : "transparent",
-                  })}>
-                  <View className="h-3.5 w-3.5 rounded-full bg-amber-400" />
-                </Pressable>
-                <Pressable
-                  onPress={() => onChangeQuoteColorScheme("pink")}
-                  className="h-7 w-7 items-center justify-center rounded-full"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.85 : 1,
-                    backgroundColor:
-                      quoteColorScheme === "pink"
-                        ? "rgba(249,168,212,0.22)"
-                        : "rgba(148,163,184,0.4)",
-                    borderWidth: quoteColorScheme === "pink" ? 2 : 0,
-                    borderColor: quoteColorScheme === "pink" ? "#F9A8D4" : "transparent",
-                  })}>
-                  <View className="h-3.5 w-3.5 rounded-full bg-pink-400" />
-                </Pressable>
-                </View>
-                <View className="flex-row items-center gap-2">
-                <Pressable
-                  onPress={onClearQuote}
-                  className="h-8 w-8 items-center justify-center rounded-full bg-white/10"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                  <Ionicons name="trash-outline" size={16} color="#ffffff" />
-                </Pressable>
-                <Pressable
-                  onPress={onRegenerateQuote}
-                  className="h-8 w-8 items-center justify-center rounded-full bg-amber-400"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                  <Ionicons name="refresh-outline" size={16} color="#000000" />
-                </Pressable>
+                <View
+                  className="flex-1 rounded-[16px] px-2 py-1.5"
+                  style={{ backgroundColor: "rgba(255,255,255,0.03)" }}>
+                  <Text className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    Color
+                  </Text>
+                  <View className="flex-row items-center justify-center gap-2.5">
+                    {colorControls.map((control) => {
+                      const isActive = quoteColorScheme === control.key;
+                      return (
+                        <Pressable
+                          key={control.key}
+                          onPress={() => onChangeQuoteColorScheme(control.key)}
+                          className="h-10 w-10 items-center justify-center rounded-2xl"
+                          style={({ pressed }) => ({
+                            opacity: pressed ? 0.88 : 1,
+                            backgroundColor: isActive
+                              ? "rgba(255,255,255,0.18)"
+                              : "rgba(255,255,255,0.025)",
+                            borderWidth: isActive ? 2.5 : 1,
+                            borderColor: isActive
+                              ? control.ring
+                              : "rgba(255,255,255,0.045)",
+                          })}>
+                          <View
+                            style={{
+                              width: isActive ? 20 : 18,
+                              height: isActive ? 20 : 18,
+                              borderRadius: 10,
+                              backgroundColor: control.fill,
+                              borderWidth: control.key === "light" ? 1 : 0,
+                              borderColor: "rgba(15,23,42,0.18)",
+                            }}
+                          />
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
               </View>
-              <Pressable
-                onPress={onFutureQuote}
-                disabled={isFutureLoading}
-                className="mt-3 flex-row items-center justify-center rounded-2xl bg-amber-400 px-4 py-3.5"
-                style={({ pressed }) => ({
-                  opacity: pressed || isFutureLoading ? 0.85 : 1,
-                })}>
-                <Ionicons name="arrow-forward-outline" size={18} color="#111827" />
-                <Text className="ml-2 text-sm font-bold text-stone-950">
-                  Next
-                </Text>
-              </Pressable>
             </View>
-            <View className="mt-6">
+            <View className="mt-5">
               <AiToolsRow
                 selectedAiTool={selectedRewriteTool}
                 pendingAiTool={pendingRewriteTool}

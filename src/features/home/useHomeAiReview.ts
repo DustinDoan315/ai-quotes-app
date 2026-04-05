@@ -39,7 +39,12 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
       setRewriteDraft(null);
       setSelectedAiTool(null);
       setPendingAiTool(null);
+      return;
     }
+    setAiResult(null);
+    setRewriteDraft(null);
+    setSelectedAiTool((current) => current ?? "calm");
+    setPendingAiTool(null);
   }, [dailyQuoteText]);
 
   function clearAiToolState() {
@@ -68,6 +73,7 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
   }
 
   async function handleRewriteQuote(tone: RewriteTone) {
+    setSelectedAiTool(tone);
     setPendingAiTool(tone);
     const text = await previewRewrite(tone);
     setPendingAiTool(null);

@@ -7,6 +7,7 @@ import type { MemoryState } from "@/appState/memoryStore";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import {
   formatLocalDateKey,
   formatLocalMonthKey,
@@ -263,7 +264,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
       <View className="border-b border-white/10 bg-transparent px-5 pt-14 pb-6">
         <View className="mb-3 flex-row items-center justify-between">
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => goBackOrReplace(router, "/(tabs)")}
             className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
             <Ionicons name="chevron-back" size={22} color="#ffffff" />
