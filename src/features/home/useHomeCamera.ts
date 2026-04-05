@@ -66,6 +66,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(
+    null,
+  );
   const [hideQuote, setHideQuote] = useState(false);
   const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
@@ -132,6 +135,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   function clearSelectedImage() {
     setSelectedImageUri(null);
+    setSelectedImageBase64(null);
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
@@ -141,6 +145,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   async function generateForImage(
     sourceUri: string | null,
     enforceCooldown: boolean,
+    sourceBase64?: string | null,
   ) {
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
@@ -155,8 +160,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return current + 0.04;
       });
     }, 180);
-    let base64: string | undefined;
-    if (sourceUri) {
+    let base64 = sourceBase64?.trim() || undefined;
+    if (!base64 && sourceUri) {
       try {
         base64 = await compressImageForUpload(sourceUri);
       } catch (err) {
@@ -201,6 +206,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       setSelectedImageUri(photo.uri);
+      setSelectedImageBase64(null);
       setHideQuote(true);
       await generateForImage(photo.uri, false);
       setHasSavedCurrentPhoto(false);
@@ -215,7 +221,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   async function handleGenerateAI() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await generateForImage(selectedImageUri ?? null, true);
+    await generateForImage(
+      selectedImageUri ?? null,
+      true,
+      selectedImageBase64,
+    );
   }
 
   function handleClearQuote() {
@@ -287,6 +297,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         onMilestoneReached?.(newStreak);
       }
       setSelectedImageUri(null);
+      setSelectedImageBase64(null);
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
@@ -310,8 +321,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       return;
     }
     setSelectedImageUri(picked.uri);
+    const pickedBase64 = picked.base64 || null;
+    setSelectedImageBase64(pickedBase64);
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
+    await generateForImage(picked.uri, false, pickedBase64);
     showToast(strings.camera.info.photoSelected, "success");
   }
 

@@ -39,6 +39,12 @@ export const strings = {
       funny: "Funny",
       savage: "Savage",
       calm: "Calm",
+      rewriteReviewTitle: "Review rewrite",
+      rewriteGuidance:
+        "Make it one sentence, under 180 characters, and safe to share.",
+      rewriteReady: "This rewrite is ready to use.",
+      rewriteCancel: "Cancel",
+      rewriteApprove: "Use rewrite",
       explanationResult: "Meaning",
       futureResult: "Next quote",
       rewriteResult: "Rewritten quote",
