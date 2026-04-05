@@ -1,4 +1,5 @@
 import { getQuoteLanguage } from "./quoteLanguage";
+import { validateRewriteReviewQuote } from "./rewriteReview";
 import { sanitizeQuote, validateQuote } from "./safety";
 import type {
   GenerateQuoteRequest,
@@ -264,19 +265,21 @@ export const rewriteQuote = async (
       };
     }
 
-    const sanitized = sanitizeQuote(rawQuote);
-    const validation = validateQuote(sanitized);
+    const rewriteValidation = validateRewriteReviewQuote(
+      rawQuote,
+      request.quote,
+    );
 
-    if (!validation.isValid) {
+    if (!rewriteValidation.isValid) {
       return {
         quote: "",
         isValid: false,
-        reason: validation.reason,
+        reason: rewriteValidation.reason,
       };
     }
 
     return {
-      quote: sanitized,
+      quote: rewriteValidation.sanitizedQuote,
       isValid: true,
     };
   } catch (error) {

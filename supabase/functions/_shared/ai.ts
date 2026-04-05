@@ -70,7 +70,7 @@ export const cleanQuote = (value: string): string => {
     .trim();
 
   if (quote.length > MAX_QUOTE_LENGTH) {
-    quote = `${quote.slice(0, MAX_QUOTE_LENGTH - 3).trimEnd()}...`;
+    quote = quote.slice(0, MAX_QUOTE_LENGTH).trimEnd();
   }
 
   return quote;

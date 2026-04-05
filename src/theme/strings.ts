@@ -44,9 +44,12 @@ export const strings = {
       rewriteResult: "Rewritten quote",
       loadingExplain: "Reading the feeling behind your quote…",
       loadingFuture: "Writing the next quote you may need…",
-      rewriteReviewTitle: "Review rewrite",
-      rewriteApprove: "Use this quote",
-      rewriteCancel: "Cancel",
+      editQuoteHint: "Tap the quote to edit it.",
+      editQuoteGuidance:
+        "Keep it to one sentence, under 180 characters, and safe to use.",
+      editQuoteSave: "Save",
+      editQuoteCancel: "Cancel",
+      editQuoteReady: "Looks good to use.",
     },
     luckLabel: "Luck",
     vibes: {

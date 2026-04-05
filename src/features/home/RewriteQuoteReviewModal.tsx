@@ -1,6 +1,10 @@
+import {
+  MAX_REWRITE_REVIEW_CHARACTERS,
+  validateRewriteReviewQuote,
+} from "@/services/ai/rewriteReview";
 import { strings } from "@/theme/strings";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -16,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface Props {
   visible: boolean;
   initialText: string;
+  sourceText: string;
   onApprove: (text: string) => void;
   onCancel: () => void;
 }
@@ -23,11 +28,16 @@ interface Props {
 export function RewriteQuoteReviewModal({
   visible,
   initialText,
+  sourceText,
   onApprove,
   onCancel,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState(initialText);
+  const validation = useMemo(
+    () => validateRewriteReviewQuote(text, sourceText),
+    [text, sourceText],
+  );
 
   useEffect(() => {
     if (visible) {
@@ -64,6 +74,9 @@ export function RewriteQuoteReviewModal({
           className="flex-1 px-4 pt-4"
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 24 }}>
+          <Text className="mb-3 text-sm leading-5 text-white/65">
+            {strings.home.aiTools.rewriteGuidance}
+          </Text>
           <TextInput
             value={text}
             onChangeText={setText}
@@ -73,6 +86,23 @@ export function RewriteQuoteReviewModal({
             placeholderTextColor="rgba(255,255,255,0.35)"
             style={{ color: "#FFFFFF" }}
           />
+          <View className="mt-3 flex-row items-center justify-between gap-3">
+            <Text
+              className="flex-1 text-sm leading-5"
+              style={{ color: validation.isValid ? "rgba(255,255,255,0.6)" : "#FCA5A5" }}>
+              {validation.isValid
+                ? strings.home.aiTools.rewriteReady
+                : validation.reason}
+            </Text>
+            <Text
+              className="text-sm font-semibold"
+              style={{
+                color:
+                  validation.remainingCharacters < 0 ? "#FCA5A5" : "rgba(255,255,255,0.65)",
+              }}>
+              {validation.characterCount}/{MAX_REWRITE_REVIEW_CHARACTERS}
+            </Text>
+          </View>
         </ScrollView>
         <View className="flex-row gap-3 border-t border-white/10 px-4 py-3">
           <Pressable
@@ -84,9 +114,12 @@ export function RewriteQuoteReviewModal({
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => onApprove(text)}
+            disabled={!validation.isValid}
+            onPress={() => onApprove(validation.sanitizedQuote)}
             className="flex-1 items-center rounded-2xl bg-amber-500 py-3.5"
-            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
+            style={({ pressed }) => ({
+              opacity: !validation.isValid ? 0.45 : pressed ? 0.9 : 1,
+            })}>
             <Text className="text-base font-bold text-stone-950">
               {strings.home.aiTools.rewriteApprove}
             </Text>

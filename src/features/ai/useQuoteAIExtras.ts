@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { explainQuote, generateFutureQuote, rewriteQuote } from "@/services/ai/client";
+import { validateRewriteReviewQuote } from "@/services/ai/rewriteReview";
 import type { RewriteTone } from "@/services/ai/types";
 import { useUserStore } from "@/appState/userStore";
 import { useQuoteStore } from "@/appState/quoteStore";
@@ -71,7 +72,15 @@ export const useRewriteQuote = () => {
           }
           return null;
         }
-        return response.quote;
+        const validation = validateRewriteReviewQuote(
+          response.quote,
+          dailyQuote.text,
+        );
+        if (!validation.isValid) {
+          showToast(validation.reason ?? "Invalid rewrite", "error");
+          return null;
+        }
+        return validation.sanitizedQuote;
       } finally {
         setLoading(false);
       }
@@ -139,4 +148,3 @@ export const useFutureQuote = () => {
 
   return { loading, generate };
 };
-

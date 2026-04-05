@@ -1,4 +1,5 @@
 import {
+  MAX_QUOTE_LENGTH,
   OPENAI_API_KEY,
   callOpenAI,
   cleanQuote,
@@ -20,6 +21,18 @@ type RewriteQuoteRequestBody = {
 type SupportedLanguage = "vi" | "en";
 
 const VALID_TONES: RewriteTone[] = ["funny", "savage", "calm"];
+
+const normalizeForComparison = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/["']/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, "")
+    .trim();
+
+const hasMultipleSentences = (value: string): boolean => {
+  const sentenceEndings = value.match(/[.!?]+(?=\s|$)/g) ?? [];
+  return /\r|\n/.test(value) || sentenceEndings.length > 1;
+};
 
 const getToneInstruction = (
   tone: RewriteTone,
@@ -52,10 +65,12 @@ const buildRewriteSystemPrompt = (language: SupportedLanguage): string => {
 Rewrite one motivational quote in English.
 
 Rules:
-- Maximum 180 characters
+- Maximum ${MAX_QUOTE_LENGTH} characters
 - Return only the rewritten quote
 - Keep it as one complete sentence
 - Keep the core meaning recognizable
+- Make the wording clearly different from the original quote
+- Do not wrap the quote in quotation marks
 - Avoid profanity, insults, and explicit content
 `.trim();
   }
@@ -64,10 +79,12 @@ Rules:
 Viết lại một câu quote động lực bằng tiếng Việt.
 
 Quy tắc:
-- Tối đa 180 ký tự
+- Tối đa ${MAX_QUOTE_LENGTH} ký tự
 - Chỉ trả về câu quote đã viết lại
 - Giữ thành một câu hoàn chỉnh
 - Giữ nguyên ý chính dễ nhận ra
+- Cách diễn đạt phải khác rõ ràng so với câu gốc
+- Không thêm dấu ngoặc kép quanh câu quote
 - Không thô tục, xúc phạm hay phản cảm
 `.trim();
 };
@@ -144,8 +161,20 @@ Return only the rewritten quote.
       throw new Error("Empty rewritten quote generated");
     }
 
+    const cleanedQuote = cleanQuote(rawQuote);
+
+    if (hasMultipleSentences(cleanedQuote)) {
+      throw new Error("Rewrite must stay as one sentence");
+    }
+
+    if (
+      normalizeForComparison(cleanedQuote) === normalizeForComparison(quote)
+    ) {
+      throw new Error("Rewrite is too similar to the original quote");
+    }
+
     return jsonResponse({
-      quote: cleanQuote(rawQuote),
+      quote: cleanedQuote,
       language,
       tone: body.tone,
     });

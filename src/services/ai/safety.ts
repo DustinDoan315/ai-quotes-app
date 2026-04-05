@@ -40,7 +40,7 @@ export const validateQuote = (
 export const sanitizeQuote = (quote: string): string => {
   const trimmed = quote.trim();
   if (trimmed.length > 180) {
-    return `${trimmed.substring(0, 177)}...`;
+    return trimmed.substring(0, 180).trimEnd();
   }
   return trimmed;
 };

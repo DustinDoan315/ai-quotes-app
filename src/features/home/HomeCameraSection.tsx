@@ -2,8 +2,13 @@ import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
+import {
+  MAX_REWRITE_REVIEW_CHARACTERS,
+  validateEditableQuote,
+} from "@/services/ai/rewriteReview";
 import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
+import { strings } from "@/theme/strings";
 import type {
   HomeBackgroundPalette,
   HomeVibeHintParts,
@@ -13,8 +18,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
-import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -45,6 +50,8 @@ export type HomeCameraSectionProps = {
   quoteColorScheme: QuoteColor;
   onChangeQuoteFontSize: (size: QuoteFontSize) => void;
   onChangeQuoteColorScheme: (color: QuoteColor) => void;
+  onSubmitQuoteEdit: (text: string) => void;
+  onInvalidQuoteEdit: (message: string) => void;
   authorName: string;
   authorAvatarUrl: string | null;
   onCameraReady: () => void;
@@ -79,6 +86,8 @@ export const HomeCameraSection = ({
   quoteColorScheme,
   onChangeQuoteFontSize,
   onChangeQuoteColorScheme,
+  onSubmitQuoteEdit,
+  onInvalidQuoteEdit,
   authorName,
   authorAvatarUrl,
   onCameraReady,
@@ -99,6 +108,8 @@ export const HomeCameraSection = ({
     width: number;
     height: number;
   } | null>(null);
+  const [isEditingQuote, setIsEditingQuote] = useState(false);
+  const [quoteDraft, setQuoteDraft] = useState(dailyQuoteText ?? "");
   const chrome = useMemo(
     () => getHomeVibeFeedChrome(cardPalette),
     [cardPalette],
@@ -138,10 +149,50 @@ export const HomeCameraSection = ({
   );
 
   const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating);
+  const quoteEditValidation = useMemo(
+    () => validateEditableQuote(quoteDraft),
+    [quoteDraft],
+  );
   const selectedRewriteTool =
     selectedAiTool === "future" ? null : selectedAiTool;
   const pendingRewriteTool =
     pendingAiTool === "future" ? null : pendingAiTool;
+
+  useEffect(() => {
+    if (!isEditingQuote) {
+      setQuoteDraft(dailyQuoteText ?? "");
+    }
+  }, [dailyQuoteText, isEditingQuote]);
+
+  const openQuoteEditor = () => {
+    if (!dailyQuoteText) {
+      return;
+    }
+    setQuoteDraft(dailyQuoteText);
+    setIsEditingQuote(true);
+  };
+
+  const handleCancelQuoteEdit = () => {
+    setQuoteDraft(dailyQuoteText ?? "");
+    setIsEditingQuote(false);
+  };
+
+  const handleSaveQuoteEdit = () => {
+    if (!dailyQuoteText) {
+      setIsEditingQuote(false);
+      return;
+    }
+    if (quoteEditValidation.sanitizedQuote === dailyQuoteText.trim()) {
+      setIsEditingQuote(false);
+      return;
+    }
+    if (!quoteEditValidation.isValid) {
+      onInvalidQuoteEdit(quoteEditValidation.reason ?? "Invalid quote");
+      return;
+    }
+    onSubmitQuoteEdit(quoteEditValidation.sanitizedQuote);
+    setIsEditingQuote(false);
+  };
 
   const handleCameraFlipPress = () => {
     flipIconRotation.value = withTiming(flipIconRotation.value + 180, {
@@ -242,7 +293,7 @@ export const HomeCameraSection = ({
                 style={{ borderColor: chrome.cornerColor }}
               />
             {showQuoteOverlay ? (
-              <View className="pointer-events-none absolute inset-0">
+              <View className="absolute inset-0">
                 <View className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-3">
                   <View className="mb-2 flex-row items-center justify-between">
                     <View className="flex-row items-center">
@@ -278,20 +329,83 @@ export const HomeCameraSection = ({
                       </Text>
                     </View>
                   </View>
-                  <View
+                  <Pressable
+                    onPress={openQuoteEditor}
                     className="rounded-2xl px-4 py-3"
                     style={{
                       backgroundColor: "rgba(255,255,255,0.16)",
                       borderWidth: 1,
                       borderColor: "rgba(255,255,255,0.28)",
-                    }}>
-                    <Text
-                      className="text-center font-semibold"
-                      style={{ fontSize: fontSizeValue, color: quoteTextColor }}
-                      numberOfLines={4}>
-                      {dailyQuoteText}
-                    </Text>
-                  </View>
+                    }}
+                    disabled={isEditingQuote}
+                  >
+                    {isEditingQuote ? (
+                      <View>
+                        <TextInput
+                          autoFocus
+                          value={quoteDraft}
+                          onChangeText={setQuoteDraft}
+                          multiline
+                          textAlignVertical="top"
+                          className="min-h-[96px] font-semibold text-white"
+                          style={{ fontSize: fontSizeValue, color: quoteTextColor }}
+                        />
+                        <View className="mt-3 flex-row items-center justify-between gap-3">
+                          <Text
+                            className="flex-1 text-xs leading-4"
+                            style={{
+                              color: quoteEditValidation.isValid
+                                ? "rgba(255,255,255,0.7)"
+                                : "#FCA5A5",
+                            }}>
+                            {quoteEditValidation.isValid
+                              ? strings.home.aiTools.editQuoteReady
+                              : quoteEditValidation.reason}
+                          </Text>
+                          <Text className="text-xs font-semibold text-white/70">
+                            {quoteEditValidation.characterCount}/{MAX_REWRITE_REVIEW_CHARACTERS}
+                          </Text>
+                        </View>
+                        <View className="mt-3 flex-row justify-end gap-2">
+                          <Pressable
+                            onPress={handleCancelQuoteEdit}
+                            className="rounded-full border border-white/20 px-3 py-2"
+                            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+                            <Text className="text-xs font-semibold text-white">
+                              {strings.home.aiTools.editQuoteCancel}
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={handleSaveQuoteEdit}
+                            className="rounded-full bg-amber-400 px-3 py-2"
+                            style={({ pressed }) => ({
+                              opacity:
+                                quoteEditValidation.isValid || quoteEditValidation.sanitizedQuote === (dailyQuoteText ?? "").trim()
+                                  ? pressed
+                                    ? 0.88
+                                    : 1
+                                  : 0.5,
+                            })}>
+                            <Text className="text-xs font-bold text-black">
+                              {strings.home.aiTools.editQuoteSave}
+                            </Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    ) : (
+                      <>
+                        <Text
+                          className="font-semibold"
+                          style={{ fontSize: fontSizeValue, color: quoteTextColor }}
+                          numberOfLines={4}>
+                          {dailyQuoteText}
+                        </Text>
+                        <Text className="mt-2 text-left text-[11px] font-medium text-white/60">
+                          {strings.home.aiTools.editQuoteHint}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
                 </View>
               </View>
             ) : null}

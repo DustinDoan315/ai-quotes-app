@@ -315,6 +315,27 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     showToast(strings.camera.info.photoSelected, "success");
   }
 
+  function handleSubmitQuoteEdit(text: string) {
+    const currentQuote = useQuoteStore.getState().dailyQuote;
+    if (!currentQuote) {
+      return;
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    useQuoteStore.getState().setDailyQuote({
+      ...currentQuote,
+      text: trimmed,
+    });
+  }
+
+  function handleInvalidQuoteEdit(message: string) {
+    showToast(message, "error");
+  }
+
   const zoomFactor = zoomToFactor(zoom);
   const activePreset = activePresetForFactor(zoomFactor);
 
@@ -348,6 +369,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     quoteColorScheme,
     setQuoteFontSize,
     setQuoteColorScheme,
+    handleSubmitQuoteEdit,
+    handleInvalidQuoteEdit,
     dailyQuoteText: dailyQuote?.text ?? null,
     facing,
   };

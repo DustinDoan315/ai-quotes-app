@@ -47,11 +47,11 @@ const T = {
 } as const;
 
 const baseButton = {
-  borderRadius: 16,
+  borderRadius: 18,
   paddingVertical: 14,
-  paddingHorizontal: 20,
+  paddingHorizontal: 34,
   minHeight: 56,
-  minWidth: 116,
+  minWidth: 148,
   justifyContent: "center" as const,
   alignItems: "center" as const,
   overflow: "hidden" as const,
@@ -63,13 +63,13 @@ function chipAppearance(isActive: boolean, isPending: boolean) {
       wrap: {
         ...baseButton,
         ...shadowStrong,
-        backgroundColor: "rgba(245,158,11,0.14)",
-        borderWidth: 2,
+        backgroundColor: T.amber500,
+        borderWidth: 1,
         borderColor: T.amber200,
       },
-      highlight: "rgba(253,230,138,0.12)",
+      highlight: T.amber500,
       fg: T.slate50,
-      iconBg: "rgba(253,230,138,0.16)",
+      iconBg: T.amber600,
     };
   }
   if (isPending) {
@@ -143,13 +143,18 @@ function AiToolButton({
           top: 0,
           left: 0,
           right: 0,
-          height: "54%",
+          height: "100%",
           backgroundColor: a.highlight,
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
+          borderRadius: 18,
         }}
       />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          paddingEnd: 12,
+        }}>
         <View
           style={{
             width: 30,

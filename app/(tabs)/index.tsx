@@ -6,7 +6,6 @@ import { HomeActionBar } from "@/features/home/HomeActionBar";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
 import { HomeEmojiOverlay } from "@/features/home/HomeEmojiOverlay";
 import { HomeFeedFlow } from "@/features/home/HomeFeedFlow";
-import { RewriteQuoteReviewModal } from "@/features/home/RewriteQuoteReviewModal";
 import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeAiReview } from "@/features/home/useHomeAiReview";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
@@ -88,6 +87,8 @@ export default function HomeScreen() {
     quoteColorScheme,
     setQuoteFontSize,
     setQuoteColorScheme,
+    handleSubmitQuoteEdit,
+    handleInvalidQuoteEdit,
   } = useHomeCamera({
     onPhotoSaved: () => {
       refreshSilently();
@@ -147,13 +148,10 @@ export default function HomeScreen() {
     (!!selectedImageUri && !hasSavedCurrentPhoto);
   const {
     aiResult,
-    rewriteDraft,
     selectedAiTool,
     pendingAiTool,
     clearAiToolState,
     handleRewriteQuote,
-    handleApproveRewrite,
-    handleCancelRewrite,
     isAiToolLoading,
     aiToolsLoadingLabel,
   } = useHomeAiReview(dailyQuoteText);
@@ -181,8 +179,8 @@ export default function HomeScreen() {
   });
   const flatListExtraData = useMemo(
     () =>
-      `${selectedAiTool ?? ""}|${pendingAiTool ?? ""}|${aiResult?.title ?? ""}|${rewriteDraft ? "rw" : ""}`,
-    [selectedAiTool, pendingAiTool, aiResult?.title, rewriteDraft],
+      `${selectedAiTool ?? ""}|${pendingAiTool ?? ""}|${aiResult?.title ?? ""}`,
+    [selectedAiTool, pendingAiTool, aiResult?.title],
   );
 
   function handleOpenMemories() {
@@ -230,12 +228,6 @@ export default function HomeScreen() {
       <MilestoneCelebration
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
-      />
-      <RewriteQuoteReviewModal
-        visible={rewriteDraft !== null}
-        initialText={rewriteDraft?.text ?? ""}
-        onApprove={handleApproveRewrite}
-        onCancel={handleCancelRewrite}
       />
       {justSavedMemory && (
         <View className="absolute left-0 right-0 top-10 z-10 items-center">
@@ -306,6 +298,8 @@ export default function HomeScreen() {
               quoteColorScheme,
               onChangeQuoteFontSize: setQuoteFontSize,
               onChangeQuoteColorScheme: setQuoteColorScheme,
+              onSubmitQuoteEdit: handleSubmitQuoteEdit,
+              onInvalidQuoteEdit: handleInvalidQuoteEdit,
               authorName,
               authorAvatarUrl,
               onCameraReady: handleCameraReady,
