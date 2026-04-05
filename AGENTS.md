@@ -36,6 +36,10 @@ Recommended workflow:
 2. Hand scoped implementation slices to Cursor or another worker.
 3. Return to Codex for integration, review, and verification.
 
+Default handoff template:
+
+- Use `tasks/codex-to-cursor-handoff-template.md` when Codex prepares a scoped task for Cursor.
+
 ## Ownership Model
 
 ### Codex Lead
@@ -203,3 +207,7 @@ When Codex hands work to another agent, use this structure:
 - Notes on risks:
 
 Keep handoffs concrete and bounded so workers can run in parallel without overlapping.
+
+Reference:
+
+- `tasks/codex-to-cursor-handoff-template.md` is the default copy-paste template for Codex to Cursor handoffs.

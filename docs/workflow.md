@@ -26,8 +26,9 @@ Use Cursor when:
 1. Define scope and acceptance criteria.
 2. Decide which ownership areas are involved.
 3. Split into worker-safe subtasks by file boundary.
-4. Implement in parallel where possible.
-5. Integrate and verify in Codex.
+4. Prepare the worker handoff using `tasks/codex-to-cursor-handoff-template.md`.
+5. Implement in parallel where possible.
+6. Integrate and verify in Codex.
 
 ## Preferred Split for This Repo
 
@@ -48,3 +49,7 @@ Every worker handoff should include:
 - acceptance criteria
 
 This is what keeps parallel edits fast and safe.
+
+Default template:
+
+- Use `tasks/codex-to-cursor-handoff-template.md` for Codex-to-Cursor task handoffs.
