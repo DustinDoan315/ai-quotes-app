@@ -7,9 +7,9 @@ describe("createSubscriptionGuards", () => {
 
   it("blocks AI at free daily limit", () => {
     const g = createSubscriptionGuards(freeSnapshot);
-    expect(g.canGenerateQuote(3).allowed).toBe(false);
-    expect(g.canGenerateQuote(3).reason).toBe("ai_limit");
-    expect(g.canGenerateQuote(2).allowed).toBe(true);
+    expect(g.canGenerateQuote(2).allowed).toBe(false);
+    expect(g.canGenerateQuote(2).reason).toBe("ai_limit");
+    expect(g.canGenerateQuote(1).allowed).toBe(true);
   });
 
   it("does not block AI for pro at high count", () => {
@@ -19,8 +19,8 @@ describe("createSubscriptionGuards", () => {
 
   it("blocks export at free daily limit", () => {
     const g = createSubscriptionGuards(freeSnapshot);
-    expect(g.canExportQuote(3).allowed).toBe(false);
-    expect(g.canExportQuote(3).reason).toBe("export_limit");
+    expect(g.canExportQuote(2).allowed).toBe(false);
+    expect(g.canExportQuote(2).reason).toBe("export_limit");
   });
 
   it("blocks premium theme for free", () => {
