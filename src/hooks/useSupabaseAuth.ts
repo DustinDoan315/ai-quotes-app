@@ -3,12 +3,12 @@ import { syncUserProfile } from "@/features/auth/authService";
 import { supabase } from "@/config/supabase";
 import {
   getCurrentUserProfile,
+  sendEmailOtp as sendEmailOtpApi,
   signIn,
-  signInWithPhoneOtp as signInWithPhoneOtpApi,
   signOut,
   signUp,
   updateUserProfile,
-  verifyPhoneOtp as verifyPhoneOtpApi,
+  verifyEmailOtp as verifyEmailOtpApi,
   type UserProfile,
 } from "@/services/supabase-auth";
 import type { Session, User } from "@supabase/supabase-js";
@@ -26,8 +26,8 @@ export interface UseAuthReturn {
   ) => Promise<{ error: unknown }>;
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<{ error: unknown }>;
-  signInWithPhoneOtp: (phone: string) => Promise<{ error: unknown }>;
-  verifyPhoneOtp: (phone: string, token: string) => Promise<{ error: unknown }>;
+  sendEmailOtp: (email: string) => Promise<{ error: unknown }>;
+  verifyEmailOtp: (email: string, token: string) => Promise<{ error: unknown }>;
   updateProfile: (updates: {
     username?: string;
     display_name?: string;
@@ -96,13 +96,13 @@ export function useAuth(): UseAuthReturn {
     return { error };
   };
 
-  const handleSignInWithPhoneOtp = async (phone: string) => {
-    const { error } = await signInWithPhoneOtpApi(phone);
+  const handleSendEmailOtp = async (email: string) => {
+    const { error } = await sendEmailOtpApi(email);
     return { error };
   };
 
-  const handleVerifyPhoneOtp = async (phone: string, token: string) => {
-    const { session: newSession, user: newUser, error } = await verifyPhoneOtpApi(phone, token);
+  const handleVerifyEmailOtp = async (email: string, token: string) => {
+    const { session: newSession, user: newUser, error } = await verifyEmailOtpApi(email, token);
     if (!error && newSession && newUser) {
       await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
@@ -147,10 +147,9 @@ export function useAuth(): UseAuthReturn {
     signUp: handleSignUp,
     signIn: handleSignIn,
     signOut: handleSignOut,
-    signInWithPhoneOtp: handleSignInWithPhoneOtp,
-    verifyPhoneOtp: handleVerifyPhoneOtp,
+    sendEmailOtp: handleSendEmailOtp,
+    verifyEmailOtp: handleVerifyEmailOtp,
     updateProfile: handleUpdateProfile,
     refreshProfile,
   };
 }
-

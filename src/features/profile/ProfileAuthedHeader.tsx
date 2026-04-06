@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { strings } from "@/theme/strings";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 interface ProfileAuthedHeaderProps {
@@ -44,7 +45,7 @@ export function ProfileAuthedHeader({
             onPress={onCancelEdit}
             disabled={saving}
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="text-base text-white/60">Cancel</Text>
+            <Text className="text-base text-white/60">{strings.profile.cancel}</Text>
           </Pressable>
           <Pressable
             onPress={onSave}
@@ -55,7 +56,7 @@ export function ProfileAuthedHeader({
             {saving ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text className="text-base font-medium text-white">Save</Text>
+              <Text className="text-base font-medium text-white">{strings.profile.save}</Text>
             )}
           </Pressable>
         </View>
@@ -64,7 +65,7 @@ export function ProfileAuthedHeader({
           onPress={onStartEdit}
           className="shrink-0"
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-          <Text className="text-base text-white/80">Edit</Text>
+          <Text className="text-base text-white/80">{strings.profile.edit}</Text>
         </Pressable>
       )}
     </View>

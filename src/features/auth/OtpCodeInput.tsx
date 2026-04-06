@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
+import { normalizeOtpDigits } from "@/utils/otp";
 import { Pressable, Text, TextInput, View } from "react-native";
-import { normalizeOtpDigits } from "@/utils/phoneOtp";
 
 interface OtpCodeInputProps {
   value: string;
@@ -40,7 +40,7 @@ export function OtpCodeInput({ value, disabled, autoFocus, onChange }: OtpCodeIn
         editable={!disabled}
         keyboardType="number-pad"
         maxLength={6}
-        autoComplete="sms-otp"
+        autoComplete="one-time-code"
         textContentType="oneTimeCode"
         style={{ position: "absolute", opacity: 0, width: 1, height: 1 }}
       />
@@ -64,4 +64,3 @@ export function OtpCodeInput({ value, disabled, autoFocus, onChange }: OtpCodeIn
     </View>
   );
 }
-

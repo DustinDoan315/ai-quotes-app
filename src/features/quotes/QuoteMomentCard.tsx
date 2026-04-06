@@ -16,6 +16,7 @@ export interface QuoteMomentCardProps {
   authorName: string;
   authorAvatarUrl: string | null;
   counterLabel?: string | null;
+  verticalAlign?: "center" | "top";
 }
 
 const FALLBACK_ASPECT = 3 / 4;
@@ -26,6 +27,7 @@ export const QuoteMomentCard = ({
   authorName,
   authorAvatarUrl,
   counterLabel,
+  verticalAlign = "center",
 }: QuoteMomentCardProps) => {
   const profile = useUserStore((s) => s.profile);
   const guestId = useUserStore((s) => s.guestId);
@@ -124,7 +126,11 @@ export const QuoteMomentCard = ({
   return (
     <View
       style={{ height: screenHeight }}
-      className="items-center justify-center py-6">
+      className={
+        verticalAlign === "top"
+          ? "items-center justify-start pt-6 pb-6"
+          : "items-center justify-center py-6"
+      }>
       <View className="relative w-full max-w-md items-center">
         <View ref={captureRefView} collapsable={false} className="w-full">
           {cardInner}

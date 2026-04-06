@@ -1,10 +1,11 @@
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView } from "expo-camera";
+import { useIsFocused } from "@react-navigation/native";
 import { Gesture } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAIStore } from "@/features/ai/aiStore";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCameraPermission } from "@/hooks/useCameraPermission";
 import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
 import { useQuoteStore } from "@/appState/quoteStore";
@@ -19,6 +20,7 @@ import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
 import { strings } from "@/theme/strings";
+import { AppState } from "react-native";
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
@@ -62,8 +64,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const onPhotoSaved = options?.onPhotoSaved;
   const onMilestoneReached = options?.onMilestoneReached;
   const homeVibeKey = options?.homeVibeKey;
+  const isFocused = useIsFocused();
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
+  const [cameraViewKey, setCameraViewKey] = useState(0);
+  const [isAppActive, setIsAppActive] = useState(AppState.currentState === "active");
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(
@@ -80,6 +85,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const cameraRef = useRef<CameraView | null>(null);
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
+  const wasCameraActiveRef = useRef(false);
   const generationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
@@ -91,6 +97,30 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const addMemory = useMemoryStore((state) => state.addMemory);
 
   zoomRef.current = zoom;
+  const isCameraActive = isFocused && isAppActive && selectedImageUri === null;
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      setIsAppActive(nextState === "active");
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    const wasActive = wasCameraActiveRef.current;
+    wasCameraActiveRef.current = isCameraActive;
+
+    if (!isCameraActive) {
+      setCameraReady(false);
+      return;
+    }
+
+    if (!wasActive) {
+      setCameraReady(false);
+      setCameraViewKey((current) => current + 1);
+    }
+  }, [isCameraActive]);
 
   const captureZoomStart = useCallback(() => {
     zoomStartRef.current = zoomRef.current;
@@ -131,6 +161,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   function handleCameraReady() {
     setCameraReady(true);
+  }
+
+  function handleCameraMountError(error: { message: string }) {
+    console.error("Camera mount error", error);
+    setCameraReady(false);
   }
 
   function clearSelectedImage() {
@@ -192,7 +227,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   }
 
   async function handleCapture() {
-    if (!cameraRef.current || !cameraReady || isCapturing) {
+    if (!cameraRef.current || !cameraReady || !isCameraActive || isCapturing) {
       return;
     }
     setIsCapturing(true);
@@ -358,8 +393,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     isGranted,
     requestPermission,
     cameraRef,
+    cameraViewKey,
+    isCameraActive,
     cameraReady,
     handleCameraReady,
+    handleCameraMountError,
     isCapturing,
     isSavingPhoto,
     selectedImageUri,

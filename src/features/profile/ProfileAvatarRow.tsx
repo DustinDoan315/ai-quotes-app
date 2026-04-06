@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { strings } from "@/theme/strings";
 import { Image, Pressable, Text, View } from "react-native";
 
 interface ProfileAvatarRowProps {
@@ -39,7 +40,9 @@ export function ProfileAvatarRow({
         {username ? (
           <Text className="text-sm text-white/60">@{username}</Text>
         ) : null}
-        <Text className="mt-1 text-xs text-white/50">Tap the avatar to update.</Text>
+        <Text className="mt-1 text-xs text-white/50">
+          {strings.profile.tapAvatarToUpdate}
+        </Text>
       </View>
     </View>
   );

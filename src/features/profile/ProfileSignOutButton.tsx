@@ -1,3 +1,4 @@
+import { strings } from "@/theme/strings";
 import { Pressable, Text } from "react-native";
 
 interface ProfileSignOutButtonProps {
@@ -11,7 +12,7 @@ export function ProfileSignOutButton({ onPress }: ProfileSignOutButtonProps) {
       className="mt-2 rounded-2xl border border-white/20 bg-white/5 py-3.5"
       style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
       <Text className="text-center text-base font-medium text-white/85">
-        Sign out
+        {strings.profile.signOut}
       </Text>
     </Pressable>
   );

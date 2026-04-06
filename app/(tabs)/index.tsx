@@ -62,8 +62,11 @@ export default function HomeScreen() {
     isGranted,
     requestPermission,
     cameraRef,
+    cameraViewKey,
+    isCameraActive,
     cameraReady,
     handleCameraReady,
+    handleCameraMountError,
     isCapturing,
     isSavingPhoto,
     selectedImageUri,
@@ -283,6 +286,8 @@ export default function HomeScreen() {
             }}
             cameraSectionProps={{
               cameraRef,
+              cameraViewKey,
+              cameraActive: isCameraActive,
               pinchGesture,
               selectedImageUri,
               canDeleteImage: !hasSavedCurrentPhoto,
@@ -303,6 +308,7 @@ export default function HomeScreen() {
               authorName,
               authorAvatarUrl,
               onCameraReady: handleCameraReady,
+              onCameraMountError: handleCameraMountError,
               onZoomPresetPress: handleZoomPreset,
               onToggleFacing: handleToggleFacing,
               onClearImage: handleClearCurrentImage,
@@ -338,7 +344,7 @@ export default function HomeScreen() {
         onReact={handleReact}
         isGenerating={isGenerating}
         isCapturing={isCapturing}
-        cameraReady={cameraReady}
+        cameraReady={cameraReady && isCameraActive}
         hasImage={!!selectedImageUri}
         canSave={!hasSavedCurrentPhoto}
         isSaving={isSavingPhoto}

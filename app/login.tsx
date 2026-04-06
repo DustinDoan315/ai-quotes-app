@@ -1,7 +1,8 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { EmailAddressRow } from "@/features/auth/EmailAddressRow";
 import { OtpCodeInput } from "@/features/auth/OtpCodeInput";
-import { PhoneNumberRow } from "@/features/auth/PhoneNumberRow";
-import { usePhoneOtpLogin } from "@/features/auth/usePhoneOtpLogin";
+import { useEmailOtpLogin } from "@/features/auth/useEmailOtpLogin";
+import { strings } from "@/theme/strings";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import {
@@ -20,41 +21,46 @@ export default function LoginScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ returnTo?: string }>();
   const returnTo = params.returnTo ?? "/(tabs)";
-  const { signInWithPhoneOtp, verifyPhoneOtp } = useAuth();
+  const { sendEmailOtp, verifyEmailOtp } = useAuth();
   const {
     step,
-    countryCode,
-    formattedNationalPhone,
+    emailInput,
+    normalizedEmail,
+    verificationEmail,
     tokenDigits,
     sending,
     verifying,
     resending,
     error,
     resendRemaining,
-    displayE164,
     canSend,
     canVerify,
     isBusy,
-    setCountryCode,
-    setNationalPhoneInput,
+    setEmailInput,
     setOtp,
     sendCode,
     verifyCode,
     resendCode,
-    backToPhone,
-  } = usePhoneOtpLogin({
-    signInWithPhoneOtp,
-    verifyPhoneOtp,
+    backToEmail,
+  } = useEmailOtpLogin({
+    sendEmailOtp,
+    verifyEmailOtp,
     onVerified: () => router.replace(returnTo as never),
   });
 
-  const backLabel = useMemo(() => (step === "otp" ? "Wrong number?" : "Back"), [step]);
-  const title = useMemo(() => (step === "phone" ? "Welcome" : "Enter the code"), [step]);
+  const backLabel = useMemo(
+    () => (step === "otp" ? strings.auth.wrongEmail : strings.auth.back),
+    [step],
+  );
+  const title = useMemo(
+    () => (step === "email" ? strings.auth.welcomeTitle : strings.auth.enterCodeTitle),
+    [step],
+  );
   const subtitle = useMemo(() => {
-    if (step === "phone") return "Get your daily personalized quotes.";
-    if (displayE164) return `We sent a 6-digit code to ${displayE164}.`;
-    return "We sent a 6-digit code. Enter it below.";
-  }, [displayE164, step]);
+    if (step === "email") return strings.auth.welcomeSubtitle;
+    if (verificationEmail) return strings.auth.codeSentTo(verificationEmail);
+    return strings.auth.codeSentGeneric;
+  }, [step, verificationEmail]);
 
   return (
     <KeyboardAvoidingView
@@ -66,7 +72,7 @@ export default function LoginScreen() {
           <Pressable
             onPress={() =>
               step === "otp"
-                ? backToPhone()
+                ? backToEmail()
                 : goBackOrReplace(router, returnTo as never)
             }
             className="self-start"
@@ -82,18 +88,20 @@ export default function LoginScreen() {
             <Text className="text-2xl font-semibold text-white">{title}</Text>
             <Text className="mt-2 text-sm text-white/60">{subtitle}</Text>
 
-            {step === "phone" ? (
+            {step === "email" ? (
               <>
-                <PhoneNumberRow
-                  countryCode={countryCode}
-                  formattedValue={formattedNationalPhone}
+                <EmailAddressRow
+                  value={emailInput}
                   disabled={isBusy}
-                  onSelectCountry={setCountryCode}
-                  onChangeText={setNationalPhoneInput}
+                  onChangeText={setEmailInput}
                 />
 
                 <Text className="mt-3 text-xs text-white/55">
-                  {displayE164 ? `We’ll send a verification code to ${displayE164}.` : "We’ll send a verification code."}
+                  {resendRemaining > 0
+                    ? strings.auth.resendIn(resendRemaining)
+                    : normalizedEmail
+                      ? strings.auth.verificationTo(normalizedEmail)
+                      : strings.auth.verificationGeneric}
                 </Text>
 
                 <Pressable
@@ -106,12 +114,14 @@ export default function LoginScreen() {
                   {sending ? (
                     <ActivityIndicator color="#000" />
                   ) : (
-                    <Text className="text-center text-base font-semibold text-black">Continue</Text>
+                    <Text className="text-center text-base font-semibold text-black">
+                      {strings.auth.continueCta}
+                    </Text>
                   )}
                 </Pressable>
 
                 <Text className="mt-3 text-center text-[11px] leading-4 text-white/40">
-                  By continuing, you agree to receive SMS messages for verification.
+                  {strings.auth.verificationConsent}
                 </Text>
 
                 <Pressable
@@ -119,7 +129,9 @@ export default function LoginScreen() {
                   disabled={isBusy}
                   className="mt-4"
                   style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                  <Text className="text-center text-sm text-white/70">Continue as guest</Text>
+                  <Text className="text-center text-sm text-white/70">
+                    {strings.auth.continueAsGuest}
+                  </Text>
                 </Pressable>
               </>
             ) : (
@@ -141,7 +153,9 @@ export default function LoginScreen() {
                   {verifying ? (
                     <ActivityIndicator color="#000" />
                   ) : (
-                    <Text className="text-center text-base font-semibold text-black">Verify</Text>
+                    <Text className="text-center text-base font-semibold text-black">
+                      {strings.auth.verifyCta}
+                    </Text>
                   )}
                 </Pressable>
 
@@ -153,17 +167,23 @@ export default function LoginScreen() {
                       opacity: resendRemaining > 0 || resending || sending || verifying ? 0.5 : pressed ? 0.8 : 1,
                     })}>
                     <Text className="text-sm text-white/70">
-                      {resendRemaining > 0 ? `Resend in ${resendRemaining}s` : resending ? "Resending…" : "Resend code"}
+                      {resendRemaining > 0
+                        ? strings.auth.resendIn(resendRemaining)
+                        : resending
+                          ? strings.auth.resending
+                          : strings.auth.resendCode}
                     </Text>
                   </Pressable>
                 </View>
 
                 <Pressable
-                  onPress={backToPhone}
+                  onPress={backToEmail}
                   disabled={isBusy}
                   className="mt-4"
                   style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                  <Text className="text-center text-sm text-white/70">Edit phone number</Text>
+                  <Text className="text-center text-sm text-white/70">
+                    {strings.auth.editEmail}
+                  </Text>
                 </Pressable>
               </>
             )}

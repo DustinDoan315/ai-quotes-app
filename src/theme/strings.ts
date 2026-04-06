@@ -1,6 +1,12 @@
+import { useUserStore, type AppLanguagePreference } from "@/appState/userStore";
 import { APP_BRAND_MARK } from "@/theme/appBrand";
+import { getDeviceAppLanguage } from "@/utils/appLanguage";
 
-export const strings = {
+const en = {
+  languages: {
+    vi: "Vietnamese",
+    en: "English",
+  },
   camera: {
     errors: {
       noPhotoToSave: "No photo to save",
@@ -23,6 +29,39 @@ export const strings = {
     emptyForDay: "No memories for this day yet.",
     friendsPlaceholder: "Friends' memories will appear here.",
     publicPlaceholder: "Public memories will appear here.",
+  },
+  auth: {
+    signInWithEmail: "Sign in with email",
+    welcomeTitle: "Welcome",
+    enterCodeTitle: "Enter the code",
+    welcomeSubtitle: "Get your daily personalized quotes.",
+    codeSentTo: (email: string) => `We sent a 6-digit code to ${email}.`,
+    codeSentGeneric: "We sent a 6-digit code. Enter it below.",
+    verificationTo: (email: string) =>
+      `We'll send a verification code to ${email}.`,
+    verificationGeneric: "We'll send a verification code.",
+    continueCta: "Continue",
+    continueAsGuest: "Continue as guest",
+    verifyCta: "Verify",
+    resendIn: (seconds: number) => `Resend in ${seconds}s`,
+    resending: "Resending…",
+    resendCode: "Resend code",
+    editEmail: "Edit email address",
+    wrongEmail: "Wrong email?",
+    back: "Back",
+    emailPlaceholder: "Email address",
+    verificationConsent:
+      "By continuing, you agree to receive email messages for verification.",
+    errors: {
+      invalidEmail:
+        "That email address doesn't look valid. Double-check it and try again.",
+      expired: "That code expired. Request a new one and try again.",
+      tooMany: "Too many attempts. Please wait a bit and try again.",
+      network: "Network issue. Check your connection and try again.",
+      rate: "Please wait 60 seconds before trying again.",
+      invalidCode: "That code doesn't match. Try again.",
+      fallback: "Something went wrong. Please try again.",
+    },
   },
   home: {
     cameraPermissionRequired: "We need camera access to take photos.",
@@ -91,8 +130,85 @@ export const strings = {
       shareMomentA11y: "Share this moment with branding",
     },
   },
+  friends: {
+    title: "Friends",
+    signInToInvite: "Sign in to add and invite friends.",
+    inviteFriendsTitle: "Invite friends",
+    inviteFriendsBody:
+      "Share your link so friends can add you and trade quotes.",
+    shareLink: "Share link",
+    sharing: "Sharing…",
+    noFriendsYet: "No friends yet. Share your invite link so friends can add you.",
+    yourFriends: (count: number) => `Your friends (${count})`,
+    inviteCta: "Invite",
+    friendFallback: "Friend",
+    shareMessage: (appName: string, inviteUrl: string) =>
+      `Add me on ${appName} – ${inviteUrl}`,
+    shareTitle: (appName: string) => `Invite to ${appName}`,
+    closeQrA11y: "Close invite QR",
+    yourInviteQr: "Your invite QR",
+    qrHelp: "Let a friend scan this to connect.",
+  },
+  invite: {
+    connecting: "Connecting…",
+    success: "You're now connected. Taking you to Friends…",
+    invalid: "Invalid or expired invite. Going to Friends…",
+    self: "That's your invite code. Share it with a friend to connect.",
+    error: "Something went wrong. Going back home…",
+    needLogin:
+      "Sign in to accept this invite and connect with your friend.",
+  },
+  profile: {
+    title: "Profile",
+    noName: "No name",
+    profileUpdated: "Profile updated",
+    avatarUpdated: "Avatar updated",
+    failedToSave: "Failed to save",
+    failedToUploadAvatar: "Failed to upload avatar.",
+    failedToSaveAvatar: "Failed to save avatar",
+    failedToSignOut: "Failed to sign out",
+    photoAccessRequired: "Please allow photo access to update your avatar.",
+    displayNameLabel: "Display name",
+    displayNamePlaceholder: "Your name",
+    guestDisplayNameLabel: "Display name (saved on this device)",
+    guestDisplayNamePlaceholder: "Add a name",
+    displayNameRequired: "Name is required.",
+    displayNameTooLong: "Name must be 40 characters or less.",
+    bioLabel: "Bio",
+    bioPlaceholder: "A short bio",
+    yourStyle: "Your style",
+    personalizedQuotes: "Personalized quotes",
+    signInHint: "Sign in to save your profile and invite friends.",
+    inviteFriends: "Invite friends",
+    appLanguage: "App language",
+    quoteLanguage: "Quote language",
+    email: "Email",
+    verified: "Verified",
+    notVerified: "Not verified",
+    tapAvatarToUpdate: "Tap the avatar to update.",
+    signOut: "Sign out",
+    edit: "Edit",
+    save: "Save",
+    cancel: "Cancel",
+    dailyReminder: "Daily reminder",
+    dailyReminderDescription: "One notification per day at the time you pick.",
+    remindMe: "Remind me",
+    time: "Time",
+    done: "Done",
+    reminderPermissionHelp:
+      "Turn on notifications in system settings to get your daily reminder.",
+    identity: {
+      label: "Identity",
+      disciplined: "The Disciplined One",
+      quiet: "The Quiet Thinker",
+      rebuilder: "The Rebuilder",
+      growing: "Growing Through Moments",
+      statsSummary: (streak: number, memories: number) =>
+        `Streak: ${streak} day${streak === 1 ? "" : "s"} · Memories: ${memories}`,
+    },
+  },
   subscription: {
-    aiLimitReachedTitle: "You reached today’s free AI limit.",
+    aiLimitReachedTitle: "You reached today's free AI limit.",
     aiLimitReachedBody: "Upgrade to Pro for unlimited quote generations.",
     personaLockedTitle: "This persona needs Pro.",
     personaLockedBody: "Upgrade to unlock advanced persona controls.",
@@ -102,9 +218,9 @@ export const strings = {
     paywallBullet2: "Export and share quote cards without limits.",
     paywallBullet3: "Unlock every theme and remove the watermark.",
     aiLimitPaywallBody:
-      "You’ve used today’s free generations. Pro unlocks unlimited AI quotes so you never hit a wall.",
+      "You've used today's free generations. Pro unlocks unlimited AI quotes so you never hit a wall.",
     exportLimitPaywallBody:
-      "You’ve reached today’s export limit. Pro lets you export and share as many cards as you want.",
+      "You've reached today's export limit. Pro lets you export and share as many cards as you want.",
     premiumThemePaywallBody:
       "Pro opens every premium layout and style so your cards always look polished.",
     personaPaywallBody:
@@ -131,7 +247,7 @@ export const strings = {
     heroEyebrow: "Unlock everything",
     choosePlanHeader: "Choose your plan",
     noPlansAvailable:
-      "We couldn’t load subscription plans. Check your connection and try again, or open the App Store / Play Store and try later.",
+      "We couldn't load subscription plans. Check your connection and try again, or open the App Store / Play Store and try later.",
     primaryCta: "Start Pro",
     selectPlanCta: "Choose a plan to continue",
     processingCta: "Processing…",
@@ -139,12 +255,12 @@ export const strings = {
     maybeLaterCta: "Not now",
     bestValueTag: "Best value",
     alreadyProToast: "Pro is already active on this account.",
-    purchaseSuccessToast: "Subscription active — you’re on Pro now.",
-    purchaseFailedToast: "We couldn’t complete the purchase. Please try again.",
+    purchaseSuccessToast: "Subscription active — you're on Pro now.",
+    purchaseFailedToast: "We couldn't complete the purchase. Please try again.",
     purchaseVerifyLater:
-      "Purchase received. If Pro doesn’t unlock in a minute, tap Restore purchases.",
+      "Purchase received. If Pro doesn't unlock in a minute, tap Restore purchases.",
     restoreSuccessToast: "Pro restored — your subscription is active.",
-    restoreFailedToast: "We couldn’t restore purchases. Please try again.",
+    restoreFailedToast: "We couldn't restore purchases. Please try again.",
     restoreNoActiveToast: "No active subscription found for this account.",
     subscriptionTermsLink: "Terms of Use",
     privacyPolicyLink: "Privacy Policy",
@@ -152,21 +268,344 @@ export const strings = {
       "Payments are processed by Apple or Google. You can cancel anytime in Settings.",
     statusLoadingPlansTitle: "Connecting to the store…",
     statusLoadingPlansBody:
-      "We’re fetching live prices and plans from Apple or Google. This usually takes a few seconds.",
+      "We're fetching live prices and plans from Apple or Google. This usually takes a few seconds.",
     statusPurchasingTitle: "Completing your purchase…",
     statusPurchasingBody:
       "Stay on this screen. You may be asked to confirm with Face ID, Touch ID, or your store password.",
     statusRestoringTitle: "Restoring your purchases…",
     statusRestoringBody:
-      "We’re checking your account for an active subscription. This may take a moment.",
+      "We're checking your account for an active subscription. This may take a moment.",
     statusErrorTitle: "Something went wrong",
     retryLoadPlans: "Try again",
-    ctaHelperIos: "You’ll confirm with Face ID, Touch ID, or your Apple ID.",
-    ctaHelperAndroid: "You’ll confirm with your Google Play account on the next screen.",
+    ctaHelperIos: "You'll confirm with Face ID, Touch ID, or your Apple ID.",
+    ctaHelperAndroid:
+      "You'll confirm with your Google Play account on the next screen.",
     contextAiLimitTitle: "Generate quotes anytime",
     contextExportLimitTitle: "Export without limits",
     contextPremiumThemeTitle: "Unlock premium styles",
     contextPersonaLockedTitle: "Unlock advanced persona",
     contextGenericTitle: "Upgrade to Pro",
   },
+};
+
+export type AppStrings = typeof en;
+
+const vi: AppStrings = {
+  languages: {
+    vi: "Tiếng Việt",
+    en: "Tiếng Anh",
+  },
+  camera: {
+    errors: {
+      noPhotoToSave: "Không có ảnh để lưu",
+      failedToSavePhoto: "Không thể lưu ảnh",
+      galleryPermissionRequired: "Cần quyền truy cập thư viện để chọn ảnh.",
+    },
+    info: {
+      photoAlreadySaved: "Ảnh đã được lưu",
+      photoCaptured: "Đã chụp ảnh",
+      photoSelected: "Đã chọn ảnh",
+    },
+    success: {
+      quoteGenerated: "Đã tạo câu quote",
+      photoSaved: "Đã lưu ảnh",
+    },
+  },
+  memories: {
+    title: "Kỷ niệm",
+    thisDayInMemoriesLabel: "Ngày này trong ký ức",
+    emptyForDay: "Chưa có kỷ niệm nào cho ngày này.",
+    friendsPlaceholder: "Kỷ niệm của bạn bè sẽ xuất hiện ở đây.",
+    publicPlaceholder: "Kỷ niệm công khai sẽ xuất hiện ở đây.",
+  },
+  auth: {
+    signInWithEmail: "Đăng nhập bằng email",
+    welcomeTitle: "Chào bạn",
+    enterCodeTitle: "Nhập mã xác thực",
+    welcomeSubtitle: "Nhận câu quote cá nhân hóa mỗi ngày.",
+    codeSentTo: (email: string) => `Chúng tôi đã gửi mã 6 chữ số đến ${email}.`,
+    codeSentGeneric: "Chúng tôi đã gửi mã 6 chữ số. Hãy nhập bên dưới.",
+    verificationTo: (email: string) =>
+      `Chúng tôi sẽ gửi mã xác thực đến ${email}.`,
+    verificationGeneric: "Chúng tôi sẽ gửi mã xác thực.",
+    continueCta: "Tiếp tục",
+    continueAsGuest: "Tiếp tục với tư cách khách",
+    verifyCta: "Xác minh",
+    resendIn: (seconds: number) => `Gửi lại sau ${seconds} giây`,
+    resending: "Đang gửi lại…",
+    resendCode: "Gửi lại mã",
+    editEmail: "Chỉnh sửa email",
+    wrongEmail: "Sai email?",
+    back: "Quay lại",
+    emailPlaceholder: "Địa chỉ email",
+    verificationConsent:
+      "Bằng cách tiếp tục, bạn đồng ý nhận email xác thực.",
+    errors: {
+      invalidEmail: "Địa chỉ email không hợp lệ. Vui lòng kiểm tra lại.",
+      expired: "Mã đã hết hạn. Hãy yêu cầu mã mới rồi thử lại.",
+      tooMany: "Bạn đã thử quá nhiều lần. Vui lòng chờ một chút rồi thử lại.",
+      network: "Có vấn đề mạng. Hãy kiểm tra kết nối rồi thử lại.",
+      rate: "Vui lòng chờ 60 giây trước khi thử lại.",
+      invalidCode: "Mã xác thực không đúng. Hãy thử lại.",
+      fallback: "Có lỗi xảy ra. Vui lòng thử lại.",
+    },
+  },
+  home: {
+    cameraPermissionRequired: "Cần quyền truy cập camera để chụp ảnh.",
+    inviteFriendsTitle: `Mời bạn bè vào ${APP_BRAND_MARK}`,
+    inviteSkip: "Bỏ qua",
+    inviteCta: "Mời",
+    messagePlaceholder: "Gửi lời nhắn…",
+    messageSent: "Đã gửi lời nhắn",
+    savedToMemories: "Đã lưu vào ký ức của bạn",
+    aiTools: {
+      title: "Công cụ AI",
+      explain: "Giải thích",
+      future: "Tiếp theo",
+      funny: "Hài hước",
+      savage: "Cà khịa",
+      calm: "Bình tĩnh",
+      rewriteReviewTitle: "Xem lại bản viết lại",
+      rewriteGuidance:
+        "Viết trong một câu, dưới 180 ký tự và an toàn để chia sẻ.",
+      rewriteReady: "Bản viết lại này đã sẵn sàng để dùng.",
+      rewriteCancel: "Hủy",
+      rewriteApprove: "Dùng bản này",
+      explanationResult: "Ý nghĩa",
+      futureResult: "Câu quote tiếp theo",
+      rewriteResult: "Câu quote đã viết lại",
+      loadingExplain: "Đang đọc cảm xúc phía sau câu quote của bạn…",
+      loadingFuture: "Đang viết câu quote tiếp theo bạn có thể cần…",
+      editQuoteHint: "Chạm vào câu quote để chỉnh sửa.",
+      editQuoteGuidance:
+        "Giữ trong một câu, dưới 180 ký tự và an toàn để sử dụng.",
+      editQuoteSave: "Lưu",
+      editQuoteCancel: "Hủy",
+      editQuoteReady: "Đã ổn để dùng.",
+    },
+    luckLabel: "Độ may mắn",
+    vibes: {
+      dawn: "Bình minh",
+      mist: "Sương mờ",
+      coral: "San hô",
+      indigo: "Chàm",
+      forest: "Rừng",
+      ember: "Tàn lửa",
+      sage: "Xanh xô thơm",
+      midnight: "Nửa đêm",
+      aurora: "Cực quang",
+      prism: "Lăng kính",
+    },
+    vibeRarity: {
+      common: "Thường",
+      uncommon: "Khá hiếm",
+      rare: "Hiếm",
+      superRare: "Siêu hiếm",
+      superLegend: "Siêu huyền thoại",
+    },
+    vibeRarityShort: {
+      common: "T",
+      uncommon: "KH",
+      rare: "H",
+      superRare: "SH",
+      superLegend: "★",
+    },
+    momentsFeed: {
+      watermarkBrand: APP_BRAND_MARK,
+      watermarkTagline: "Daily vibes",
+      momentEyebrow: "Khoảnh khắc",
+      shareMomentA11y: "Chia sẻ khoảnh khắc này kèm thương hiệu",
+    },
+  },
+  friends: {
+    title: "Bạn bè",
+    signInToInvite: "Đăng nhập để thêm và mời bạn bè.",
+    inviteFriendsTitle: "Mời bạn bè",
+    inviteFriendsBody:
+      "Chia sẻ liên kết của bạn để bạn bè kết nối và trao đổi câu quote.",
+    shareLink: "Chia sẻ liên kết",
+    sharing: "Đang chia sẻ…",
+    noFriendsYet:
+      "Chưa có bạn bè nào. Hãy chia sẻ liên kết mời để bạn bè kết nối với bạn.",
+    yourFriends: (count: number) => `Bạn bè của bạn (${count})`,
+    inviteCta: "Mời",
+    friendFallback: "Bạn bè",
+    shareMessage: (appName: string, inviteUrl: string) =>
+      `Kết bạn với tôi trên ${appName} – ${inviteUrl}`,
+    shareTitle: (appName: string) => `Lời mời đến ${appName}`,
+    closeQrA11y: "Đóng mã QR lời mời",
+    yourInviteQr: "Mã QR lời mời của bạn",
+    qrHelp: "Để bạn bè quét mã này để kết nối.",
+  },
+  invite: {
+    connecting: "Đang kết nối…",
+    success: "Bạn đã kết nối thành công. Đang chuyển đến Bạn bè…",
+    invalid: "Lời mời không hợp lệ hoặc đã hết hạn. Đang chuyển đến Bạn bè…",
+    self: "Đó là mã mời của bạn. Hãy chia sẻ với bạn bè để kết nối.",
+    error: "Có lỗi xảy ra. Đang quay về trang chủ…",
+    needLogin: "Đăng nhập để nhận lời mời này và kết nối với bạn của bạn.",
+  },
+  profile: {
+    title: "Hồ sơ",
+    noName: "Chưa có tên",
+    profileUpdated: "Đã cập nhật hồ sơ",
+    avatarUpdated: "Đã cập nhật ảnh đại diện",
+    failedToSave: "Không thể lưu",
+    failedToUploadAvatar: "Không thể tải ảnh đại diện lên.",
+    failedToSaveAvatar: "Không thể lưu ảnh đại diện",
+    failedToSignOut: "Không thể đăng xuất",
+    photoAccessRequired: "Hãy cho phép truy cập ảnh để cập nhật avatar.",
+    displayNameLabel: "Tên hiển thị",
+    displayNamePlaceholder: "Tên của bạn",
+    guestDisplayNameLabel: "Tên hiển thị (lưu trên thiết bị này)",
+    guestDisplayNamePlaceholder: "Thêm tên",
+    displayNameRequired: "Tên là bắt buộc.",
+    displayNameTooLong: "Tên không được vượt quá 40 ký tự.",
+    bioLabel: "Tiểu sử",
+    bioPlaceholder: "Tiểu sử ngắn",
+    yourStyle: "Phong cách của bạn",
+    personalizedQuotes: "Câu quote cá nhân hóa",
+    signInHint: "Đăng nhập để lưu hồ sơ và mời bạn bè.",
+    inviteFriends: "Mời bạn bè",
+    appLanguage: "Ngôn ngữ ứng dụng",
+    quoteLanguage: "Ngôn ngữ quote",
+    email: "Email",
+    verified: "Đã xác minh",
+    notVerified: "Chưa xác minh",
+    tapAvatarToUpdate: "Chạm vào avatar để cập nhật.",
+    signOut: "Đăng xuất",
+    edit: "Chỉnh sửa",
+    save: "Lưu",
+    cancel: "Hủy",
+    dailyReminder: "Nhắc nhở hằng ngày",
+    dailyReminderDescription: "Một thông báo mỗi ngày vào thời gian bạn chọn.",
+    remindMe: "Nhắc tôi",
+    time: "Thời gian",
+    done: "Xong",
+    reminderPermissionHelp:
+      "Hãy bật thông báo trong cài đặt hệ thống để nhận nhắc nhở hằng ngày.",
+    identity: {
+      label: "Danh tính",
+      disciplined: "Người kỷ luật",
+      quiet: "Người suy tư trầm lặng",
+      rebuilder: "Người tái thiết",
+      growing: "Lớn lên qua từng khoảnh khắc",
+      statsSummary: (streak: number, memories: number) =>
+        `Chuỗi ngày: ${streak} ngày · Kỷ niệm: ${memories}`,
+    },
+  },
+  subscription: {
+    aiLimitReachedTitle: "Bạn đã dùng hết lượt AI miễn phí hôm nay.",
+    aiLimitReachedBody: "Nâng cấp lên Pro để tạo quote không giới hạn.",
+    personaLockedTitle: "Persona này cần Pro.",
+    personaLockedBody: "Nâng cấp để mở khóa điều khiển persona nâng cao.",
+    paywallHeroTitle: "Tạo thẻ quote đẹp hơn mà không giới hạn",
+    paywallHeroSubtitle: "Quote không giới hạn, xuất không giới hạn và phong cách cao cấp.",
+    paywallBullet1: "Tạo bao nhiêu quote AI tùy thích, không giới hạn mỗi ngày.",
+    paywallBullet2: "Xuất và chia sẻ thẻ quote không giới hạn.",
+    paywallBullet3: "Mở khóa mọi giao diện và gỡ watermark.",
+    aiLimitPaywallBody:
+      "Bạn đã dùng hết lượt miễn phí hôm nay. Pro mở khóa AI quote không giới hạn để bạn không bị gián đoạn.",
+    exportLimitPaywallBody:
+      "Bạn đã chạm giới hạn xuất hôm nay. Pro cho phép xuất và chia sẻ bao nhiêu thẻ tùy ý.",
+    premiumThemePaywallBody:
+      "Pro mở toàn bộ bố cục và phong cách cao cấp để thẻ của bạn luôn chỉn chu.",
+    personaPaywallBody:
+      "Pro mở khóa toàn bộ điều khiển persona để AI giống giọng điệu của bạn hơn.",
+    featureHeader: "Những gì bạn nhận được",
+    featureHeaderHighlight: "So sánh gói",
+    featureDailyQuotes: "Quote AI mỗi ngày",
+    featureExports: "Lượt xuất mỗi ngày",
+    featurePremiumThemes: "Giao diện cao cấp",
+    featureAdvancedPersona: "Tinh chỉnh persona nâng cao",
+    featureWatermark: `Watermark ${APP_BRAND_MARK}`,
+    freeLabel: "Miễn phí",
+    proLabel: "Pro",
+    freeDailyQuotesValue: "3 / ngày",
+    proDailyQuotesValue: "Không giới hạn",
+    freeExportsValue: "3 / ngày",
+    proExportsValue: "Không giới hạn",
+    freePremiumThemesValue: "Khóa",
+    proPremiumThemesValue: "Tất cả phong cách",
+    freeAdvancedPersonaValue: "Chỉ cơ bản",
+    proAdvancedPersonaValue: "Toàn quyền",
+    freeWatermarkValue: "Hiển thị",
+    proWatermarkValue: "Gỡ bỏ",
+    heroEyebrow: "Mở khóa tất cả",
+    choosePlanHeader: "Chọn gói của bạn",
+    noPlansAvailable:
+      "Không thể tải các gói thuê bao. Hãy kiểm tra kết nối rồi thử lại, hoặc mở App Store / Play Store và thử sau.",
+    primaryCta: "Bắt đầu Pro",
+    selectPlanCta: "Chọn một gói để tiếp tục",
+    processingCta: "Đang xử lý…",
+    restoreCta: "Khôi phục mua hàng",
+    maybeLaterCta: "Để sau",
+    bestValueTag: "Đáng giá nhất",
+    alreadyProToast: "Pro đã được kích hoạt trên tài khoản này.",
+    purchaseSuccessToast: "Thuê bao đã hoạt động, bạn đang dùng Pro.",
+    purchaseFailedToast: "Không thể hoàn tất giao dịch. Vui lòng thử lại.",
+    purchaseVerifyLater:
+      "Đã nhận giao dịch. Nếu Pro chưa mở khóa sau một phút, hãy nhấn Khôi phục mua hàng.",
+    restoreSuccessToast: "Đã khôi phục Pro, thuê bao của bạn đang hoạt động.",
+    restoreFailedToast: "Không thể khôi phục mua hàng. Vui lòng thử lại.",
+    restoreNoActiveToast: "Không tìm thấy thuê bao đang hoạt động cho tài khoản này.",
+    subscriptionTermsLink: "Điều khoản sử dụng",
+    privacyPolicyLink: "Chính sách riêng tư",
+    footerReassurance:
+      "Thanh toán được xử lý bởi Apple hoặc Google. Bạn có thể hủy bất kỳ lúc nào trong Cài đặt.",
+    statusLoadingPlansTitle: "Đang kết nối với cửa hàng…",
+    statusLoadingPlansBody:
+      "Chúng tôi đang tải giá và gói trực tiếp từ Apple hoặc Google. Thường chỉ mất vài giây.",
+    statusPurchasingTitle: "Đang hoàn tất giao dịch…",
+    statusPurchasingBody:
+      "Hãy ở lại màn hình này. Bạn có thể được yêu cầu xác nhận bằng Face ID, Touch ID hoặc mật khẩu cửa hàng.",
+    statusRestoringTitle: "Đang khôi phục giao dịch…",
+    statusRestoringBody:
+      "Chúng tôi đang kiểm tra tài khoản của bạn để tìm thuê bao đang hoạt động. Có thể mất một lúc.",
+    statusErrorTitle: "Có lỗi xảy ra",
+    retryLoadPlans: "Thử lại",
+    ctaHelperIos: "Bạn sẽ xác nhận bằng Face ID, Touch ID hoặc Apple ID.",
+    ctaHelperAndroid:
+      "Bạn sẽ xác nhận bằng tài khoản Google Play ở màn hình tiếp theo.",
+    contextAiLimitTitle: "Tạo quote bất cứ lúc nào",
+    contextExportLimitTitle: "Xuất không giới hạn",
+    contextPremiumThemeTitle: "Mở khóa phong cách cao cấp",
+    contextPersonaLockedTitle: "Mở khóa persona nâng cao",
+    contextGenericTitle: "Nâng cấp lên Pro",
+  },
+};
+
+const dictionaries: Record<AppLanguagePreference, AppStrings> = {
+  en,
+  vi,
+};
+
+export function getStrings(language?: AppLanguagePreference): AppStrings {
+  const resolvedLanguage =
+    language ?? useUserStore.getState().appLanguage ?? getDeviceAppLanguage();
+  return dictionaries[resolvedLanguage] ?? dictionaries.en;
 }
+
+function createDynamicStringsProxy(path: string[] = []): unknown {
+  return new Proxy(
+    {},
+    {
+      get(_target, prop) {
+        if (typeof prop !== "string") {
+          return undefined;
+        }
+        let value: unknown = getStrings();
+        for (const key of path) {
+          value = (value as Record<string, unknown>)[key];
+        }
+        value = (value as Record<string, unknown>)[prop];
+        if (value != null && typeof value === "object") {
+          return createDynamicStringsProxy([...path, prop]);
+        }
+        return value;
+      },
+    },
+  );
+}
+
+export const strings = createDynamicStringsProxy() as AppStrings;

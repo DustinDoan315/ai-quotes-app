@@ -1,3 +1,5 @@
+import { syncUserProfile } from "@/features/auth/authService";
+
 const mockLogIn = jest.fn();
 const mockLogOut = jest.fn();
 const mockIsRevenueCatInitialized = jest.fn();
@@ -37,8 +39,6 @@ jest.mock("@/appState/userStore", () => ({
     setState: jest.fn(),
   },
 }));
-
-import { syncUserProfile } from "@/features/auth/authService";
 
 describe("syncUserProfile", () => {
   beforeEach(() => {

@@ -1,5 +1,6 @@
 import { useUserStore } from "@/appState/userStore";
 import { APP_DISPLAY_NAME } from "@/theme/appBrand";
+import { strings } from "@/theme/strings";
 import {
   getOrCreateMyInvite,
   listMyFriends,
@@ -64,9 +65,9 @@ export default function FriendsScreen() {
     setSharing(true);
     try {
       await Share.share({
-        message: `Add me on ${APP_DISPLAY_NAME} – ${inviteUrl}`,
+        message: strings.friends.shareMessage(APP_DISPLAY_NAME, inviteUrl),
         url: inviteUrl,
-        title: `Invite to ${APP_DISPLAY_NAME}`,
+        title: strings.friends.shareTitle(APP_DISPLAY_NAME),
       });
     } finally {
       setSharing(false);
@@ -90,7 +91,7 @@ export default function FriendsScreen() {
         className="flex-1 items-center justify-center bg-transparent px-6"
         style={{ paddingTop: insets.top }}>
         <Text className="mb-6 text-center text-white/80">
-          Sign in to add and invite friends.
+          {strings.friends.signInToInvite}
         </Text>
         <Pressable
           onPress={() =>
@@ -101,7 +102,9 @@ export default function FriendsScreen() {
           }
           className="rounded-xl bg-white px-8 py-3"
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
-          <Text className="text-base font-semibold text-black">Sign in with phone</Text>
+          <Text className="text-base font-semibold text-black">
+            {strings.auth.signInWithEmail}
+          </Text>
         </Pressable>
       </View>
     );
@@ -128,16 +131,18 @@ export default function FriendsScreen() {
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Ionicons name="chevron-back" size={24} color="#fff" />
         </Pressable>
-        <Text className="text-lg font-semibold text-white">Friends</Text>
+        <Text className="text-lg font-semibold text-white">{strings.friends.title}</Text>
         <View className="h-10 w-10" />
       </View>
 
       <ScrollView className="flex-1 px-4 py-4">
         <View className="mb-6 overflow-hidden rounded-2xl border border-white/20 bg-white/5">
           <View className="px-4 pt-4">
-            <Text className="text-base font-semibold text-white">Invite friends</Text>
+            <Text className="text-base font-semibold text-white">
+              {strings.friends.inviteFriendsTitle}
+            </Text>
             <Text className="mt-1 text-sm text-white/60">
-              Share your link so friends can add you and trade quotes.
+              {strings.friends.inviteFriendsBody}
             </Text>
           </View>
           <View className="mt-4 flex-row gap-3 px-4 pb-4">
@@ -150,7 +155,7 @@ export default function FriendsScreen() {
               })}>
               <Ionicons name="share-social-outline" size={20} color="#000" />
               <Text className="ml-2 text-base font-semibold text-black">
-                {sharing ? "Sharing…" : "Share link"}
+                {sharing ? strings.friends.sharing : strings.friends.shareLink}
               </Text>
             </Pressable>
             <Pressable
@@ -176,13 +181,13 @@ export default function FriendsScreen() {
         <View className="mb-2 flex-row items-center">
           <Ionicons name="people-outline" size={18} color="rgba(255,255,255,0.7)" />
           <Text className="ml-2 text-sm font-medium text-white/70">
-            Your friends ({friends.length})
+            {strings.friends.yourFriends(friends.length)}
           </Text>
         </View>
         {friends.length === 0 ? (
           <View className="rounded-xl border border-white/10 bg-white/5 px-4 py-8">
             <Text className="text-center text-sm text-white/60">
-              No friends yet. Share your invite link so friends can add you.
+              {strings.friends.noFriendsYet}
             </Text>
           </View>
         ) : (
@@ -204,7 +209,7 @@ export default function FriendsScreen() {
               </View>
               <View className="ml-3 flex-1">
                 <Text className="font-medium text-white">
-                  {f.display_name ?? f.username ?? "Friend"}
+                  {f.display_name ?? f.username ?? strings.friends.friendFallback}
                 </Text>
               </View>
             </View>
@@ -226,14 +231,16 @@ export default function FriendsScreen() {
           style={{ backgroundColor: "transparent" }}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close invite QR"
+            accessibilityLabel={strings.friends.closeQrA11y}
             onPress={() => setQrOpen(false)}
             style={StyleSheet.absoluteFillObject}
           />
           {inviteUrl ? (
             <View className="z-10 w-full max-w-sm overflow-hidden rounded-3xl border border-white/25 bg-black/35">
               <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
-                <Text className="text-base font-semibold text-white">Your invite QR</Text>
+                <Text className="text-base font-semibold text-white">
+                  {strings.friends.yourInviteQr}
+                </Text>
                 <Pressable
                   onPress={() => setQrOpen(false)}
                   className="h-9 w-9 items-center justify-center rounded-full bg-white/10"
@@ -246,7 +253,7 @@ export default function FriendsScreen() {
                   <QRCode value={inviteUrl} size={220} />
                 </View>
                 <Text className="mt-4 text-center text-sm text-white/60">
-                  Let a friend scan this to connect.
+                  {strings.friends.qrHelp}
                 </Text>
                 <Pressable
                   onPress={handleInviteShare}

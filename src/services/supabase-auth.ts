@@ -1,4 +1,5 @@
 import { supabase } from "@/config/supabase";
+import { getSupabaseEmailRedirectUrl } from "@/services/supabaseAuthRedirect";
 import type { AuthError, Session, User } from "@supabase/supabase-js";
 
 export type UserProfile = {
@@ -21,7 +22,10 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { username: metadata?.username, display_name: metadata?.display_name } },
+    options: {
+      data: { username: metadata?.username, display_name: metadata?.display_name },
+      emailRedirectTo: getSupabaseEmailRedirectUrl(),
+    },
   });
   return { user: data.user, session: data.session, error };
 }
@@ -43,16 +47,46 @@ export async function signInAnonymously(): Promise<{
   return { user: data.user, session: data.session, error };
 }
 
-export async function signInWithPhoneOtp(phone: string): Promise<{ error: AuthError | null }> {
-  const { error } = await supabase.auth.signInWithOtp({ phone });
+export async function sendEmailOtp(email: string): Promise<{ error: AuthError | null }> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: getSupabaseEmailRedirectUrl(),
+    },
+  });
+  if (error) {
+    console.error("Supabase sendEmailOtp failed", {
+      email,
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      name: error.name,
+    });
+  } else {
+    console.log("Supabase sendEmailOtp succeeded", { email });
+  }
   return { error };
 }
 
-export async function verifyPhoneOtp(
-  phone: string,
+export async function verifyEmailOtp(
+  email: string,
   token: string,
 ): Promise<{ session: Session | null; user: User | null; error: AuthError | null }> {
-  const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "email",
+  });
+  if (error) {
+    console.error("Supabase verifyEmailOtp failed", {
+      email,
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      name: error.name,
+    });
+  }
   return { session: data.session ?? null, user: data.user ?? null, error };
 }
 
@@ -129,4 +163,3 @@ export async function updateUserProfile(
 export function onAuthStateChange(callback: (event: string, session: Session | null) => void) {
   return supabase.auth.onAuthStateChange((event, session) => callback(event, session));
 }
-

@@ -1,6 +1,7 @@
 import { useUserStore } from "@/appState/userStore";
 import { addFriend, resolveInviteCode } from "@/services/inviteApi";
 import { captureMessage } from "@/services/analytics/sentry";
+import { strings } from "@/theme/strings";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -81,39 +82,43 @@ export default function InviteByCodeScreen() {
       {status === "loading" && (
         <>
           <ActivityIndicator size="large" color="#fff" />
-          <Text className="mt-4 text-center text-white/80">Connecting…</Text>
+          <Text className="mt-4 text-center text-white/80">
+            {strings.invite.connecting}
+          </Text>
         </>
       )}
       {status === "success" && (
         <Text className="text-center text-lg text-white">
-          You’re now connected. Taking you to Friends…
+          {strings.invite.success}
         </Text>
       )}
       {status === "invalid" && (
         <Text className="text-center text-white/80">
-          Invalid or expired invite. Going to Friends…
+          {strings.invite.invalid}
         </Text>
       )}
       {status === "self" && (
         <Text className="text-center text-white/80">
-          That’s your invite code. Share it with a friend to connect.
+          {strings.invite.self}
         </Text>
       )}
       {status === "error" && (
         <Text className="text-center text-white/80">
-          Something went wrong. Going back home…
+          {strings.invite.error}
         </Text>
       )}
       {status === "need_login" && (
         <>
           <Text className="mb-6 text-center text-white/80">
-            Sign in to accept this invite and connect with your friend.
+            {strings.invite.needLogin}
           </Text>
           <Pressable
             onPress={() => router.push({ pathname: "/login", params: { returnTo } } as never)}
             className="rounded-xl bg-white px-8 py-3"
             style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
-            <Text className="text-base font-semibold text-black">Sign in with phone</Text>
+            <Text className="text-base font-semibold text-black">
+              {strings.auth.signInWithEmail}
+            </Text>
           </Pressable>
         </>
       )}

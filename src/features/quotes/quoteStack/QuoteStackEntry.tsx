@@ -86,6 +86,7 @@ function QuoteStackPage({
         authorName={authorName}
         authorAvatarUrl={authorAvatarUrl}
         counterLabel={quoteCount > 0 ? `${index + 1}/${quoteCount}` : null}
+        verticalAlign={quoteCount > 1 ? "top" : "center"}
       />
     </Animated.View>
   );

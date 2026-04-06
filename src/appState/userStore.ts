@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDeviceAppLanguage, type SupportedAppLanguage } from "@/utils/appLanguage";
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -23,6 +24,7 @@ type UserProfile = {
 type AuthState = "guest" | "authenticated" | "loading";
 
 export type QuoteLanguagePreference = "vi" | "en";
+export type AppLanguagePreference = SupportedAppLanguage;
 
 type UserState = {
   persona: Persona | null;
@@ -31,18 +33,22 @@ type UserState = {
   guestId: string | null;
   guestDisplayName: string | null;
   inviteNudgeDismissed: boolean;
+  appLanguage: AppLanguagePreference;
   quoteLanguage: QuoteLanguagePreference;
   setPersona: (persona: Persona) => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
   setGuestDisplayName: (name: string | null) => void;
   setInviteNudgeDismissed: (dismissed: boolean) => void;
+  setAppLanguage: (lang: AppLanguagePreference) => void;
   setQuoteLanguage: (lang: QuoteLanguagePreference) => void;
   clearUser: () => void;
   ensureGuestId: () => string;
 };
 
-const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "clearUser" | "ensureGuestId"> =
+const defaultLanguage = getDeviceAppLanguage();
+
+const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setAppLanguage" | "setQuoteLanguage" | "clearUser" | "ensureGuestId"> =
   {
     persona: null,
     profile: null,
@@ -50,7 +56,8 @@ const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState"
     guestId: null,
     guestDisplayName: null,
     inviteNudgeDismissed: false,
-    quoteLanguage: "vi",
+    appLanguage: defaultLanguage,
+    quoteLanguage: defaultLanguage,
   };
 
 const createGuestId = () =>
@@ -65,6 +72,7 @@ export const useUserStore = create<UserState>()(
       setAuthState: (authState) => set({ authState }),
       setGuestDisplayName: (guestDisplayName) => set({ guestDisplayName }),
       setInviteNudgeDismissed: (inviteNudgeDismissed) => set({ inviteNudgeDismissed }),
+      setAppLanguage: (appLanguage) => set({ appLanguage }),
       setQuoteLanguage: (quoteLanguage) => set({ quoteLanguage }),
       clearUser: () => set(initialState),
       ensureGuestId: () => {
@@ -80,7 +88,7 @@ export const useUserStore = create<UserState>()(
     {
       name: "user-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, quoteLanguage: state.quoteLanguage }),
+      partialize: (state) => ({ persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, appLanguage: state.appLanguage, quoteLanguage: state.quoteLanguage }),
     },
   ),
 );

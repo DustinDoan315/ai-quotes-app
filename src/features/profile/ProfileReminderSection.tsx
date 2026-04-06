@@ -1,7 +1,9 @@
 import { useReminderStore } from "@/appState/reminderStore";
 import { useUIStore } from "@/appState/uiStore";
+import { useUserStore } from "@/appState/userStore";
+import { strings } from "@/theme/strings";
+import { getLanguageTag } from "@/utils/appLanguage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as Localization from "expo-localization";
 import { useEffect, useMemo, useState } from "react";
 import {
   Modal,
@@ -18,12 +20,13 @@ function buildTimeDate(hour: number, minute: number): Date {
   return d;
 }
 
-function formatReminderLabel(hour: number, minute: number): string {
+function formatReminderLabel(
+  hour: number,
+  minute: number,
+  language: "vi" | "en",
+): string {
   const d = buildTimeDate(hour, minute);
-  const tag =
-    Localization.getLocales()[0]?.languageTag ??
-    Localization.getLocales()[0]?.languageCode ??
-    "en-US";
+  const tag = getLanguageTag(language);
   return d.toLocaleTimeString(tag, { hour: "numeric", minute: "2-digit" });
 }
 
@@ -41,6 +44,7 @@ export function ProfileReminderSection({
   const enableReminder = useReminderStore((s) => s.enableReminder);
   const disableReminder = useReminderStore((s) => s.disableReminder);
   const setReminderTime = useReminderStore((s) => s.setReminderTime);
+  const appLanguage = useUserStore((s) => s.appLanguage);
 
   const [iosPickerOpen, setIosPickerOpen] = useState(false);
   const [iosDraft, setIosDraft] = useState(() =>
@@ -55,8 +59,8 @@ export function ProfileReminderSection({
   }, [iosPickerOpen, reminderHour, reminderMinute]);
 
   const timeLabel = useMemo(
-    () => formatReminderLabel(reminderHour, reminderMinute),
-    [reminderHour, reminderMinute],
+    () => formatReminderLabel(reminderHour, reminderMinute, appLanguage),
+    [appLanguage, reminderHour, reminderMinute],
   );
 
   const pickerValue = useMemo(
@@ -73,7 +77,7 @@ export function ProfileReminderSection({
       const ok = await enableReminder();
       if (!ok) {
         showToast(
-          "Turn on notifications in system settings to get your daily reminder.",
+          strings.profile.reminderPermissionHelp,
           "info",
         );
       }
@@ -98,15 +102,15 @@ export function ProfileReminderSection({
   return (
     <View className="mb-6">
       <Text className="mb-2 text-sm font-medium text-white/70">
-        Daily reminder
+        {strings.profile.dailyReminder}
       </Text>
       {showDescription ? (
         <Text className="mb-3 text-xs leading-5 text-white/45">
-          One notification per day at the time you pick.
+          {strings.profile.dailyReminderDescription}
         </Text>
       ) : null}
       <View className="flex-row items-center justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
-        <Text className="text-base text-white">Remind me</Text>
+        <Text className="text-base text-white">{strings.profile.remindMe}</Text>
         <Switch
           value={reminderEnabled}
           onValueChange={handleToggle}
@@ -124,7 +128,7 @@ export function ProfileReminderSection({
           opacity: reminderEnabled ? (pressed ? 0.85 : 1) : 0.5,
         })}>
         <Text className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
-          Time
+          {strings.profile.time}
         </Text>
         <Text className="mt-1 text-base text-white">{timeLabel}</Text>
       </Pressable>
@@ -162,7 +166,9 @@ export function ProfileReminderSection({
                   ).then(() => setIosPickerOpen(false));
                 }}
                 className="rounded-full bg-white/15 px-4 py-2">
-                <Text className="text-base font-semibold text-white">Done</Text>
+                <Text className="text-base font-semibold text-white">
+                  {strings.profile.done}
+                </Text>
               </Pressable>
             </View>
             <DateTimePicker

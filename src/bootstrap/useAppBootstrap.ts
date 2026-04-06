@@ -4,6 +4,10 @@ import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { syncUserProfile } from "@/features/auth/authService";
 import { supabase } from "@/config/supabase";
 import {
+  completeSupabaseAuthRedirectFromInitialUrl,
+  completeSupabaseAuthRedirectFromUrl,
+} from "@/services/supabaseAuthRedirect";
+import {
   configureNotificationHandler,
   ensureReminderNotificationChannel,
   syncDailyReminderSchedule,
@@ -15,6 +19,25 @@ import {
   isRevenueCatInitialized,
 } from "@/services/paywall/nativeRevenueCat";
 import { useEffect } from "react";
+import * as Linking from "expo-linking";
+
+async function syncAuthenticatedSession(): Promise<boolean> {
+  const redirectedSession = await completeSupabaseAuthRedirectFromInitialUrl();
+  if (redirectedSession?.user) {
+    await syncUserProfile(redirectedSession.user);
+    return true;
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session) {
+    await syncUserProfile(session.user);
+    return true;
+  }
+
+  return false;
+}
 
 function syncReminderOnBoot(): (() => void) | undefined {
   configureNotificationHandler();
@@ -45,9 +68,8 @@ async function bootstrapRevenueCat(): Promise<void> {
 }
 
 async function bootstrapAuth(): Promise<void> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    await syncUserProfile(session.user);
+  const hasAuthenticatedSession = await syncAuthenticatedSession();
+  if (hasAuthenticatedSession) {
     return;
   }
 
@@ -74,6 +96,19 @@ function bootstrapTelemetry(): void {
 export function useAppBootstrap(): void {
   useEffect(() => {
     const unsubscribeReminderHydration = syncReminderOnBoot();
+    const authRedirectSubscription = Linking.addEventListener("url", ({ url }) => {
+      void completeSupabaseAuthRedirectFromUrl(url)
+        .then((session) => {
+          if (session?.user) {
+            return syncUserProfile(session.user);
+          }
+          return undefined;
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to complete Supabase auth redirect:", error);
+        });
+    });
+
     bootstrapTelemetry();
 
     void useSubscriptionConfigStore
@@ -93,6 +128,7 @@ export function useAppBootstrap(): void {
 
     return () => {
       unsubscribeReminderHydration?.();
+      authRedirectSubscription.remove();
     };
   }, []);
 }
