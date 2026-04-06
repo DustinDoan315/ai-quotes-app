@@ -22,13 +22,13 @@ export function HomeHeader({
   const avatarUrl = profile?.avatar_url ?? null;
   const isGuest = !profile?.user_id;
   const showSignInCta = isGuest && Boolean(onPressSignIn);
-  const handleProfilePress = showSignInCta ? onPressSignIn : onPressProfile;
+
   return (
     <View className="px-4 pt-2">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           <Pressable
-            onPress={handleProfilePress}
+            onPress={onPressProfile}
             className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
