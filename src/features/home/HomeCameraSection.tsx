@@ -1,4 +1,5 @@
 import { AiToolsRow } from "@/features/home/AiToolsRow";
+import { ShareQuoteButton } from "@/features/share/ShareQuoteButton";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
@@ -599,6 +600,9 @@ export const HomeCameraSection = ({
                   </Text>
                 </View>
               ) : null}
+              <View className="mt-3 items-center">
+                <ShareQuoteButton quoteText={dailyQuoteText} />
+              </View>
             </View>
           </View>
         ) : null}

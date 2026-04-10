@@ -5,8 +5,8 @@ export default function Index() {
   const { persona } = useUserStore();
 
   if (!persona) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(onboarding)" />;
   }
 
-  return <Redirect href="/(onboarding)" />;
+  return <Redirect href="/(tabs)" />;
 }
