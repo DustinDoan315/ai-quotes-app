@@ -5,11 +5,15 @@ import { useSubscriptionConfigStore } from "@/appState/subscriptionConfigStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUsageStore } from "@/appState/usageStore";
 import { waitTwoFrames } from "@/utils/waitTwoFrames";
+import { shareImageFile } from "@/utils/sharing";
+import { analyticsEvents } from "@/services/analytics/events";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Platform, Share, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 
 export function useQuoteMomentShare() {
+  const { t } = useTranslation();
   const captureRefView = useRef<View>(null);
   const [watermarkForExport, setWatermarkForExport] = useState(false);
   const customerInfo = useSubscriptionStore((s) => s.customerInfo);
@@ -32,7 +36,7 @@ export function useQuoteMomentShare() {
     [plan, planLimits],
   );
 
-  const shareMoment = useCallback(async () => {
+  const shareMoment = useCallback(async (quoteId?: string) => {
     const target = captureRefView.current;
     if (!target) {
       return;
@@ -64,8 +68,11 @@ export function useQuoteMomentShare() {
         incrementExportUsage();
         return;
       }
-      await Share.share({ url: uri });
-      incrementExportUsage();
+      const result = await shareImageFile(uri, { dialogTitle: t("share.shareMomentDialogTitle") });
+      if (result.ok) {
+        incrementExportUsage();
+        analyticsEvents.quoteMomentShared(quoteId ?? "");
+      }
     } catch {
     } finally {
       setWatermarkForExport(false);
@@ -77,6 +84,7 @@ export function useQuoteMomentShare() {
     incrementExportUsage,
     capabilities.hasWatermark,
     planLimits,
+    t,
   ]);
 
   return {

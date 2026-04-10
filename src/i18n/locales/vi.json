@@ -192,5 +192,24 @@
   },
   "auth": {
     "phoneNumberPlaceholder": "Số điện thoại"
+  },
+  "friends": {
+    "title": "Bạn bè",
+    "signInPrompt": "Đăng nhập để thêm và mời bạn bè.",
+    "signInButton": "Đăng nhập bằng số điện thoại",
+    "inviteSectionTitle": "Mời bạn bè",
+    "inviteSectionBody": "Chia sẻ link của bạn để bạn bè có thể thêm bạn và trao đổi câu trích dẫn.",
+    "shareLinkButton": "Chia sẻ link",
+    "sharingButton": "Đang chia sẻ\u2026",
+    "friendsCountLabel": "Bạn bè của bạn ({{count}})",
+    "noFriendsPlaceholder": "Chưa có bạn bè. Chia sẻ link mời để kết nối.",
+    "qrModalTitle": "Mã QR mời của bạn",
+    "qrModalBody": "Để bạn bè quét để kết nối.",
+    "qrModalClose": "Đóng mã QR mời",
+    "inviteMessage": "Tham gia cùng tôi trên {{appName}}! Nhận câu trích dẫn AI hàng ngày của bạn.\n\n{{url}}"
+  },
+  "share": {
+    "shareButton": "Chia sẻ",
+    "shareMomentDialogTitle": "Chia sẻ khoảnh khắc Inkly của bạn"
   }
 }

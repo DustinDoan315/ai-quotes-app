@@ -10,6 +10,14 @@ export const analyticsEvents = {
     trackEvent("quote_shared", { quoteId });
   },
 
+  quoteMomentShared: (quoteId: string) => {
+    trackEvent("quote_moment_shared", { quoteId, method: "image_export" });
+  },
+
+  inviteShared: () => {
+    trackEvent("invite_shared");
+  },
+
   quoteSaved: (quoteId: string) => {
     trackEvent("quote_saved", { quoteId });
   },

@@ -192,5 +192,24 @@
   },
   "auth": {
     "phoneNumberPlaceholder": "Phone number"
+  },
+  "friends": {
+    "title": "Friends",
+    "signInPrompt": "Sign in to add and invite friends.",
+    "signInButton": "Sign in with phone",
+    "inviteSectionTitle": "Invite friends",
+    "inviteSectionBody": "Share your link so friends can add you and trade quotes.",
+    "shareLinkButton": "Share link",
+    "sharingButton": "Sharing\u2026",
+    "friendsCountLabel": "Your friends ({{count}})",
+    "noFriendsPlaceholder": "No friends yet. Share your invite link so friends can add you.",
+    "qrModalTitle": "Your invite QR",
+    "qrModalBody": "Let a friend scan this to connect.",
+    "qrModalClose": "Close invite QR",
+    "inviteMessage": "Join me on {{appName}}! Get your own AI daily quote.\n\n{{url}}"
+  },
+  "share": {
+    "shareButton": "Share",
+    "shareMomentDialogTitle": "Share your Inkly moment"
   }
 }
