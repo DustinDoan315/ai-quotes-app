@@ -7,6 +7,7 @@ import {
   jsonResponse,
   normalizeLanguage,
   normalizeTraits,
+  requireAuth,
 } from "../_shared/ai.ts";
 
 type RewriteTone = "funny" | "savage" | "calm";
@@ -93,6 +94,9 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
+
+  const authResult = await requireAuth(req);
+  if (authResult instanceof Response) return authResult;
 
   try {
     if (!OPENAI_API_KEY) {

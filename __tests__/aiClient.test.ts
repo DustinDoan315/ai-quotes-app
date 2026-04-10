@@ -1,3 +1,11 @@
+jest.mock("@/config/supabase", () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
+    },
+  },
+}));
+
 import {
   explainQuote,
   generateFutureQuote,
@@ -16,7 +24,7 @@ describe("AI client contract", () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   afterAll(() => {

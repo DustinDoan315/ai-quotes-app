@@ -1,23 +1,18 @@
-const PROFANITY_WORDS = ["damn", "hell", "crap"];
-
-const FORBIDDEN_TOPICS = [
-  "hate",
-  "violence",
-  "sexual",
-  "medical",
-  "legal",
-  "financial",
+const FORBIDDEN_PHRASES = [
+  /\bkill\b/i,
+  /\bsuicid(e|al)\b/i,
+  /\bself[- ]harm\b/i,
+  /\bhate speech\b/i,
+  /\bfinancial advice\b/i,
+  /\blegal advice\b/i,
+  /\bmedical advice\b/i,
+  /\bdiagnos(e|is|ed)\b/i,
+  /\bsexually explicit\b/i,
+  /\bpornograph/i,
 ];
 
-const containsProfanity = (text: string): boolean => {
-  const lowerText = text.toLowerCase();
-  return PROFANITY_WORDS.some((word) => lowerText.includes(word));
-};
-
-const containsForbiddenTopic = (text: string): boolean => {
-  const lowerText = text.toLowerCase();
-  return FORBIDDEN_TOPICS.some((topic) => lowerText.includes(topic));
-};
+const containsForbiddenPhrase = (text: string): boolean =>
+  FORBIDDEN_PHRASES.some((pattern) => pattern.test(text));
 
 export const validateQuote = (
   quote: string,
@@ -26,12 +21,8 @@ export const validateQuote = (
     return { isValid: false, reason: "Quote exceeds 180 characters" };
   }
 
-  if (containsProfanity(quote)) {
-    return { isValid: false, reason: "Quote contains profanity" };
-  }
-
-  if (containsForbiddenTopic(quote)) {
-    return { isValid: false, reason: "Quote contains forbidden topics" };
+  if (containsForbiddenPhrase(quote)) {
+    return { isValid: false, reason: "Quote contains forbidden content" };
   }
 
   return { isValid: true };

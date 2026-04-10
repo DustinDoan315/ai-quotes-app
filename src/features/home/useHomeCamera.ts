@@ -4,7 +4,7 @@ import { CameraView } from "expo-camera";
 import { Gesture } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAIStore } from "@/features/ai/aiStore";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCameraPermission } from "@/hooks/useCameraPermission";
 import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
 import { useQuoteStore } from "@/appState/quoteStore";
@@ -91,6 +91,15 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const addMemory = useMemoryStore((state) => state.addMemory);
 
   zoomRef.current = zoom;
+
+  useEffect(() => {
+    return () => {
+      if (generationIntervalRef.current) {
+        clearInterval(generationIntervalRef.current);
+        generationIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   const captureZoomStart = useCallback(() => {
     zoomStartRef.current = zoomRef.current;

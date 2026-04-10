@@ -1,5 +1,35 @@
 export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+export const requireAuth = async (req: Request): Promise<{ userId: string } | Response> => {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.replace("Bearer ", "").trim();
+
+  if (!token || token === SUPABASE_ANON_KEY) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: SUPABASE_ANON_KEY,
+    },
+  });
+
+  if (!res.ok) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  const user = await res.json().catch(() => null) as { id?: string } | null;
+  if (!user?.id) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  return { userId: user.id };
+};
+
 export const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
 };

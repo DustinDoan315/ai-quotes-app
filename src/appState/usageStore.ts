@@ -6,6 +6,7 @@ import {
   incrementUsageCounter,
   resetUsageForDate,
 } from "@/domain/usage/usageState";
+import { getTodayLocalDateKey } from "@/utils/dateKey";
 
 type UsageState = {
   dailyAiCount: number;
@@ -16,11 +17,6 @@ type UsageState = {
   incrementExportUsage: () => void;
 };
 
-const getTodayKey = (): string => {
-  const now = new Date();
-  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-};
-
 export const useUsageStore = create<UsageState>()(
   persist(
     (set, get) => ({
@@ -28,13 +24,13 @@ export const useUsageStore = create<UsageState>()(
       dailyExportCount: 0,
       lastResetDate: null,
       resetIfNewDay: () => {
-        set(resetUsageForDate(get(), getTodayKey()));
+        set(resetUsageForDate(get(), getTodayLocalDateKey()));
       },
       incrementAiUsage: () => {
-        set(incrementUsageCounter(get(), getTodayKey(), "dailyAiCount"));
+        set(incrementUsageCounter(get(), getTodayLocalDateKey(), "dailyAiCount"));
       },
       incrementExportUsage: () => {
-        set(incrementUsageCounter(get(), getTodayKey(), "dailyExportCount"));
+        set(incrementUsageCounter(get(), getTodayLocalDateKey(), "dailyExportCount"));
       },
     }),
     {

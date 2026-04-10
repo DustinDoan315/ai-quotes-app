@@ -75,6 +75,7 @@ export const useQuoteStore = create<QuoteState>()(
       name: "quote-storage",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
+        dailyQuote: state.dailyQuote,
         savedQuotes: state.savedQuotes,
         recentQuoteIds: state.recentQuoteIds,
       }),

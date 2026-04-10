@@ -39,18 +39,14 @@ export const useGenerateQuote = () => {
   const { showToast } = useUIStore();
   const { customerInfo } = useSubscriptionStore();
   const planLimits = useSubscriptionConfigStore((s) => s.planLimits);
-  const { dailyAiCount, resetIfNewDay, incrementAiUsage } = useUsageStore();
+  const { resetIfNewDay, incrementAiUsage } = useUsageStore();
 
   const generate = async (
     base64Image?: string,
     enforceCooldown: boolean = true,
   ) => {
-    console.log("AI useGenerateQuote.generate called", {
-      hasPersona: !!persona,
-      hasBase64Image: !!base64Image,
-    });
-
     resetIfNewDay();
+    const freshAiCount = useUsageStore.getState().dailyAiCount;
 
     const snapshot = customerInfo
       ? { activeEntitlementIds: customerInfo.activeEntitlementIds }
@@ -71,7 +67,7 @@ export const useGenerateQuote = () => {
       return null;
     }
 
-    const guardResult = guards.canGenerateQuote(dailyAiCount);
+    const guardResult = guards.canGenerateQuote(freshAiCount);
 
     if (!guardResult.allowed) {
       showToast(
@@ -90,9 +86,11 @@ export const useGenerateQuote = () => {
       const timeSinceLastRequest = now - lastGeneratedAt;
       if (timeSinceLastRequest < COOLDOWN_MS) {
         const waitTime = COOLDOWN_MS - timeSinceLastRequest;
-        throw new Error(
+        showToast(
           `Please wait ${Math.ceil(waitTime / 1000)} seconds before generating another quote`,
+          "info",
         );
+        return null;
       }
     }
 
@@ -102,7 +100,6 @@ export const useGenerateQuote = () => {
     setIsGenerating(true);
 
     try {
-      console.log("AI calling generateQuote service");
       const response = await generateQuote({
         personaId: effectivePersonaId,
         personaTraits: effectiveTraits,
@@ -117,33 +114,19 @@ export const useGenerateQuote = () => {
       }
 
       const quote = {
-        id: Date.now().toString(),
+        id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
         text: response.quote,
         personaId: effectivePersonaId,
         createdAt: Date.now(),
       };
-
-      console.log("AI quote stored RAW", {
-        text: quote.text,
-        length: quote.text.length,
-      });
 
       setDailyQuote(quote);
       addToHistory(quote);
       incrementAiUsage();
       setLastGeneratedAt(Date.now());
 
-      console.log("AI quote stored", {
-        id: quote.id,
-        textLength: quote.text.length,
-      });
-
       return quote;
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Please wait ")) {
-        showToast(error.message, "info");
-        return null;
-      }
       console.error("AI generate error", error);
       showToast(
         error instanceof Error ? error.message : "Failed to generate quote",

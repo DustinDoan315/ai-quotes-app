@@ -83,13 +83,14 @@ export function useAppBootstrap(): void {
         console.error("Failed to load subscription plan settings:", error);
       });
 
-    void bootstrapRevenueCat().catch((error: unknown) => {
-      console.error("Failed to initialize RevenueCat:", error);
-    });
-
-    void bootstrapAuth().catch((error: unknown) => {
-      console.error("Failed to bootstrap auth:", error);
-    });
+    void bootstrapRevenueCat()
+      .catch((error: unknown) => {
+        console.error("Failed to initialize RevenueCat:", error);
+      })
+      .then(() => bootstrapAuth())
+      .catch((error: unknown) => {
+        console.error("Failed to bootstrap auth:", error);
+      });
 
     return () => {
       unsubscribeReminderHydration?.();
