@@ -1,4 +1,4 @@
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 
@@ -186,6 +186,7 @@ export function AiToolsRow({
   aiToolsLoading,
   onRewriteQuote,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <View className="w-full">
       <View className="mb-5 flex-row items-center gap-3 px-1">
@@ -193,7 +194,7 @@ export function AiToolsRow({
         <Text
           className="text-[12px] font-semibold uppercase tracking-[0.14em]"
           style={{ color: "rgba(248,250,252,0.45)" }}>
-          {strings.home.aiTools.title}
+          {t("home.aiTools.title")}
         </Text>
       </View>
       <ScrollView
@@ -222,10 +223,10 @@ export function AiToolsRow({
               icon={toneIcon(tone)}
               label={
                 tone === "calm"
-                  ? strings.home.aiTools.calm
+                  ? t("home.aiTools.calm")
                   : tone === "funny"
-                    ? strings.home.aiTools.funny
-                    : strings.home.aiTools.savage
+                    ? t("home.aiTools.funny")
+                    : t("home.aiTools.savage")
               }
             />
           );

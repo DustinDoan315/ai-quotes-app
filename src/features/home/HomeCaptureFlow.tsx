@@ -1,6 +1,6 @@
 import { HomeHeader } from "@/components/HomeHeader";
 import { HomeCameraSection, type HomeCameraSectionProps } from "@/features/home/HomeCameraSection";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import type { QuoteMemory } from "@/types/memory";
 import { Pressable, Text, View } from "react-native";
 
@@ -33,6 +33,7 @@ export function HomeCaptureFlow({
   onPressInviteNudge,
   cameraSectionProps,
 }: Props) {
+  const { t } = useTranslation();
   const shouldShowHeader = !cameraSectionProps.dailyQuoteText;
 
   return (
@@ -55,7 +56,7 @@ export function HomeCaptureFlow({
           className="mx-4 mb-3 rounded-xl border border-white/15 bg-white/8 px-4 py-3"
           style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
           <Text className="text-xs font-semibold uppercase tracking-wide text-amber-300">
-            {strings.memories.thisDayInMemoriesLabel}
+            {t("memories.thisDayInMemoriesLabel")}
           </Text>
           <Text
             className="mt-1 text-sm font-medium text-white"
@@ -67,7 +68,7 @@ export function HomeCaptureFlow({
       {showInviteNudge ? (
         <View className="mx-4 mb-2 flex-row items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3">
           <Text className="flex-1 text-sm text-white" numberOfLines={2}>
-            {strings.home.inviteFriendsTitle}
+            {t("home.inviteFriendsTitle")}
           </Text>
           <View className="ml-2 flex-row gap-2">
             <Pressable
@@ -75,7 +76,7 @@ export function HomeCaptureFlow({
               className="rounded-lg bg-white/20 px-3 py-2"
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
               <Text className="text-xs font-medium text-white">
-                {strings.home.inviteSkip}
+                {t("home.inviteSkip")}
               </Text>
             </Pressable>
             <Pressable
@@ -83,7 +84,7 @@ export function HomeCaptureFlow({
               className="rounded-lg bg-amber-400 px-3 py-2"
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
               <Text className="text-xs font-semibold text-black">
-                {strings.home.inviteCta}
+                {t("home.inviteCta")}
               </Text>
             </Pressable>
           </View>

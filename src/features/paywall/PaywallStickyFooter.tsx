@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   primaryLabel: string;
@@ -33,6 +33,7 @@ export const PaywallStickyFooter = ({
   onRestore,
   onDismiss,
 }: Props) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const privacyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 
@@ -58,8 +59,8 @@ export const PaywallStickyFooter = ({
         {!isPurchasing ? (
           <Text className="mt-2 px-1 text-center text-[11px] leading-[16px] text-slate-400">
             {Platform.OS === "ios"
-              ? strings.subscription.ctaHelperIos
-              : strings.subscription.ctaHelperAndroid}
+              ? t("subscription.ctaHelperIos")
+              : t("subscription.ctaHelperAndroid")}
           </Text>
         ) : null}
 
@@ -76,7 +77,7 @@ export const PaywallStickyFooter = ({
             <Ionicons name="refresh-outline" size={18} color="#e2e8f0" />
           )}
           <Text className="text-sm font-semibold text-slate-100">
-            {strings.subscription.restoreCta}
+            {t("subscription.restoreCta")}
           </Text>
         </Pressable>
 
@@ -85,7 +86,7 @@ export const PaywallStickyFooter = ({
           className="mt-1 h-11 items-center justify-center"
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
           <Text className="text-sm font-medium text-slate-500">
-            {strings.subscription.maybeLaterCta}
+            {t("subscription.maybeLaterCta")}
           </Text>
         </Pressable>
 
@@ -95,7 +96,7 @@ export const PaywallStickyFooter = ({
               void Linking.openURL(APPLE_SUBSCRIPTION_TERMS);
             }}>
             <Text className="text-[11px] leading-4 text-slate-400 underline">
-              {strings.subscription.subscriptionTermsLink}
+              {t("subscription.subscriptionTermsLink")}
             </Text>
           </Pressable>
           {privacyUrl ? (
@@ -106,7 +107,7 @@ export const PaywallStickyFooter = ({
                   void Linking.openURL(privacyUrl);
                 }}>
                 <Text className="text-[11px] leading-4 text-slate-400 underline">
-                  {strings.subscription.privacyPolicyLink}
+                  {t("subscription.privacyPolicyLink")}
                 </Text>
               </Pressable>
             </>

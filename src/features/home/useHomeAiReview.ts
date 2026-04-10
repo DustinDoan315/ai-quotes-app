@@ -5,7 +5,7 @@ import {
   useRewriteQuote,
 } from "@/features/ai/useQuoteAIExtras";
 import type { RewriteTone } from "@/services/ai/types";
-import { strings } from "@/theme/strings";
+import i18n from "@/i18n";
 
 export type HomeAiTool = "future" | RewriteTone;
 
@@ -56,7 +56,7 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
       return;
     }
     setAiResult({
-      title: strings.home.aiTools.futureResult,
+      title: i18n.t("home.aiTools.futureResult"),
       body: result,
     });
     setSelectedAiTool("future");
@@ -73,7 +73,7 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     }
     applyRewrittenQuote(text);
     setAiResult({
-      title: strings.home.aiTools.rewriteResult,
+      title: i18n.t("home.aiTools.rewriteResult"),
       body: text,
     });
     setSelectedAiTool(tone);
@@ -88,7 +88,7 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     handleRewriteQuote,
     isAiToolLoading: isRewritingQuote || isGeneratingFutureQuote,
     aiToolsLoadingLabel: isGeneratingFutureQuote
-      ? strings.home.aiTools.loadingFuture
+      ? i18n.t("home.aiTools.loadingFuture")
       : null,
   };
 }

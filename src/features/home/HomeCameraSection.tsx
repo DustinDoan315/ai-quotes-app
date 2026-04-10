@@ -9,7 +9,7 @@ import {
 } from "@/services/ai/rewriteReview";
 import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import type {
   HomeBackgroundPalette,
   HomeVibeHintParts,
@@ -105,6 +105,7 @@ export const HomeCameraSection = ({
   vibeHint,
   cardPalette,
 }: HomeCameraSectionProps) => {
+  const { t } = useTranslation();
   const [shellSize, setShellSize] = useState<{
     width: number;
     height: number;
@@ -360,7 +361,7 @@ export const HomeCameraSection = ({
                                 : "#FCA5A5",
                             }}>
                             {quoteEditValidation.isValid
-                              ? strings.home.aiTools.editQuoteReady
+                              ? t("home.aiTools.editQuoteReady")
                               : quoteEditValidation.reason}
                           </Text>
                           <Text className="text-xs font-semibold text-white/70">
@@ -373,7 +374,7 @@ export const HomeCameraSection = ({
                             className="rounded-full border border-white/20 px-3 py-2"
                             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
                             <Text className="text-xs font-semibold text-white">
-                              {strings.home.aiTools.editQuoteCancel}
+                              {t("home.aiTools.editQuoteCancel")}
                             </Text>
                           </Pressable>
                           <Pressable
@@ -388,7 +389,7 @@ export const HomeCameraSection = ({
                                   : 0.5,
                             })}>
                             <Text className="text-xs font-bold text-black">
-                              {strings.home.aiTools.editQuoteSave}
+                              {t("home.aiTools.editQuoteSave")}
                             </Text>
                           </Pressable>
                         </View>
@@ -402,7 +403,7 @@ export const HomeCameraSection = ({
                           {dailyQuoteText}
                         </Text>
                         <Text className="mt-2 text-left text-[11px] font-medium text-white/60">
-                          {strings.home.aiTools.editQuoteHint}
+                          {t("home.aiTools.editQuoteHint")}
                         </Text>
                       </>
                     )}
@@ -435,10 +436,10 @@ export const HomeCameraSection = ({
                     />
                   </View>
                   <Text className="text-center text-lg font-semibold text-white">
-                    Next quote
+                    {t("home.aiTools.futureResult")}
                   </Text>
                   <Text className="mt-2 text-center text-sm leading-5 text-white/70">
-                    {aiToolsLoadingLabel ?? "Writing the next quote you may need…"}
+                    {aiToolsLoadingLabel ?? t("home.aiTools.loadingFuture")}
                   </Text>
                 </MotiView>
               </View>

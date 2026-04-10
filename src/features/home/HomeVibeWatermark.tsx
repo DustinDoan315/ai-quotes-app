@@ -1,6 +1,6 @@
 import { Text, View } from "react-native";
 import { HOME_VIBE_RARITY_STYLE } from "@/theme/homeVibeRarity";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import type { HomeVibeHintParts } from "@/types/homeBackground";
 
 interface HomeVibeWatermarkProps {
@@ -20,6 +20,7 @@ export function HomeVibeWatermark({
   rotated = true,
   borderOnly = false,
 }: HomeVibeWatermarkProps) {
+  const { t } = useTranslation();
   const rarityStyle = HOME_VIBE_RARITY_STYLE[vibeHint.rarity];
   let positionClass = "bottom-3 right-3";
   if (placement === "top") {
@@ -34,7 +35,7 @@ export function HomeVibeWatermark({
       accessible
       pointerEvents="none"
       className={`absolute z-30 ${positionClass}`}
-      accessibilityLabel={`${vibeHint.vibeName}, ${vibeHint.rarityLabel}, ${strings.home.luckLabel} ${vibeHint.luckPercent}`}>
+      accessibilityLabel={`${vibeHint.vibeName}, ${vibeHint.rarityLabel}, ${t("home.luckLabel")} ${vibeHint.luckPercent}`}>
       <View
         className={
           borderOnly
@@ -55,13 +56,13 @@ export function HomeVibeWatermark({
           <Text
             className={`text-[10px] font-bold tabular-nums ${rarityStyle.text}`}
             importantForAccessibility="no">
-            {strings.home.vibeRarityShort[vibeHint.rarity]}
+            {t(`home.vibeRarityShort.${vibeHint.rarity}`)}
           </Text>
           <Text className="text-[9px] text-white/45">·</Text>
           <Text
             className="text-[9px] font-medium tabular-nums text-white/55"
             numberOfLines={1}>
-            {strings.home.luckLabel} {vibeHint.luckPercent}
+            {t("home.luckLabel")} {vibeHint.luckPercent}
           </Text>
         </View>
       </View>

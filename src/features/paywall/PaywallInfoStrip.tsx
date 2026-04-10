@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
-import { strings } from "@/theme/strings";
+import i18n from "@/i18n";
 
 type Variant = "loadingPlans" | "purchasing" | "restoring" | "error";
 
@@ -13,15 +13,15 @@ type Props = {
 
 const stripTitle = (variant: Variant): string => {
   if (variant === "loadingPlans") {
-    return strings.subscription.statusLoadingPlansTitle;
+    return i18n.t("subscription.statusLoadingPlansTitle");
   }
   if (variant === "purchasing") {
-    return strings.subscription.statusPurchasingTitle;
+    return i18n.t("subscription.statusPurchasingTitle");
   }
   if (variant === "restoring") {
-    return strings.subscription.statusRestoringTitle;
+    return i18n.t("subscription.statusRestoringTitle");
   }
-  return strings.subscription.statusErrorTitle;
+  return i18n.t("subscription.statusErrorTitle");
 };
 
 const stripBody = (variant: Variant, errorDetail: string | null | undefined): string => {
@@ -29,12 +29,12 @@ const stripBody = (variant: Variant, errorDetail: string | null | undefined): st
     return errorDetail ?? "";
   }
   if (variant === "loadingPlans") {
-    return strings.subscription.statusLoadingPlansBody;
+    return i18n.t("subscription.statusLoadingPlansBody");
   }
   if (variant === "purchasing") {
-    return strings.subscription.statusPurchasingBody;
+    return i18n.t("subscription.statusPurchasingBody");
   }
-  return strings.subscription.statusRestoringBody;
+  return i18n.t("subscription.statusRestoringBody");
 };
 
 export const PaywallInfoStrip = ({
@@ -79,7 +79,7 @@ export const PaywallInfoStrip = ({
               onPress={onRetryLoad}
               className="mt-3 self-start rounded-full bg-white/15 px-4 py-2">
               <Text className="text-xs font-bold text-white">
-                {strings.subscription.retryLoadPlans}
+                {i18n.t("subscription.retryLoadPlans")}
               </Text>
             </Pressable>
           ) : null}

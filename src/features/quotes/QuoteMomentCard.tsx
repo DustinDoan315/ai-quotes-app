@@ -4,7 +4,7 @@ import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -27,6 +27,7 @@ export const QuoteMomentCard = ({
   authorAvatarUrl,
   counterLabel,
 }: QuoteMomentCardProps) => {
+  const { t } = useTranslation();
   const profile = useUserStore((s) => s.profile);
   const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =
@@ -140,7 +141,7 @@ export const QuoteMomentCard = ({
         )}
         {watermarkForExport ? null : (
           <Pressable
-            accessibilityLabel={strings.home.momentsFeed.shareMomentA11y}
+            accessibilityLabel={t("home.momentsFeed.shareMomentA11y")}
             onPress={shareMoment}
             className="absolute right-2 top-2 z-50 rounded-full bg-black/55 p-2.5"
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 import CountryPicker, { type CountryCode } from "react-native-country-picker-modal";
 import { useState } from "react";
@@ -17,6 +18,7 @@ export function PhoneNumberRow({
   onSelectCountry,
   onChangeText,
 }: PhoneNumberRowProps) {
+  const { t } = useTranslation();
   const [dialCode, setDialCode] = useState<string | null>(null);
 
   return (
@@ -45,7 +47,7 @@ export function PhoneNumberRow({
         <TextInput
           value={formattedValue}
           onChangeText={onChangeText}
-          placeholder="Phone number"
+          placeholder={t("auth.phoneNumberPlaceholder")}
           placeholderTextColor="rgba(255,255,255,0.4)"
           keyboardType="phone-pad"
           editable={!disabled}

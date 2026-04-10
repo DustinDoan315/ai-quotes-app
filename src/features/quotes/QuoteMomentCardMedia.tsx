@@ -1,6 +1,6 @@
 import { HomeBackground } from "@/features/home/HomeBackground";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { Text, View } from "react-native";
 
@@ -42,6 +42,7 @@ export const QuoteMomentCardMedia = ({
   fontSize,
   textColor,
 }: QuoteMomentCardMediaProps) => {
+  const { t } = useTranslation();
   return (
     <View
       onLayout={(e) => {
@@ -112,12 +113,12 @@ export const QuoteMomentCardMedia = ({
               <Text
                 className="text-[11px] font-bold uppercase tracking-[0.14em] text-white"
                 numberOfLines={1}>
-                {strings.home.momentsFeed.watermarkBrand}
+                {t("home.momentsFeed.watermarkBrand")}
               </Text>
               <Text
                 className="mt-0.5 text-[10px] font-medium leading-tight text-white/75"
                 numberOfLines={2}>
-                {strings.home.momentsFeed.watermarkTagline}
+                {t("home.momentsFeed.watermarkTagline")}
               </Text>
             </View>
           </View>
@@ -191,12 +192,12 @@ export const QuoteMomentCardMedia = ({
                     : "bg-gradient-to-r from-amber-400/25 via-fuchsia-400/15 to-transparent px-3 py-2"
                 }>
                 <Text className="text-center text-[9px] font-bold uppercase tracking-[0.2em] text-amber-100/95">
-                  {strings.home.momentsFeed.momentEyebrow}
+                  {t("home.momentsFeed.momentEyebrow")}
                 </Text>
                 <Text
                   className="mt-0.5 text-center text-[11px] font-semibold text-white"
                   numberOfLines={1}>
-                  {strings.home.momentsFeed.watermarkBrand}
+                  {t("home.momentsFeed.watermarkBrand")}
                 </Text>
               </View>
             </View>

@@ -1,17 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 
 type Item = { key: string; text: string };
 
-const items: Item[] = [
-  { key: "a", text: strings.subscription.paywallBullet1 },
-  { key: "b", text: strings.subscription.paywallBullet2 },
-  { key: "c", text: strings.subscription.paywallBullet3 },
-];
-
 export const PaywallValueBullets = () => {
+  const { t } = useTranslation();
+  const items: Item[] = [
+    { key: "a", text: t("subscription.paywallBullet1") },
+    { key: "b", text: t("subscription.paywallBullet2") },
+    { key: "c", text: t("subscription.paywallBullet3") },
+  ];
   return (
     <View className="mt-5 w-full max-w-full gap-3">
       {items.map(({ key, text }) => (

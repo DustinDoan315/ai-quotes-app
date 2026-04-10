@@ -1,5 +1,5 @@
 import { CameraActionsBar } from "@/components/CameraActionsBar";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -57,6 +57,7 @@ export function HomeActionBar({
   canSave,
   isSaving,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <>
       {!isComposerOpen ? (
@@ -68,7 +69,7 @@ export function HomeActionBar({
             <View className="mb-2 flex-row items-center justify-between rounded-full bg-white/10 px-3 py-2">
               <Pressable onPress={onOpenComposer} className="flex-1">
                 <Text className="text-xs text-white/70">
-                  {strings.home.messagePlaceholder}
+                  {t("home.messagePlaceholder")}
                 </Text>
               </Pressable>
               <View className="ml-2 flex-row items-center gap-2">
@@ -127,7 +128,7 @@ export function HomeActionBar({
                 <View className="flex-row items-center justify-between rounded-full bg-gray-500/90 px-3 py-2">
                   <TextInput
                     autoFocus
-                    placeholder="Reply…"
+                    placeholder={t("home.replyPlaceholder")}
                     placeholderTextColor="rgba(255,255,255,0.6)"
                     value={composerText}
                     onChangeText={onChangeComposerText}
@@ -142,7 +143,7 @@ export function HomeActionBar({
                     className="ml-2 rounded-full bg-white px-3 py-1"
                     style={{ opacity: isSendingMessage ? 0.6 : 1 }}>
                     <Text className="text-xs font-semibold text-black">
-                      {isSendingMessage ? "Sending…" : "Send"}
+                      {isSendingMessage ? t("home.sendingButton") : t("home.sendButton")}
                     </Text>
                   </Pressable>
                 </View>

@@ -2,6 +2,7 @@ import { useReminderStore } from "@/appState/reminderStore";
 import { useUIStore } from "@/appState/uiStore";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Localization from "expo-localization";
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import {
   Modal,
@@ -34,6 +35,7 @@ interface ProfileReminderSectionProps {
 export function ProfileReminderSection({
   showDescription = true,
 }: ProfileReminderSectionProps) {
+  const { t } = useTranslation();
   const showToast = useUIStore((s) => s.showToast);
   const reminderEnabled = useReminderStore((s) => s.reminderEnabled);
   const reminderHour = useReminderStore((s) => s.reminderHour);
@@ -72,10 +74,7 @@ export function ProfileReminderSection({
     if (value) {
       const ok = await enableReminder();
       if (!ok) {
-        showToast(
-          "Turn on notifications in system settings to get your daily reminder.",
-          "info",
-        );
+        showToast(t("profile.reminderNotificationToast"), "info");
       }
       return;
     }
@@ -98,15 +97,15 @@ export function ProfileReminderSection({
   return (
     <View className="mb-6">
       <Text className="mb-2 text-sm font-medium text-white/70">
-        Daily reminder
+        {t("profile.reminderLabel")}
       </Text>
       {showDescription ? (
         <Text className="mb-3 text-xs leading-5 text-white/45">
-          One notification per day at the time you pick.
+          {t("profile.reminderDescription")}
         </Text>
       ) : null}
       <View className="flex-row items-center justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
-        <Text className="text-base text-white">Remind me</Text>
+        <Text className="text-base text-white">{t("profile.remindMeButton")}</Text>
         <Switch
           value={reminderEnabled}
           onValueChange={handleToggle}
@@ -124,7 +123,7 @@ export function ProfileReminderSection({
           opacity: reminderEnabled ? (pressed ? 0.85 : 1) : 0.5,
         })}>
         <Text className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
-          Time
+          {t("profile.reminderTimeLabel")}
         </Text>
         <Text className="mt-1 text-base text-white">{timeLabel}</Text>
       </Pressable>

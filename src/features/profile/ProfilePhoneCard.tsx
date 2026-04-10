@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 interface ProfilePhoneCardProps {
@@ -9,6 +10,7 @@ export function ProfilePhoneCard({
   phoneDisplay,
   phoneVerified,
 }: ProfilePhoneCardProps) {
+  const { t } = useTranslation();
   return (
     <View className="mb-6 flex-row items-center justify-between overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
       <View>
@@ -23,7 +25,7 @@ export function ProfilePhoneCard({
             ? "text-xs font-semibold text-emerald-400"
             : "text-xs text-white/60"
         }>
-        {phoneVerified ? "Verified" : "Not verified"}
+        {phoneVerified ? t("profile.phoneVerified") : t("profile.phoneNotVerified")}
       </Text>
     </View>
   );

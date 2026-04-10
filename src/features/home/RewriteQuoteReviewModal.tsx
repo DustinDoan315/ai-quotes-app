@@ -2,7 +2,7 @@ import {
   MAX_REWRITE_REVIEW_CHARACTERS,
   validateRewriteReviewQuote,
 } from "@/services/ai/rewriteReview";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -32,6 +32,7 @@ export function RewriteQuoteReviewModal({
   onApprove,
   onCancel,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [text, setText] = useState(initialText);
   const validation = useMemo(
@@ -66,7 +67,7 @@ export function RewriteQuoteReviewModal({
             <Ionicons name="close" size={24} color="#fff" />
           </Pressable>
           <Text className="flex-1 text-center text-base font-bold text-white">
-            {strings.home.aiTools.rewriteReviewTitle}
+            {t("home.aiTools.rewriteReviewTitle")}
           </Text>
           <View className="w-11" />
         </View>
@@ -75,7 +76,7 @@ export function RewriteQuoteReviewModal({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 24 }}>
           <Text className="mb-3 text-sm leading-5 text-white/65">
-            {strings.home.aiTools.rewriteGuidance}
+            {t("home.aiTools.rewriteGuidance")}
           </Text>
           <TextInput
             value={text}
@@ -91,7 +92,7 @@ export function RewriteQuoteReviewModal({
               className="flex-1 text-sm leading-5"
               style={{ color: validation.isValid ? "rgba(255,255,255,0.6)" : "#FCA5A5" }}>
               {validation.isValid
-                ? strings.home.aiTools.rewriteReady
+                ? t("home.aiTools.rewriteReady")
                 : validation.reason}
             </Text>
             <Text
@@ -110,7 +111,7 @@ export function RewriteQuoteReviewModal({
             className="flex-1 items-center rounded-2xl border border-white/20 py-3.5"
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
             <Text className="text-base font-semibold text-white">
-              {strings.home.aiTools.rewriteCancel}
+              {t("home.aiTools.rewriteCancel")}
             </Text>
           </Pressable>
           <Pressable
@@ -121,7 +122,7 @@ export function RewriteQuoteReviewModal({
               opacity: !validation.isValid ? 0.45 : pressed ? 0.9 : 1,
             })}>
             <Text className="text-base font-bold text-stone-950">
-              {strings.home.aiTools.rewriteApprove}
+              {t("home.aiTools.rewriteApprove")}
             </Text>
           </Pressable>
         </View>

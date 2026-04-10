@@ -1,7 +1,8 @@
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { Linking, Pressable, Text, View } from "react-native";
 
 export function ProfileLegalLinks() {
+  const { t } = useTranslation();
   const privacyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
   const termsUrl = process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL?.trim();
   if (!privacyUrl && !termsUrl) {
@@ -15,7 +16,7 @@ export function ProfileLegalLinks() {
             void Linking.openURL(privacyUrl);
           }}>
           <Text className="text-sm text-white/55 underline">
-            {strings.subscription.privacyPolicyLink}
+            {t("subscription.privacyPolicyLink")}
           </Text>
         </Pressable>
       ) : null}
@@ -25,7 +26,7 @@ export function ProfileLegalLinks() {
             void Linking.openURL(termsUrl);
           }}>
           <Text className="text-sm text-white/55 underline">
-            {strings.subscription.subscriptionTermsLink}
+            {t("subscription.subscriptionTermsLink")}
           </Text>
         </Pressable>
       ) : null}

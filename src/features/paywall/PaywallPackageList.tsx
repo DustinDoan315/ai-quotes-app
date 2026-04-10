@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { Pressable, Text, View } from "react-native";
 
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import {
   type RevenueCatOffering,
   type RevenueCatPackageId,
@@ -21,10 +21,11 @@ export const PaywallPackageList = ({
   bestValuePackageId,
   onSelectPackage,
 }: Props) => {
+  const { t } = useTranslation();
   return (
     <View className="mb-2 w-full max-w-full">
       <Text className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200/90">
-        {strings.subscription.choosePlanHeader}
+        {t("subscription.choosePlanHeader")}
       </Text>
       <View className="w-full gap-3">
         {offerings.availablePackages.map((pkg) => {
@@ -53,7 +54,7 @@ export const PaywallPackageList = ({
               {isBest ? (
                 <View className="bg-amber-400 px-3 py-1.5">
                   <Text className="text-center text-[10px] font-bold uppercase tracking-wide text-slate-950">
-                    {strings.subscription.bestValueTag}
+                    {t("subscription.bestValueTag")}
                   </Text>
                 </View>
               ) : null}

@@ -18,7 +18,7 @@ import { compressImageForUpload } from "@/utils/imageProcessor";
 import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
-import { strings } from "@/theme/strings";
+import i18n from "@/i18n";
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
@@ -211,7 +211,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         quality: 0.9,
       });
       if (!photo?.uri) {
-        showToast(strings.camera.errors.failedToSavePhoto, "error");
+        showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
         return;
       }
       setSelectedImageUri(photo.uri);
@@ -219,10 +219,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHideQuote(true);
       await generateForImage(photo.uri, false);
       setHasSavedCurrentPhoto(false);
-      showToast(strings.camera.info.photoCaptured, "success");
+      showToast(i18n.t("camera.info.photoCaptured"), "success");
     } catch (error) {
       console.error("Failed to capture image", error);
-      showToast(strings.camera.errors.failedToSavePhoto, "error");
+      showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
     } finally {
       setIsCapturing(false);
     }
@@ -245,14 +245,14 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   async function handleSavePhoto() {
     if (!selectedImageUri) {
-      showToast(strings.camera.errors.noPhotoToSave, "error");
+      showToast(i18n.t("camera.errors.noPhotoToSave"), "error");
       return;
     }
     if (isSavingPhoto) {
       return;
     }
     if (hasSavedCurrentPhoto) {
-      showToast(strings.camera.info.photoAlreadySaved, "info");
+      showToast(i18n.t("camera.info.photoAlreadySaved"), "info");
       return;
     }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -272,7 +272,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         homeVibeKey: homeVibeKey ?? null,
       });
       if (!result) {
-        showToast(strings.camera.errors.failedToSavePhoto, "error");
+        showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
         return;
       }
       clearDailyQuote();
@@ -310,7 +310,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
-      showToast(strings.camera.success.photoSaved, "success");
+      showToast(i18n.t("camera.success.photoSaved"), "success");
       onPhotoSaved?.();
     } finally {
       setIsSavingPhoto(false);
@@ -321,7 +321,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      showToast(strings.camera.errors.galleryPermissionRequired, "error");
+      showToast(i18n.t("camera.errors.galleryPermissionRequired"), "error");
       return;
     }
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -335,7 +335,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     await generateForImage(picked.uri, false, pickedBase64);
-    showToast(strings.camera.info.photoSelected, "success");
+    showToast(i18n.t("camera.info.photoSelected"), "success");
   }
 
   function handleSubmitQuoteEdit(text: string) {

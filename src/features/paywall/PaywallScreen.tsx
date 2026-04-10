@@ -13,7 +13,7 @@ import { PaywallStickyFooter } from "@/features/paywall/PaywallStickyFooter";
 import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
 import { usePaywallOfferings } from "@/features/paywall/usePaywallOfferings";
 import { analyticsEvents } from "@/services/analytics/events";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { pickBestValuePackageId } from "@/utils/paywallPackage";
 
 type Props = {
@@ -27,6 +27,7 @@ export const PaywallScreen = ({
   source = "manual",
   onClose,
 }: Props) => {
+  const { t } = useTranslation();
   const plan = useSubscriptionStore((s) => s.plan);
   const offerings = useSubscriptionStore((s) => s.offerings);
   const selectedPackageId = useSubscriptionStore((s) => s.selectedPackageId);
@@ -53,36 +54,36 @@ export const PaywallScreen = ({
     if (plan !== "pro" || isPurchasing || isRestoring) {
       return;
     }
-    showToast(strings.subscription.alreadyProToast, "success", 3000);
+    showToast(t("subscription.alreadyProToast"), "success", 3000);
     onClose();
   }, [plan, isPurchasing, isRestoring, onClose, showToast]);
 
   const headline = useMemo(() => {
-    if (reason === "ai_limit") return strings.subscription.contextAiLimitTitle;
+    if (reason === "ai_limit") return t("subscription.contextAiLimitTitle");
     if (reason === "export_limit") {
-      return strings.subscription.contextExportLimitTitle;
+      return t("subscription.contextExportLimitTitle");
     }
     if (reason === "premium_theme") {
-      return strings.subscription.contextPremiumThemeTitle;
+      return t("subscription.contextPremiumThemeTitle");
     }
     if (reason === "persona_locked") {
-      return strings.subscription.contextPersonaLockedTitle;
+      return t("subscription.contextPersonaLockedTitle");
     }
-    return strings.subscription.paywallHeroTitle;
+    return t("subscription.paywallHeroTitle");
   }, [reason]);
 
   const contextBody = useMemo(() => {
-    if (reason === "ai_limit") return strings.subscription.aiLimitPaywallBody;
+    if (reason === "ai_limit") return t("subscription.aiLimitPaywallBody");
     if (reason === "export_limit") {
-      return strings.subscription.exportLimitPaywallBody;
+      return t("subscription.exportLimitPaywallBody");
     }
     if (reason === "premium_theme") {
-      return strings.subscription.premiumThemePaywallBody;
+      return t("subscription.premiumThemePaywallBody");
     }
     if (reason === "persona_locked") {
-      return strings.subscription.personaPaywallBody;
+      return t("subscription.personaPaywallBody");
     }
-    return strings.subscription.paywallHeroSubtitle;
+    return t("subscription.paywallHeroSubtitle");
   }, [reason]);
 
   const bestValuePackageId = useMemo(() => {
@@ -101,10 +102,10 @@ export const PaywallScreen = ({
   const hasPackages = Boolean(offerings?.availablePackages?.length);
   const canPurchase = hasPackages;
   const primaryLabel = isPurchasing
-    ? strings.subscription.processingCta
+    ? t("subscription.processingCta")
     : selectedPackageId
-      ? strings.subscription.primaryCta
-      : strings.subscription.selectPlanCta;
+      ? t("subscription.primaryCta")
+      : t("subscription.selectPlanCta");
 
   const infoStrip = useMemo(() => {
     if (isPurchasing) {
@@ -143,7 +144,7 @@ export const PaywallScreen = ({
       if (!result.ok) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         showToast(
-          result.errorMessage ?? strings.subscription.noPlansAvailable,
+          result.errorMessage ?? t("subscription.noPlansAvailable"),
           "error",
           4500,
         );
@@ -160,7 +161,7 @@ export const PaywallScreen = ({
     if (!result.ok) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
-        result.errorMessage ?? strings.subscription.purchaseFailedToast,
+        result.errorMessage ?? t("subscription.purchaseFailedToast"),
         "error",
         4500,
       );
@@ -173,13 +174,13 @@ export const PaywallScreen = ({
         fallbackPackageId,
       );
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showToast(strings.subscription.purchaseSuccessToast, "success", 5200);
+      showToast(t("subscription.purchaseSuccessToast"), "success", 5200);
       setTimeout(() => {
         onClose();
       }, 450);
       return;
     }
-    showToast(strings.subscription.purchaseVerifyLater, "info", 5000);
+    showToast(t("subscription.purchaseVerifyLater"), "info", 5000);
   };
 
   const handleRestorePress = async () => {
@@ -187,7 +188,7 @@ export const PaywallScreen = ({
     if (!result.ok) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
-        result.errorMessage ?? strings.subscription.restoreFailedToast,
+        result.errorMessage ?? t("subscription.restoreFailedToast"),
         "error",
         4500,
       );
@@ -196,14 +197,14 @@ export const PaywallScreen = ({
     if (result.becamePro) {
       analyticsEvents.paywallRestoreSucceeded(reason, source);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showToast(strings.subscription.restoreSuccessToast, "success", 5200);
+      showToast(t("subscription.restoreSuccessToast"), "success", 5200);
       setTimeout(() => {
         onClose();
       }, 450);
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    showToast(strings.subscription.restoreNoActiveToast, "info", 4000);
+    showToast(t("subscription.restoreNoActiveToast"), "info", 4000);
   };
 
   return (

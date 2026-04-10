@@ -1,15 +1,16 @@
 import { Text, View } from "react-native";
 
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 
 export const PaywallPlansSkeleton = () => {
+  const { t } = useTranslation();
   return (
     <View className="mb-2 w-full max-w-full">
       <Text className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200/90">
-        {strings.subscription.choosePlanHeader}
+        {t("subscription.choosePlanHeader")}
       </Text>
       <Text className="mb-4 text-sm leading-[21px] text-slate-300">
-        {strings.subscription.statusLoadingPlansBody}
+        {t("subscription.statusLoadingPlansBody")}
       </Text>
       <View className="w-full gap-3">
         <View className="h-[92px] w-full overflow-hidden rounded-2xl border border-white/15 bg-slate-900/80">

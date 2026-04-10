@@ -11,6 +11,7 @@ import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone"
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   ActivityIndicator,
@@ -29,6 +30,7 @@ export function ProfileAuthedView({
   onBack,
   onSignedOut,
 }: ProfileAuthedViewProps) {
+  const { t } = useTranslation();
   const showToast = useUIStore((s) => s.showToast);
   const profile = useUserStore((s) => s.profile);
   const { updateProfile, signOut, refreshProfile } = useAuth();
@@ -56,8 +58,8 @@ export function ProfileAuthedView({
 
   const trimmedName = displayName.trim();
   const nameError = useMemo(() => {
-    if (trimmedName.length === 0) return "Name is required.";
-    if (trimmedName.length > 40) return "Name must be 40 characters or less.";
+    if (trimmedName.length === 0) return t("profile.nameRequired");
+    if (trimmedName.length > 40) return t("profile.nameTooLong");
     return null;
   }, [trimmedName]);
 
@@ -88,14 +90,14 @@ export function ProfileAuthedView({
       });
       if (error && typeof error === "object" && error && "message" in error) {
         showToast(
-          String((error as { message?: string }).message ?? "Failed to save"),
+          String((error as { message?: string }).message ?? t("profile.failedToSave")),
           "error",
         );
         return;
       }
       await refreshProfile();
       setEditing(false);
-      showToast("Profile updated", "success");
+      showToast(t("profile.profileUpdated"), "success");
     } finally {
       setSaving(false);
     }
@@ -107,7 +109,7 @@ export function ProfileAuthedView({
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      showToast("Please allow photo access to update your avatar.", "info");
+      showToast(t("profile.photoAccessRequired"), "info");
       return;
     }
 
@@ -131,21 +133,21 @@ export function ProfileAuthedView({
         userId: profile.user_id,
       });
       if (!saved) {
-        showToast("Failed to upload avatar.", "error");
+        showToast(t("profile.failedToUploadAvatar"), "error");
         return;
       }
       const { error } = await updateProfile({ avatar_url: saved.publicUrl });
       if (error && typeof error === "object" && error && "message" in error) {
         showToast(
           String(
-            (error as { message?: string }).message ?? "Failed to save avatar",
+            (error as { message?: string }).message ?? t("profile.failedToUploadAvatar"),
           ),
           "error",
         );
         return;
       }
       await refreshProfile();
-      showToast("Avatar updated", "success");
+      showToast(t("profile.avatarUpdated"), "success");
     } finally {
       setAvatarSaving(false);
     }
@@ -155,7 +157,7 @@ export function ProfileAuthedView({
     const { error } = await signOut();
     if (error && typeof error === "object" && error && "message" in error) {
       showToast(
-        String((error as { message?: string }).message ?? "Failed to sign out"),
+        String((error as { message?: string }).message ?? t("profile.failedToSignOut")),
         "error",
       );
       return;
@@ -189,7 +191,7 @@ export function ProfileAuthedView({
         <ProfileAvatarRow
           avatarUrl={avatarUrl}
           avatarSaving={avatarSaving}
-          displayLine={profile?.display_name || profile?.username || "No name"}
+          displayLine={profile?.display_name || profile?.username || t("profile.noName")}
           username={profile?.username ?? null}
           onPickAvatar={handlePickAvatar}
         />
@@ -205,12 +207,12 @@ export function ProfileAuthedView({
           <>
             <View className="mb-4">
               <Text className="mb-2 text-sm font-medium text-white/70">
-                Display name
+                {t("profile.displayNameLabel")}
               </Text>
               <TextInput
                 value={displayName}
                 onChangeText={setDisplayName}
-                placeholder="Your name"
+                placeholder={t("profile.displayNamePlaceholder")}
                 placeholderTextColor="rgba(255,255,255,0.4)"
                 className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-base text-white"
               />
@@ -220,11 +222,11 @@ export function ProfileAuthedView({
             </View>
 
             <View className="mb-6">
-              <Text className="mb-2 text-sm font-medium text-white/70">Bio</Text>
+              <Text className="mb-2 text-sm font-medium text-white/70">{t("profile.bioLabel")}</Text>
               <TextInput
                 value={bio}
                 onChangeText={setBio}
-                placeholder="A short bio"
+                placeholder={t("profile.bioPlaceholder")}
                 placeholderTextColor="rgba(255,255,255,0.4)"
                 multiline
                 className="min-h-[96px] rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-base text-white"

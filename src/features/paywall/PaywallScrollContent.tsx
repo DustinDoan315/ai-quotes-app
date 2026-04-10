@@ -9,7 +9,7 @@ import {
   type RevenueCatPackageId,
   type RevenueCatOffering,
 } from "@/services/paywall/types";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   headline: string;
@@ -34,6 +34,7 @@ export const PaywallScrollContent = ({
   selectedPackageId,
   onSelectPackage,
 }: Props) => {
+  const { t } = useTranslation();
   return (
     <ScrollView
       className="flex-1 w-full max-w-full self-stretch"
@@ -52,7 +53,7 @@ export const PaywallScrollContent = ({
           </View>
           <View className="mt-3 rounded-full border border-amber-400/35 bg-amber-500/20 px-4 py-1.5">
             <Text className="text-center text-[10px] font-bold uppercase tracking-[0.18em] text-amber-100">
-              {strings.subscription.heroEyebrow}
+              {t("subscription.heroEyebrow")}
             </Text>
           </View>
         </View>
@@ -87,7 +88,7 @@ export const PaywallScrollContent = ({
       {!showOfferingsLoading && !hasPackages && !showOfferingsError ? (
         <View className="mt-6 w-full max-w-full rounded-2xl border border-amber-400/20 bg-slate-950/95 px-4 py-4">
           <Text className="w-full text-center text-sm leading-[22px] text-slate-200">
-            {strings.subscription.noPlansAvailable}
+            {t("subscription.noPlansAvailable")}
           </Text>
         </View>
       ) : null}
@@ -99,7 +100,7 @@ export const PaywallScrollContent = ({
       <View className="mt-5 w-full max-w-full flex-row items-start gap-3 rounded-2xl border border-sky-500/25 bg-slate-950/95 px-4 py-3">
         <Ionicons name="shield-checkmark" size={22} color="#38bdf8" />
         <Text className="min-w-0 flex-1 text-[13px] leading-[19px] text-slate-200">
-          {strings.subscription.footerReassurance}
+          {t("subscription.footerReassurance")}
         </Text>
       </View>
     </ScrollView>

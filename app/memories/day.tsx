@@ -12,7 +12,7 @@ import { useMemoryStore, useUserStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
 import { MemoryCard } from "@/components/MemoryCard";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemoriesForDay";
@@ -20,6 +20,7 @@ import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemories
 type Layer = "mine" | "friends";
 
 export default function MemoriesDayScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ date?: string }>();
   const dateParam = params.date;
@@ -142,7 +143,7 @@ export default function MemoriesDayScreen() {
                 <Ionicons name="calendar-outline" size={32} color="#ffffff" />
               </View>
               <Text className="text-center text-base font-medium text-white/90">
-                {strings.memories.emptyForDay}
+                {t("memories.emptyForDay")}
               </Text>
               <Text className="mt-2 text-center text-sm text-white/50">
                 Save a quote from the camera to see it here
@@ -177,10 +178,10 @@ export default function MemoriesDayScreen() {
               <Ionicons name="people-outline" size={32} color="#ffffff" />
             </View>
             <Text className="text-center text-base font-medium text-white/90">
-              {strings.memories.friendsPlaceholder}
+              {t("memories.friendsPlaceholder")}
             </Text>
             <Text className="mt-2 text-center text-sm text-white/50">
-              {strings.memories.emptyForDay}
+              {t("memories.emptyForDay")}
             </Text>
           </View>
         ) : (

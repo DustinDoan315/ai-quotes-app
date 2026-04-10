@@ -1,5 +1,5 @@
 import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
-import { strings } from "@/theme/strings";
+import i18n from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 
 type QuoteStackLike = {
@@ -133,10 +133,10 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
 
     setComposerText("");
     setIsComposerOpen(false);
-    setLastSentLabel(strings.home.messageSent);
+    setLastSentLabel(i18n.t("home.messageSent"));
     setTimeout(() => {
       setLastSentLabel((label) =>
-        label === strings.home.messageSent ? null : label,
+        label === i18n.t("home.messageSent") ? null : label,
       );
     }, 1200);
   }

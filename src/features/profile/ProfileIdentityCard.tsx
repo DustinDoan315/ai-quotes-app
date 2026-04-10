@@ -2,20 +2,22 @@ import { useMemoryStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
 import { useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
+import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
 export function ProfileIdentityCard() {
+  const { t } = useTranslation();
   const persona = useUserStore((s) => s.persona);
   const currentStreak = useStreakStore((s) => s.currentStreak);
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const identityTitle =
     persona && persona.traits.length > 0
       ? persona.traits.includes("disciplined")
-        ? "The Disciplined One"
+        ? t("profile.identityDisciplined")
         : persona.traits.includes("quiet")
-          ? "The Quiet Thinker"
-          : "The Rebuilder"
-      : "Growing Through Moments";
+          ? t("profile.identityQuiet")
+          : t("profile.identityRebuilder")
+      : t("profile.identityDefault");
 
   return (
     <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">

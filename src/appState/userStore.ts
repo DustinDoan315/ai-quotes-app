@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getLocales } from 'expo-localization';
+import i18n from '@/i18n';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -23,6 +25,7 @@ type UserProfile = {
 type AuthState = "guest" | "authenticated" | "loading";
 
 export type QuoteLanguagePreference = "vi" | "en";
+export type UiLanguagePreference = "vi" | "en";
 
 type UserState = {
   persona: Persona | null;
@@ -32,17 +35,22 @@ type UserState = {
   guestDisplayName: string | null;
   inviteNudgeDismissed: boolean;
   quoteLanguage: QuoteLanguagePreference;
+  uiLanguage: UiLanguagePreference;
   setPersona: (persona: Persona) => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
   setGuestDisplayName: (name: string | null) => void;
   setInviteNudgeDismissed: (dismissed: boolean) => void;
   setQuoteLanguage: (lang: QuoteLanguagePreference) => void;
+  setUiLanguage: (lang: UiLanguagePreference) => void;
   clearUser: () => void;
   ensureGuestId: () => string;
 };
 
-const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "clearUser" | "ensureGuestId"> =
+const deviceLanguage = getLocales()[0]?.languageCode;
+const defaultUiLanguage: UiLanguagePreference = deviceLanguage === 'vi' ? 'vi' : 'en';
+
+const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "setUiLanguage" | "clearUser" | "ensureGuestId"> =
   {
     persona: null,
     profile: null,
@@ -51,6 +59,7 @@ const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState"
     guestDisplayName: null,
     inviteNudgeDismissed: false,
     quoteLanguage: "vi",
+    uiLanguage: defaultUiLanguage,
   };
 
 const createGuestId = () =>
@@ -66,6 +75,10 @@ export const useUserStore = create<UserState>()(
       setGuestDisplayName: (guestDisplayName) => set({ guestDisplayName }),
       setInviteNudgeDismissed: (inviteNudgeDismissed) => set({ inviteNudgeDismissed }),
       setQuoteLanguage: (quoteLanguage) => set({ quoteLanguage }),
+      setUiLanguage: (uiLanguage) => {
+        set({ uiLanguage });
+        i18n.changeLanguage(uiLanguage);
+      },
       clearUser: () => set(initialState),
       ensureGuestId: () => {
         const current = get().guestId;
@@ -80,7 +93,7 @@ export const useUserStore = create<UserState>()(
     {
       name: "user-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ profile: state.profile, persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, quoteLanguage: state.quoteLanguage }),
+      partialize: (state) => ({ profile: state.profile, persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, quoteLanguage: state.quoteLanguage, uiLanguage: state.uiLanguage }),
     },
   ),
 );

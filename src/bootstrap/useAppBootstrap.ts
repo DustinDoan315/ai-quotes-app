@@ -1,6 +1,8 @@
 import { useSubscriptionConfigStore } from "@/appState/subscriptionConfigStore";
 import { useReminderStore } from "@/appState/reminderStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import { useUserStore } from "@/appState/userStore";
+import i18n from "@/i18n";
 import { syncUserProfile } from "@/features/auth/authService";
 import { supabase } from "@/config/supabase";
 import {
@@ -15,6 +17,24 @@ import {
   isRevenueCatInitialized,
 } from "@/services/paywall/nativeRevenueCat";
 import { useEffect } from "react";
+
+function syncUiLanguageOnBoot(): (() => void) | undefined {
+  const applyLanguageSync = () => {
+    const { uiLanguage } = useUserStore.getState();
+    if (uiLanguage && i18n.language !== uiLanguage) {
+      void i18n.changeLanguage(uiLanguage);
+    }
+  };
+
+  if (useUserStore.persist.hasHydrated()) {
+    applyLanguageSync();
+    return undefined;
+  }
+
+  return useUserStore.persist.onFinishHydration(() => {
+    applyLanguageSync();
+  });
+}
 
 function syncReminderOnBoot(): (() => void) | undefined {
   configureNotificationHandler();
@@ -73,6 +93,7 @@ function bootstrapTelemetry(): void {
 
 export function useAppBootstrap(): void {
   useEffect(() => {
+    const unsubscribeLanguageHydration = syncUiLanguageOnBoot();
     const unsubscribeReminderHydration = syncReminderOnBoot();
     bootstrapTelemetry();
 
@@ -93,6 +114,7 @@ export function useAppBootstrap(): void {
       });
 
     return () => {
+      unsubscribeLanguageHydration?.();
       unsubscribeReminderHydration?.();
     };
   }, []);

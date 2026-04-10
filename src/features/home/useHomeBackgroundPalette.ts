@@ -1,7 +1,7 @@
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUserStore } from "@/appState/userStore";
 import { isPremiumHomeBackgroundPalette } from "@/domain/subscription/homeVibePremium";
-import { strings } from "@/theme/strings";
+import i18n from "@/i18n";
 import {
   HOME_BACKGROUNDS,
   getHomeBackgroundPaletteByKey,
@@ -94,8 +94,8 @@ export function useHomeBackgroundPalette(): {
     }
     const { palette, luckPercent } = effectiveDaily;
     return {
-      vibeName: strings.home.vibes[palette.vibeKey],
-      rarityLabel: strings.home.vibeRarity[palette.rarity],
+      vibeName: i18n.t(`home.vibes.${palette.vibeKey}`),
+      rarityLabel: i18n.t(`home.vibeRarity.${palette.rarity}`),
       rarity: palette.rarity,
       luckPercent,
     };

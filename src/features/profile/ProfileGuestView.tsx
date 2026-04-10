@@ -3,7 +3,9 @@ import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
 import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
 import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { ProfileReminderSection } from "@/features/profile/ProfileReminderSection";
+import { ProfileUiLanguageSection } from "@/features/profile/ProfileUiLanguageSection";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 interface ProfileGuestViewProps {
@@ -17,6 +19,7 @@ export function ProfileGuestView({
   onLogin,
   onInviteFriends,
 }: ProfileGuestViewProps) {
+  const { t } = useTranslation();
   const persona = useUserStore((s) => s.persona);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
   const setGuestDisplayName = useUserStore((s) => s.setGuestDisplayName);
@@ -44,10 +47,12 @@ export function ProfileGuestView({
             <Text className="text-sm leading-5 text-white/85">
               {persona.traits?.length
                 ? persona.traits.slice(0, 3).join(" · ")
-                : "Personalized quotes"}
+                : t("profile.personalizedQuotes")}
             </Text>
           </View>
         ) : null}
+
+        <ProfileUiLanguageSection />
 
         <ProfileQuoteLanguageSection />
 
@@ -60,7 +65,7 @@ export function ProfileGuestView({
           <TextInput
             value={guestDisplayName ?? ""}
             onChangeText={(t) => setGuestDisplayName(t.trim() || null)}
-            placeholder="Add a name"
+            placeholder={t("profile.addAName")}
             placeholderTextColor="rgba(255,255,255,0.4)"
             className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-base text-white"
           />

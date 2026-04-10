@@ -9,7 +9,7 @@ import { useUsageStore } from "@/appState/usageStore";
 import { ADVANCED_PERSONA_IDS } from "@/domain/subscription/subscriptionConstants";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { openPaywall } from "@/features/paywall/openPaywall";
-import { strings } from "@/theme/strings";
+import i18n from "@/i18n";
 
 const MAX_PERSONA_TRAITS = 8;
 const MAX_PERSONA_TRAIT_LENGTH = 40;
@@ -57,7 +57,7 @@ export const useGenerateQuote = () => {
     const personaGuard = guards.canUsePersonaLevel(isAdvancedPersona);
     if (!personaGuard.allowed) {
       showToast(
-        `${strings.subscription.personaLockedTitle} ${strings.subscription.personaLockedBody}`,
+        `${i18n.t("subscription.personaLockedTitle")} ${i18n.t("subscription.personaLockedBody")}`,
         "info",
       );
       openPaywall({
@@ -71,7 +71,7 @@ export const useGenerateQuote = () => {
 
     if (!guardResult.allowed) {
       showToast(
-        `${strings.subscription.aiLimitReachedTitle} ${strings.subscription.aiLimitReachedBody}`,
+        `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
         "info",
       );
       openPaywall({

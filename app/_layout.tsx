@@ -1,3 +1,4 @@
+import '@/i18n';
 import { useAppBootstrap } from "@/bootstrap/useAppBootstrap";
 import { ToastHost } from '@/components/ToastHost';
 import { GlobalHomeBackground } from '@/features/home/GlobalHomeBackground';

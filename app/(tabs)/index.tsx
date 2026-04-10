@@ -13,7 +13,7 @@ import { useHomeFeedState } from "@/features/home/useHomeFeedState";
 import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/groupQuotePhotoCardsIntoStacks";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
@@ -35,6 +35,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 export default function HomeScreen() {
   const router = useRouter();
   const [milestone, setMilestone] = useState<number | null>(null);
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
@@ -212,7 +213,7 @@ export default function HomeScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-transparent px-8">
         <Text className="mb-4 text-center text-white">
-          {strings.home.cameraPermissionRequired}
+          {t("home.cameraPermissionRequired")}
         </Text>
         <Pressable
           onPress={requestPermission}
@@ -233,7 +234,7 @@ export default function HomeScreen() {
         <View className="absolute left-0 right-0 top-10 z-10 items-center">
           <View className="rounded-full bg-black/85 px-4 py-2">
             <Text className="text-xs font-semibold text-white">
-              {strings.home.savedToMemories}
+              {t("home.savedToMemories")}
             </Text>
           </View>
         </View>

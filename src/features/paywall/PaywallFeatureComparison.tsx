@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
-import { strings } from "@/theme/strings";
+import { useTranslation } from "react-i18next";
 
 type FeatureRowProps = {
   label: string;
@@ -11,11 +11,12 @@ type FeatureRowProps = {
 };
 
 export const PaywallFeatureComparison = () => {
+  const { t } = useTranslation();
   return (
     <View className="mb-5 w-full max-w-full overflow-hidden rounded-3xl border border-amber-400/25 bg-slate-950/95">
       <View className="border-b border-amber-400/20 bg-amber-500/15 px-3 py-3">
         <Text className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-amber-100">
-          {strings.subscription.featureHeaderHighlight}
+          {t("subscription.featureHeaderHighlight")}
         </Text>
       </View>
 
@@ -23,45 +24,45 @@ export const PaywallFeatureComparison = () => {
         <View className="min-w-0 flex-1" />
         <View className="w-[68px] shrink-0 items-center">
           <Text className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-            {strings.subscription.freeLabel}
+            {t("subscription.freeLabel")}
           </Text>
         </View>
         <View className="w-[68px] shrink-0 items-center">
           <Text className="text-[10px] font-bold uppercase tracking-wide text-amber-200">
-            {strings.subscription.proLabel}
+            {t("subscription.proLabel")}
           </Text>
         </View>
       </View>
 
       <View className="px-1 pb-3 pt-1">
         <FeatureRow
-          label={strings.subscription.featureDailyQuotes}
-          freeValue={strings.subscription.freeDailyQuotesValue}
-          proValue={strings.subscription.proDailyQuotesValue}
+          label={t("subscription.featureDailyQuotes")}
+          freeValue={t("subscription.freeDailyQuotesValue")}
+          proValue={t("subscription.proDailyQuotesValue")}
           isLast={false}
         />
         <FeatureRow
-          label={strings.subscription.featureExports}
-          freeValue={strings.subscription.freeExportsValue}
-          proValue={strings.subscription.proExportsValue}
+          label={t("subscription.featureExports")}
+          freeValue={t("subscription.freeExportsValue")}
+          proValue={t("subscription.proExportsValue")}
           isLast={false}
         />
         <FeatureRow
-          label={strings.subscription.featurePremiumThemes}
-          freeValue={strings.subscription.freePremiumThemesValue}
-          proValue={strings.subscription.proPremiumThemesValue}
+          label={t("subscription.featurePremiumThemes")}
+          freeValue={t("subscription.freePremiumThemesValue")}
+          proValue={t("subscription.proPremiumThemesValue")}
           isLast={false}
         />
         <FeatureRow
-          label={strings.subscription.featureAdvancedPersona}
-          freeValue={strings.subscription.freeAdvancedPersonaValue}
-          proValue={strings.subscription.proAdvancedPersonaValue}
+          label={t("subscription.featureAdvancedPersona")}
+          freeValue={t("subscription.freeAdvancedPersonaValue")}
+          proValue={t("subscription.proAdvancedPersonaValue")}
           isLast={false}
         />
         <FeatureRow
-          label={strings.subscription.featureWatermark}
-          freeValue={strings.subscription.freeWatermarkValue}
-          proValue={strings.subscription.proWatermarkValue}
+          label={t("subscription.featureWatermark")}
+          freeValue={t("subscription.freeWatermarkValue")}
+          proValue={t("subscription.proWatermarkValue")}
           isLast
         />
       </View>
