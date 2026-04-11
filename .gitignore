@@ -41,6 +41,18 @@ ehthumbs.db
 # TypeScript
 *.tsbuildinfo
 
+# Package manager — bun is the standard; drop npm/yarn artifacts
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# Planning / scratch docs (not source)
+plan_fix.md
+planning to release.md
+
 # generated native folders
 /ios
 /android
