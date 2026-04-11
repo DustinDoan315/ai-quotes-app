@@ -32,7 +32,10 @@ async function callEdgeFunction(
   }
 
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token ?? supabaseAnonKey;
+  if (!session?.access_token) {
+    throw new Error("No active session. Please restart the app.");
+  }
+  const token = session.access_token;
 
   const response = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
     method: "POST",

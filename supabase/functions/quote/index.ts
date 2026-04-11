@@ -317,11 +317,16 @@ const generateQuoteWithoutImage = async (
 };
 
 Deno.serve(async (req: Request) => {
+  console.log("[quote] method:", req.method);
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
+  const authHeader = req.headers.get("Authorization");
+  console.log("[quote] auth header present:", !!authHeader, "starts with Bearer:", authHeader?.startsWith("Bearer "));
+
   const authResult = await requireAuth(req);
+  console.log("[quote] authResult instanceof Response:", authResult instanceof Response);
   if (authResult instanceof Response) return authResult;
 
   try {
