@@ -10,4 +10,5 @@ export type PaywallSource =
   | "quote_share"
   | "theme_gate"
   | "persona_gate"
+  | "onboarding"
   | "manual";

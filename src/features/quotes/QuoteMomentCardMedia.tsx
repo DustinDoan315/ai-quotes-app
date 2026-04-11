@@ -72,6 +72,7 @@ export const QuoteMomentCardMedia = ({
           onAspectRatioSet(source.width / source.height);
         }}
       />
+      {chrome ? <View pointerEvents="none" style={chrome.imageWash} /> : null}
       <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
       {chrome ? (
         <>

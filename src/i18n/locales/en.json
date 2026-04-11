@@ -113,9 +113,9 @@
     "featureWatermark": "Inkly watermark",
     "freeLabel": "Free",
     "proLabel": "Pro",
-    "freeDailyQuotesValue": "3 / day",
+    "freeDailyQuotesValue": "2 / day",
     "proDailyQuotesValue": "Unlimited",
-    "freeExportsValue": "3 / day",
+    "freeExportsValue": "2 / day",
     "proExportsValue": "Unlimited",
     "freePremiumThemesValue": "Locked",
     "proPremiumThemesValue": "All styles",
@@ -211,5 +211,57 @@
   "share": {
     "shareButton": "Share",
     "shareMomentDialogTitle": "Share your Inkly moment"
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "A quote that's actually yours.",
+      "subheadline": "Personalized to your vibe.\nBeautiful enough to share.",
+      "previewQuote": "\"The most powerful version of you shows up every single day.\"",
+      "previewAttribution": "— Inkly",
+      "cta": "Find my vibe",
+      "disclaimer": "Free to start · No account required"
+    },
+    "goal": {
+      "title": "What are you here for?",
+      "subtitle": "We'll tune your experience around this.",
+      "cta": "That's me",
+      "option_motivation": "Daily motivation that actually lands",
+      "option_reflection": "A little daily self-reflection",
+      "option_sharing": "Beautiful content to save and share",
+      "option_creative": "Creative expression and aesthetic vibes",
+      "option_different": "Something different from generic quote apps"
+    },
+    "style": {
+      "title": "What style feels like you?",
+      "subtitle": "This shapes how your quotes look.",
+      "cta": "Set my style",
+      "option_darkMinimal": "Dark & minimal",
+      "option_boldExpressive": "Bold & expressive",
+      "option_softPoetic": "Soft & poetic",
+      "option_cleanBright": "Clean & bright"
+    },
+    "traits": {
+      "title": "Now pick your vibe.",
+      "subtitle": "Your quotes are written for someone exactly like you. Pick 1–5.",
+      "counter": "{{selected}}/{{max}} selected",
+      "cta": "These are my traits"
+    },
+    "notification": {
+      "title": "Never miss your daily vibe.",
+      "subtitle": "One notification. Your quote, ready when you wake up.",
+      "bullet1": "Get your personalized quote first thing in the morning",
+      "bullet2": "Pick your time — we'll show up exactly then, every day",
+      "bullet3": "No spam. Just your one daily moment.",
+      "ctaEnable": "Enable reminders",
+      "ctaSkip": "Not now"
+    },
+    "processing": {
+      "title": "Crafting your first quote...",
+      "subtitle": "Personalizing it just for you"
+    },
+    "quoteReveal": {
+      "eyebrow": "This is yours.",
+      "cta": "Love it. Let's keep going"
+    }
   }
 }

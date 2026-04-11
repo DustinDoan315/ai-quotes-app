@@ -113,9 +113,9 @@
     "featureWatermark": "Watermark Inkly",
     "freeLabel": "Miễn phí",
     "proLabel": "Pro",
-    "freeDailyQuotesValue": "3 / ngày",
+    "freeDailyQuotesValue": "2 / ngày",
     "proDailyQuotesValue": "Không giới hạn",
-    "freeExportsValue": "3 / ngày",
+    "freeExportsValue": "2 / ngày",
     "proExportsValue": "Không giới hạn",
     "freePremiumThemesValue": "Bị khóa",
     "proPremiumThemesValue": "Tất cả phong cách",
@@ -211,5 +211,57 @@
   "share": {
     "shareButton": "Chia sẻ",
     "shareMomentDialogTitle": "Chia sẻ khoảnh khắc Inkly của bạn"
+  },
+  "onboarding": {
+    "welcome": {
+      "headline": "Câu trích dẫn thực sự là của bạn.",
+      "subheadline": "Cá nhân hóa theo cảm xúc của bạn.\nĐẹp đến mức muốn chia sẻ.",
+      "previewQuote": "\"Phiên bản mạnh mẽ nhất của bạn xuất hiện mỗi ngày.\"",
+      "previewAttribution": "— Inkly",
+      "cta": "Khám phá cảm xúc của tôi",
+      "disclaimer": "Miễn phí · Không cần tài khoản"
+    },
+    "goal": {
+      "title": "Bạn đến đây vì điều gì?",
+      "subtitle": "Chúng tôi sẽ điều chỉnh trải nghiệm của bạn theo điều này.",
+      "cta": "Đó là tôi",
+      "option_motivation": "Động lực hàng ngày thực sự có ý nghĩa",
+      "option_reflection": "Một chút tự suy ngẫm mỗi ngày",
+      "option_sharing": "Nội dung đẹp để lưu và chia sẻ",
+      "option_creative": "Biểu đạt sáng tạo và cảm xúc thẩm mỹ",
+      "option_different": "Điều gì đó khác biệt so với các ứng dụng câu trích dẫn thông thường"
+    },
+    "style": {
+      "title": "Phong cách nào là bạn?",
+      "subtitle": "Điều này định hình giao diện câu trích dẫn của bạn.",
+      "cta": "Đặt phong cách của tôi",
+      "option_darkMinimal": "Tối & tối giản",
+      "option_boldExpressive": "Đậm & biểu cảm",
+      "option_softPoetic": "Nhẹ nhàng & thơ mộng",
+      "option_cleanBright": "Sạch sẽ & sáng sủa"
+    },
+    "traits": {
+      "title": "Giờ chọn cảm xúc của bạn.",
+      "subtitle": "Câu trích dẫn được viết cho ai đó giống như bạn. Chọn 1–5.",
+      "counter": "{{selected}}/{{max}} đã chọn",
+      "cta": "Đây là nét tính cách của tôi"
+    },
+    "notification": {
+      "title": "Đừng bỏ lỡ cảm xúc hàng ngày.",
+      "subtitle": "Một thông báo. Câu trích dẫn của bạn, sẵn sàng khi bạn thức dậy.",
+      "bullet1": "Nhận câu trích dẫn cá nhân hóa ngay khi thức dậy",
+      "bullet2": "Chọn giờ của bạn — chúng tôi sẽ xuất hiện đúng lúc, mỗi ngày",
+      "bullet3": "Không spam. Chỉ một khoảnh khắc hàng ngày của bạn.",
+      "ctaEnable": "Bật nhắc nhở",
+      "ctaSkip": "Để sau"
+    },
+    "processing": {
+      "title": "Đang tạo câu trích dẫn đầu tiên...",
+      "subtitle": "Cá nhân hóa riêng cho bạn"
+    },
+    "quoteReveal": {
+      "eyebrow": "Đây là của bạn.",
+      "cta": "Tuyệt vời. Hãy tiếp tục nào"
+    }
   }
 }
