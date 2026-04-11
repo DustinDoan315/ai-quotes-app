@@ -64,6 +64,7 @@ export default function HomeScreen() {
     requestPermission,
     cameraRef,
     cameraReady,
+    isCameraActive,
     handleCameraReady,
     isCapturing,
     isSavingPhoto,
@@ -285,6 +286,7 @@ export default function HomeScreen() {
             cameraSectionProps={{
               cameraRef,
               pinchGesture,
+              isCameraActive,
               selectedImageUri,
               canDeleteImage: !hasSavedCurrentPhoto,
               facing,

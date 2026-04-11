@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView } from "expo-camera";
+import { useFocusEffect } from "@react-navigation/native";
 import { Gesture } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAIStore } from "@/features/ai/aiStore";
@@ -64,6 +65,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const homeVibeKey = options?.homeVibeKey;
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(
@@ -100,6 +102,17 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       }
     };
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsCameraActive(true);
+
+      return () => {
+        setIsCameraActive(false);
+        setCameraReady(false);
+      };
+    }, []),
+  );
 
   const captureZoomStart = useCallback(() => {
     zoomStartRef.current = zoomRef.current;
@@ -368,6 +381,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     requestPermission,
     cameraRef,
     cameraReady,
+    isCameraActive,
     handleCameraReady,
     isCapturing,
     isSavingPhoto,

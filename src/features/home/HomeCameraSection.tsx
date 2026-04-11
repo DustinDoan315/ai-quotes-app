@@ -37,6 +37,7 @@ const PANEL_HIGHLIGHT = "#FBBF24";
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
   pinchGesture: PinchGesture;
+  isCameraActive: boolean;
   selectedImageUri: string | null;
   canDeleteImage: boolean;
   facing: "back" | "front";
@@ -73,6 +74,7 @@ export type HomeCameraSectionProps = {
 export const HomeCameraSection = ({
   cameraRef,
   pinchGesture,
+  isCameraActive,
   selectedImageUri,
   canDeleteImage,
   facing,
@@ -257,19 +259,21 @@ export const HomeCameraSection = ({
                 </View>
               ) : (
                 <View className="flex-1 overflow-hidden">
-                  <CameraView
-                    ref={cameraRef}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 0,
-                      bottom: 0,
-                      left: 0,
-                    }}
-                    facing={facing}
-                    zoom={zoom}
-                    onCameraReady={onCameraReady}
-                  />
+                  {isCameraActive ? (
+                    <CameraView
+                      ref={cameraRef}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0,
+                      }}
+                      facing={facing}
+                      zoom={zoom}
+                      onCameraReady={onCameraReady}
+                    />
+                  ) : null}
                 </View>
               )}
               <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
