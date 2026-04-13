@@ -5,7 +5,7 @@ import {
 import { supabase } from "@/config/supabase";
 import { signInAnonymously } from "@/services/supabase-auth";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
-import { Image } from "react-native";
+import { centerCropToAspect, getImageDimensions } from "@/utils/imageCrop";
 
 type SaveUserPhotoParams = {
   localUri: string;
@@ -34,31 +34,6 @@ const createOwnerFolder = (userId: string | null, guestId: string | null) => {
   return `anonymous-${Date.now().toString(36)}`;
 };
 
-function getImageDimensions(uri: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    Image.getSize(
-      uri,
-      (width, height) => resolve({ width, height }),
-      reject,
-    );
-  });
-}
-
-function centerCropToAspect(
-  srcWidth: number,
-  srcHeight: number,
-  targetAspect: number,
-): { originX: number; originY: number; width: number; height: number } {
-  const srcAspect = srcWidth / srcHeight;
-  if (srcAspect > targetAspect) {
-    const width = Math.round(srcHeight * targetAspect);
-    const originX = Math.round((srcWidth - width) / 2);
-    return { originX, originY: 0, width, height: srcHeight };
-  }
-  const height = Math.round(srcWidth / targetAspect);
-  const originY = Math.round((srcHeight - height) / 2);
-  return { originX: 0, originY, width: srcWidth, height };
-}
 
 export const saveUserPhoto = async (
   params: SaveUserPhotoParams,
@@ -78,14 +53,16 @@ export const saveUserPhoto = async (
     return null;
   }
 
-  const sessionResult = await supabase.auth.getSession();
-  if (!sessionResult.data.session) {
+  let activeSession = (await supabase.auth.getSession()).data.session;
+  if (!activeSession) {
     const { error } = await signInAnonymously();
     if (error) {
       console.error("Failed to start anonymous session", error);
       return null;
     }
+    activeSession = (await supabase.auth.getSession()).data.session;
   }
+  const effectiveUserId = userId ?? activeSession?.user?.id ?? null;
 
   const output = QUOTE_OUTPUT_SIZE[orientation];
   const targetAspect = output.width / output.height;
@@ -107,7 +84,7 @@ export const saveUserPhoto = async (
     console.error("Failed to preprocess image for upload", error);
   }
 
-  const ownerFolder = createOwnerFolder(userId, guestId);
+  const ownerFolder = createOwnerFolder(effectiveUserId, guestId);
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.jpg`;
   const path = `${ownerFolder}/${fileName}`;
 
@@ -148,7 +125,7 @@ export const saveUserPhoto = async (
   const publicUrl = `${supabaseUrl}/storage/v1/object/public/user-photos/${encodeURIComponent(path)}`;
 
   const { error: insertError } = await supabase.from("user_photos").insert({
-    user_id: userId,
+    user_id: effectiveUserId,
     guest_id: guestId,
     image_url: publicUrl,
     storage_path: path,

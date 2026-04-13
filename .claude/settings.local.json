@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; [print\\(f'{k}: {v}'\\) for k in sorted\\(deps\\) if any\\(x in k for x in ['moti','reanimated','expo-linear','expo-haptic','nativewind','tailwind']\\)]\")",
+      "Bash(xargs cat:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

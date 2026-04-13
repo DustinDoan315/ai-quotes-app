@@ -94,6 +94,7 @@ export default function OnboardingScreen() {
           <View className="w-[26px]" />
         )}
         <OnboardingProgressBar currentStep={step} totalSteps={TOTAL_STEPS} />
+        <View className="w-[26px]" />
       </View>
 
       <AnimatePresence>

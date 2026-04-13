@@ -16,6 +16,9 @@ import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { compressImageForUpload } from "@/utils/imageProcessor";
+import { centerCropToAspect, getImageDimensions } from "@/utils/imageCrop";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
@@ -227,7 +230,20 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
         return;
       }
-      setSelectedImageUri(photo.uri);
+      let previewUri = photo.uri;
+      try {
+        const targetAspect = getQuoteAspectRatio("portrait");
+        const { width: srcW, height: srcH } = await getImageDimensions(photo.uri);
+        const cropRect = centerCropToAspect(srcW, srcH, targetAspect);
+        const ctx = ImageManipulator.manipulate(photo.uri);
+        ctx.crop(cropRect);
+        const rendered = await ctx.renderAsync();
+        const cropped = await rendered.saveAsync({ compress: 1, format: SaveFormat.JPEG });
+        previewUri = cropped.uri;
+      } catch {
+        // fall back to raw URI if crop fails
+      }
+      setSelectedImageUri(previewUri);
       setSelectedImageBase64(null);
       setHideQuote(true);
       await generateForImage(photo.uri, false);

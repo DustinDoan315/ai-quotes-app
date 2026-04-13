@@ -5,6 +5,7 @@ import {
   listQuotePhotoCards,
   type QuotePhotoCard,
 } from "@/services/media/userPhotosApi";
+import { supabase } from "@/config/supabase";
 
 type QuotePhotoFeedState = {
   items: QuotePhotoCard[];
@@ -35,7 +36,13 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
           limit: 60,
         });
       } else {
-        data = await listQuotePhotoCards({ guestId, limit: 60 });
+        const { data: { session } } = await supabase.auth.getSession();
+        const anonUserId = session?.user?.id ?? null;
+        if (anonUserId) {
+          data = await listQuotePhotoCards({ feedUserIds: [anonUserId], limit: 60 });
+        } else {
+          data = await listQuotePhotoCards({ guestId, limit: 60 });
+        }
       }
       setItems(data);
     } finally {
@@ -63,7 +70,13 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
         const feedUserIds = [userId, ...friendIds];
         data = await listQuotePhotoCards({ feedUserIds, limit: 60 });
       } else {
-        data = await listQuotePhotoCards({ guestId, limit: 60 });
+        const { data: { session } } = await supabase.auth.getSession();
+        const anonUserId = session?.user?.id ?? null;
+        if (anonUserId) {
+          data = await listQuotePhotoCards({ feedUserIds: [anonUserId], limit: 60 });
+        } else {
+          data = await listQuotePhotoCards({ guestId, limit: 60 });
+        }
       }
       setItems(data);
     } catch {}
