@@ -14,7 +14,6 @@ export async function saveUserAvatar(
   params: SaveUserAvatarParams,
 ): Promise<SaveUserAvatarResult | null> {
   const { localUri, userId } = params;
-  console.log("saveUserAvatar:start", { userId, hasLocalUri: Boolean(localUri) });
   if (!localUri) return null;
 
   const fileName = `avatar-${Date.now()}.jpg`;
@@ -30,24 +29,14 @@ export async function saveUserAvatar(
       compress: 0.7,
     });
     uploadUri = saved.uri;
-    console.log("saveUserAvatar:manipulated", {
-      originalUri: localUri,
-      uploadUri,
-      storagePath,
-    });
-  } catch (error) {
-    console.log("saveUserAvatar:manipulate_failed", {
-      error,
-      localUri,
-      storagePath,
-    });
+  } catch {
+    // Proceed with original URI if manipulation fails
   }
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.log("saveUserAvatar:missing_supabase_config");
     return null;
   }
 
@@ -72,10 +61,6 @@ export async function saveUserAvatar(
   });
 
   if (!uploadResponse.ok) {
-    console.log("saveUserAvatar:upload_failed", {
-      status: uploadResponse.status,
-      storagePath,
-    });
     return null;
   }
 
@@ -84,14 +69,8 @@ export async function saveUserAvatar(
   )}`;
 
   if (!publicUrl) {
-    console.log("saveUserAvatar:no_public_url", { storagePath });
     return null;
   }
-
-  console.log("saveUserAvatar:success", {
-    storagePath,
-    publicUrl,
-  });
 
   return {
     publicUrl,

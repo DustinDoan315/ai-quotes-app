@@ -37,6 +37,13 @@ export default function MemoriesDayScreen() {
     () => memories.filter((m: QuoteMemory) => m.date === dateKey),
     [memories, dateKey],
   );
+  const getMemoriesOnSameDayPastYears = useMemoryStore(
+    (s: MemoryState) => s.getMemoriesOnSameDayPastYears,
+  );
+  const pastYearMemories = useMemo(
+    () => getMemoriesOnSameDayPastYears(dateKey),
+    [getMemoriesOnSameDayPastYears, dateKey],
+  );
 
   const mineMemories = useMemo(() => {
     const userId = profile?.user_id ?? null;
@@ -137,37 +144,66 @@ export default function MemoriesDayScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
         className="flex-1">
         {layer === "mine" ? (
-          mineMemories.length === 0 ? (
-            <View className="mt-16 items-center px-6">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
-                <Ionicons name="calendar-outline" size={32} color="#ffffff" />
+          <>
+            {mineMemories.length === 0 ? (
+              <View className="mt-16 items-center px-6">
+                <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+                  <Ionicons name="calendar-outline" size={32} color="#ffffff" />
+                </View>
+                <Text className="text-center text-base font-medium text-white/90">
+                  {t("memories.emptyForDay")}
+                </Text>
+                <Text className="mt-2 text-center text-sm text-white/50">
+                  Save a quote from the camera to see it here
+                </Text>
               </View>
-              <Text className="text-center text-base font-medium text-white/90">
-                {t("memories.emptyForDay")}
-              </Text>
-              <Text className="mt-2 text-center text-sm text-white/50">
-                Save a quote from the camera to see it here
-              </Text>
-            </View>
-          ) : (
-            mineMemories.map((memory: QuoteMemory) => (
-              <MemoryCard
-                key={memory.id}
-                quote={memory.quoteText}
-                author="Me"
-                photoBackgroundUri={memory.photoBackgroundUri}
-                photoOrientation={memory.photoOrientation}
-                isFavorite={memory.isFavorite}
-                createdAt={memory.createdAt}
-                styleFontId={
-                  memory.styleFontId as "small" | "medium" | "large"
-                }
-                styleColorSchemeId={
-                  memory.styleColorSchemeId as "light" | "amber" | "pink"
-                }
-              />
-            ))
-          )
+            ) : (
+              mineMemories.map((memory: QuoteMemory) => (
+                <MemoryCard
+                  key={memory.id}
+                  quote={memory.quoteText}
+                  author="Me"
+                  photoBackgroundUri={memory.photoBackgroundUri}
+                  photoOrientation={memory.photoOrientation}
+                  isFavorite={memory.isFavorite}
+                  createdAt={memory.createdAt}
+                  styleFontId={
+                    memory.styleFontId as "small" | "medium" | "large"
+                  }
+                  styleColorSchemeId={
+                    memory.styleColorSchemeId as "light" | "amber" | "pink"
+                  }
+                />
+              ))
+            )}
+            {pastYearMemories.length > 0 && (
+              <View className="mt-8">
+                <View className="mb-3 flex-row items-center gap-2">
+                  <Ionicons name="time-outline" size={15} color="rgba(255,255,255,0.5)" />
+                  <Text className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                    On This Day in Past Years
+                  </Text>
+                </View>
+                {pastYearMemories.map((memory: QuoteMemory) => (
+                  <MemoryCard
+                    key={memory.id}
+                    quote={memory.quoteText}
+                    author="Me"
+                    photoBackgroundUri={memory.photoBackgroundUri}
+                    photoOrientation={memory.photoOrientation}
+                    isFavorite={memory.isFavorite}
+                    createdAt={memory.createdAt}
+                    styleFontId={
+                      memory.styleFontId as "small" | "medium" | "large"
+                    }
+                    styleColorSchemeId={
+                      memory.styleColorSchemeId as "light" | "amber" | "pink"
+                    }
+                  />
+                ))}
+              </View>
+            )}
+          </>
         ) : friendsLoading ? (
           <View className="mt-16 items-center">
             <ActivityIndicator size="large" color="#ffffff" />

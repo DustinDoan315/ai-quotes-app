@@ -8,6 +8,7 @@ interface HomeHeaderProps {
   readonly onPressProfile?: () => void;
   readonly onPressFriends?: () => void;
   readonly onPressSignIn?: () => void;
+  readonly onPressStreak?: () => void;
 }
 
 export function HomeHeader({
@@ -15,6 +16,7 @@ export function HomeHeader({
   onPressProfile,
   onPressFriends,
   onPressSignIn,
+  onPressStreak,
 }: HomeHeaderProps) {
   const tier = getStreakTier(currentStreak);
   const profile = useUserStore((state) => state.profile);
@@ -61,12 +63,16 @@ export function HomeHeader({
             <Ionicons name="share-social-outline" size={18} color="#ffffff" />
             <Text className="ml-2 text-sm font-semibold text-white">Invite</Text>
           </Pressable>
-          <View className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5">
+          <Pressable
+            onPress={onPressStreak}
+            disabled={!onPressStreak}
+            className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5"
+            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}>
             <Ionicons name={tier.icon} size={tier.size} color={tier.color} />
             <Text className="ml-1.5 text-sm font-semibold text-white">
               {currentStreak}
             </Text>
-          </View>
+          </Pressable>
         </View>
       </View>
     </View>

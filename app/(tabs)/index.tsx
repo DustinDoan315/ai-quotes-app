@@ -3,6 +3,7 @@ import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { HomeActionBar } from "@/features/home/HomeActionBar";
+import { StreakModal } from "@/features/streak/StreakModal";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
 import { HomeEmojiOverlay } from "@/features/home/HomeEmojiOverlay";
 import { HomeFeedFlow } from "@/features/home/HomeFeedFlow";
@@ -35,6 +36,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 export default function HomeScreen() {
   const router = useRouter();
   const [milestone, setMilestone] = useState<number | null>(null);
+  const [streakModalVisible, setStreakModalVisible] = useState(false);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
@@ -272,6 +274,7 @@ export default function HomeScreen() {
                 params: { returnTo: "/(tabs)" },
               } as never)
             }
+            onPressStreak={() => setStreakModalVisible(true)}
             onPressPastMemory={(date) =>
               router.push({
                 pathname: "/memories/day",
@@ -347,6 +350,10 @@ export default function HomeScreen() {
         isSaving={isSavingPhoto}
       />
       <HomeEmojiOverlay bursts={emojiBursts} screenHeight={SCREEN_HEIGHT} />
+      <StreakModal
+        visible={streakModalVisible}
+        onClose={() => setStreakModalVisible(false)}
+      />
     </View>
   );
 }

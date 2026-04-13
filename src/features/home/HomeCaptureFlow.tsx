@@ -13,6 +13,7 @@ type Props = {
   onPressProfile: () => void;
   onPressFriends: () => void;
   onPressSignIn: () => void;
+  onPressStreak: () => void;
   onPressPastMemory: (date: string) => void;
   onDismissInviteNudge: () => void;
   onPressInviteNudge: () => void;
@@ -28,6 +29,7 @@ export function HomeCaptureFlow({
   onPressProfile,
   onPressFriends,
   onPressSignIn,
+  onPressStreak,
   onPressPastMemory,
   onDismissInviteNudge,
   onPressInviteNudge,
@@ -48,6 +50,7 @@ export function HomeCaptureFlow({
           onPressProfile={onPressProfile}
           onPressFriends={onPressFriends}
           onPressSignIn={onPressSignIn}
+          onPressStreak={onPressStreak}
         />
       ) : null}
       {pastMemory ? (

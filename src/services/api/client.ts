@@ -112,23 +112,25 @@ export const apiClient = {
     body?: unknown,
     options?: Omit<RequestOptions, "method">,
   ): Promise<T> => {
-    const baseUrl = getBaseUrl(endpoint);
-    const url = `${baseUrl}${endpoint}`;
-    const response = await fetchWithTimeout(url, {
-      ...options,
-      method: "POST",
-      body,
+    return safeRetry(async () => {
+      const baseUrl = getBaseUrl(endpoint);
+      const url = `${baseUrl}${endpoint}`;
+      const response = await fetchWithTimeout(url, {
+        ...options,
+        method: "POST",
+        body,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new APIError(
+          errorData.message || `HTTP ${response.status}`,
+          response.status,
+          errorData.code,
+        );
+      }
+
+      return response.json();
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
-        errorData.message || `HTTP ${response.status}`,
-        response.status,
-        errorData.code,
-      );
-    }
-
-    return response.json();
   },
 };

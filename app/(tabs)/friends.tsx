@@ -186,10 +186,25 @@ export default function FriendsScreen() {
           </Text>
         </View>
         {friends.length === 0 ? (
-          <View className="rounded-xl border border-white/10 bg-white/5 px-4 py-8">
-            <Text className="text-center text-sm text-white/60">
+          <View className="items-center rounded-xl border border-white/10 bg-white/5 px-4 py-10">
+            <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+              <Ionicons name="people-outline" size={28} color="rgba(255,255,255,0.7)" />
+            </View>
+            <Text className="text-center text-base font-semibold text-white/80">
               {t("friends.noFriendsPlaceholder")}
             </Text>
+            <Text className="mt-1 text-center text-sm text-white/50">
+              {t("friends.noFriendsSubtitle", "Invite friends to share daily vibes together.")}
+            </Text>
+            <Pressable
+              onPress={handleInviteShare}
+              disabled={!inviteUrl || sharing}
+              className="mt-5 rounded-xl bg-white px-6 py-3"
+              style={({ pressed }) => ({ opacity: pressed || !inviteUrl ? 0.75 : 1 })}>
+              <Text className="text-center text-sm font-semibold text-black">
+                {t("friends.inviteButtonLabel", "Invite a Friend")}
+              </Text>
+            </Pressable>
           </View>
         ) : (
           friends.map((f) => (
