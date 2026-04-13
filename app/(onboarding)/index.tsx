@@ -1,41 +1,28 @@
-import { useQuoteStore } from "@/appState/quoteStore";
 import { useUserStore } from "@/appState/userStore";
 import { OnboardingProgressBar } from "@/features/onboarding/OnboardingProgressBar";
 import { GoalStep } from "@/features/onboarding/steps/GoalStep";
 import { NotificationStep } from "@/features/onboarding/steps/NotificationStep";
-import { PaywallStep } from "@/features/onboarding/steps/PaywallStep";
-import { ProcessingStep } from "@/features/onboarding/steps/ProcessingStep";
-import { QuoteRevealStep } from "@/features/onboarding/steps/QuoteRevealStep";
-import { StyleStep } from "@/features/onboarding/steps/StyleStep";
 import { TraitsStep } from "@/features/onboarding/steps/TraitsStep";
 import { WelcomeStep } from "@/features/onboarding/steps/WelcomeStep";
-import type { StylePreference } from "@/features/onboarding/steps/StyleStep";
 import { Ionicons } from "@expo/vector-icons";
-import { getLocales } from "expo-localization";
 import { useRouter } from "expo-router";
+import { AnimatePresence } from "moti";
 import { useCallback, useEffect, useState } from "react";
 import { BackHandler, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TOTAL_STEPS = 8;
-const onboardingQuoteLanguage = getLocales()[0]?.languageCode === "vi" ? "vi" : "en";
+const TOTAL_STEPS = 4;
 
-// Steps where we hide the header (full-screen experiences)
-const HIDE_HEADER_STEPS = new Set([5, 8]);
 // Steps where the back button is suppressed
-const HIDE_BACK_STEPS = new Set([1, 5, 8]);
+const HIDE_BACK_STEPS = new Set([1]);
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const setPersona = useUserStore((s) => s.setPersona);
-  const setDailyQuote = useQuoteStore((s) => s.setDailyQuote);
-  const addToHistory = useQuoteStore((s) => s.addToHistory);
 
   const [step, setStep] = useState(1);
   const [traits, setTraits] = useState<string[]>([]);
-  const [stylePreference, setStylePreference] = useState<StylePreference | null>(null);
-  const [generatedQuote, setGeneratedQuote] = useState<string | null>(null);
 
   // Android hardware back interception
   useEffect(() => {
@@ -54,38 +41,17 @@ export default function OnboardingScreen() {
   }, []);
 
   const handleComplete = useCallback(() => {
-    const selectedTraits =
-      traits.length > 0 ? traits : ["curious", "optimistic"];
+    const selectedTraits = traits.length > 0 ? traits : ["curious", "optimistic"];
 
     setPersona({
       id: "custom",
       traits: selectedTraits,
-      preferences: { stylePreference: stylePreference ?? "dark-minimal" },
+      preferences: { stylePreference: "dark-minimal" },
     });
 
-    if (generatedQuote) {
-      const quote = {
-        id: `onb-${Date.now().toString(36)}`,
-        text: generatedQuote,
-        personaId: "custom",
-        createdAt: Date.now(),
-      };
-      setDailyQuote(quote);
-      addToHistory(quote);
-    }
-
     router.replace("/(tabs)" as never);
-  }, [
-    traits,
-    stylePreference,
-    generatedQuote,
-    setPersona,
-    setDailyQuote,
-    addToHistory,
-    router,
-  ]);
+  }, [traits, setPersona, router]);
 
-  const showHeader = !HIDE_HEADER_STEPS.has(step);
   const showBack = !HIDE_BACK_STEPS.has(step);
 
   function renderStep() {
@@ -107,73 +73,34 @@ export default function OnboardingScreen() {
         );
 
       case 4:
-        return (
-          <StyleStep
-            onContinue={(s) => {
-              setStylePreference(s);
-              setStep(5);
-            }}
-          />
-        );
-
-      case 5:
-        return (
-          <ProcessingStep
-            traits={traits}
-            language={onboardingQuoteLanguage}
-            onComplete={(quote) => {
-              setGeneratedQuote(quote);
-              setStep(6);
-            }}
-          />
-        );
-
-      case 6:
-        return (
-          <QuoteRevealStep
-            quoteText={generatedQuote ?? ""}
-            stylePreference={stylePreference ?? "dark-minimal"}
-            onContinue={() => setStep(7)}
-          />
-        );
-
-      case 7:
-        return <NotificationStep onContinue={() => setStep(8)} />;
-
-      case 8:
-        return <PaywallStep onComplete={handleComplete} />;
+        return <NotificationStep onContinue={handleComplete} />;
 
       default:
         return null;
     }
   }
 
-  // Paywall step is full-screen — render without wrapper
-  if (step === 8) {
-    return <PaywallStep onComplete={handleComplete} />;
-  }
-
   return (
-    <View
-      className="flex-1"
-      style={{ paddingTop: insets.top }}>
-      {showHeader ? (
-        <View className="flex-row items-center gap-3 px-5 pb-4 pt-3">
-          {showBack ? (
-            <Pressable
-              onPress={handleBack}
-              hitSlop={12}
-              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-              <Ionicons name="chevron-back" size={26} color="rgba(255,255,255,0.85)" />
-            </Pressable>
-          ) : (
-            <View className="w-[26px]" />
-          )}
-          <OnboardingProgressBar currentStep={step} totalSteps={TOTAL_STEPS} />
-        </View>
-      ) : null}
+    <View className="flex-1" style={{ paddingTop: insets.top }}>
+      <View className="flex-row items-center gap-3 px-5 pb-4 pt-3">
+        {showBack ? (
+          <Pressable
+            onPress={handleBack}
+            hitSlop={12}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+            <Ionicons name="chevron-back" size={26} color="rgba(255,255,255,0.85)" />
+          </Pressable>
+        ) : (
+          <View className="w-[26px]" />
+        )}
+        <OnboardingProgressBar currentStep={step} totalSteps={TOTAL_STEPS} />
+      </View>
 
-      {renderStep()}
+      <AnimatePresence>
+        <View key={step} style={{ flex: 1 }}>
+          {renderStep()}
+        </View>
+      </AnimatePresence>
     </View>
   );
 }
