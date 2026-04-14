@@ -79,7 +79,9 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
         }
       }
       setItems(data);
-    } catch {}
+    } catch (err) {
+      console.error("[useQuotePhotoFeed] refreshSilently failed:", err);
+    }
   }, [profile, ensureGuestId]);
 
   useEffect(() => {

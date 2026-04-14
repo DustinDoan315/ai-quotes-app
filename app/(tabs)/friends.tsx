@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   getOrCreateMyInvite,
   listMyFriends,
+  removeFriend,
   type FriendWithProfile,
 } from "@/services/inviteApi";
 import { useCallback, useEffect, useState } from "react";
@@ -37,6 +38,7 @@ export default function FriendsScreen() {
   const [sharing, setSharing] = useState(false);
   const [autoShareConsumed, setAutoShareConsumed] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const userId = profile?.user_id ?? null;
 
@@ -78,6 +80,19 @@ export default function FriendsScreen() {
       setSharing(false);
     }
   }, [inviteUrl, t]);
+
+  const handleRemoveFriend = useCallback(async (friendRow: FriendWithProfile) => {
+    if (!userId || removingId) return;
+    setRemovingId(friendRow.id);
+    try {
+      const ok = await removeFriend(userId, friendRow.friend_id);
+      if (ok) {
+        setFriends((prev) => prev.filter((f) => f.id !== friendRow.id));
+      }
+    } finally {
+      setRemovingId(null);
+    }
+  }, [userId, removingId]);
 
   useEffect(() => {
     if (params.autoShare !== "1") return;
@@ -228,6 +243,20 @@ export default function FriendsScreen() {
                   {f.display_name ?? f.username ?? "Friend"}
                 </Text>
               </View>
+              <Pressable
+                onPress={() => handleRemoveFriend(f)}
+                disabled={removingId === f.id}
+                hitSlop={8}
+                className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-white/10"
+                style={({ pressed }) => ({
+                  opacity: removingId === f.id ? 0.4 : pressed ? 0.7 : 1,
+                })}>
+                {removingId === f.id ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="person-remove-outline" size={16} color="rgba(255,255,255,0.7)" />
+                )}
+              </Pressable>
             </View>
           ))
         )}

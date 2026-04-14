@@ -3,7 +3,17 @@
     "allow": [
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; [print\\(f'{k}: {v}'\\) for k in sorted\\(deps\\) if any\\(x in k for x in ['moti','reanimated','expo-linear','expo-haptic','nativewind','tailwind']\\)]\")",
       "Bash(xargs cat:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(npm ls:*)",
+      "Bash(node:*)",
+      "Bash(git commit:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('expo', {}\\), indent=2\\)\\)\")",
+      "Bash(grep -E \"\\\\.tsx?$\")",
+      "Bash(wc:*)",
+      "Bash(npm test:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

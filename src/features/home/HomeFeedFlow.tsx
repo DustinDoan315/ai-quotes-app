@@ -26,6 +26,7 @@ type Props = {
   currentFeedIndex: number;
   isOnFeed: boolean;
   onActiveQuoteIdChange: (quoteId: string | null) => void;
+  onGeneratePress?: () => void;
 };
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -48,6 +49,7 @@ export function HomeFeedFlow({
   currentFeedIndex,
   isOnFeed,
   onActiveQuoteIdChange,
+  onGeneratePress,
 }: Props) {
   return (
     <FlatList
@@ -82,6 +84,7 @@ export function HomeFeedFlow({
           onFeedLayoutYChange={() => {}}
           authorName={authorName}
           authorAvatarUrl={authorAvatarUrl}
+          onGeneratePress={onGeneratePress}
         />
       }
       renderItem={({ item, index }) => (

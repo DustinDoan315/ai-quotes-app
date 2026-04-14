@@ -120,6 +120,40 @@ export async function addFriend(myUserId: string, friendUserId: string): Promise
   return true;
 }
 
+export async function removeFriend(myUserId: string, friendUserId: string): Promise<boolean> {
+  const { error: e1 } = await supabase
+    .from("friends")
+    .delete()
+    .eq("user_id", myUserId)
+    .eq("friend_id", friendUserId);
+  if (e1) {
+    captureException(new Error(e1.message), {
+      feature: "removeFriend",
+      step: "delete_my_row",
+      myUserId,
+      friendUserId,
+      supabaseCode: e1.code,
+    });
+    return false;
+  }
+  const { error: e2 } = await supabase
+    .from("friends")
+    .delete()
+    .eq("user_id", friendUserId)
+    .eq("friend_id", myUserId);
+  if (e2) {
+    captureException(new Error(e2.message), {
+      feature: "removeFriend",
+      step: "delete_reciprocal_row",
+      myUserId,
+      friendUserId,
+      supabaseCode: e2.code,
+    });
+    return false;
+  }
+  return true;
+}
+
 export async function listMyFriends(userId: string): Promise<FriendWithProfile[]> {
   const { data: rows, error } = await supabase
     .from("friends")

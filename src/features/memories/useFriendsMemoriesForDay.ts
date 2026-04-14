@@ -8,6 +8,7 @@ import { listQuotePhotoCardsForDay } from "@/services/media/userPhotosApi";
 type FriendsDayState = {
   cards: QuotePhotoCard[];
   isLoading: boolean;
+  hasError: boolean;
   refresh: () => Promise<void>;
 };
 
@@ -15,6 +16,7 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
   const profile = useUserStore((s) => s.profile);
   const [cards, setCards] = useState<QuotePhotoCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const load = useCallback(async () => {
     const userId = profile?.user_id ?? null;
@@ -24,6 +26,7 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
     }
 
     setIsLoading(true);
+    setHasError(false);
     try {
       const friends = await listMyFriends(userId);
       const friendIds = friends.map((f) => f.friend_id);
@@ -36,6 +39,9 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
       });
 
       setCards(data);
+    } catch (err) {
+      console.error("[useFriendsMemoriesForDay] failed to load:", err);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +51,6 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
     void load();
   }, [load]);
 
-  return { cards, isLoading, refresh: load };
+  return { cards, isLoading, hasError, refresh: load };
 }
 

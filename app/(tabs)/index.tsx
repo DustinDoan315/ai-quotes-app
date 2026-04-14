@@ -256,6 +256,7 @@ export default function HomeScreen() {
         currentFeedIndex={currentFeedIndex}
         isOnFeed={isOnFeed}
         onActiveQuoteIdChange={setActiveQuoteId}
+        onGeneratePress={handleCameraButtonPress}
         header={
           <HomeCaptureFlow
             viewportHeight={viewportHeight}

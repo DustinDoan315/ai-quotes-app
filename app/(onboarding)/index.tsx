@@ -2,6 +2,7 @@ import { useUserStore } from "@/appState/userStore";
 import { OnboardingProgressBar } from "@/features/onboarding/OnboardingProgressBar";
 import { GoalStep } from "@/features/onboarding/steps/GoalStep";
 import { NotificationStep } from "@/features/onboarding/steps/NotificationStep";
+import { ProTeaserStep } from "@/features/onboarding/steps/ProTeaserStep";
 import { TraitsStep } from "@/features/onboarding/steps/TraitsStep";
 import { WelcomeStep } from "@/features/onboarding/steps/WelcomeStep";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BackHandler, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 // Steps where the back button is suppressed
 const HIDE_BACK_STEPS = new Set([1]);
@@ -73,7 +74,10 @@ export default function OnboardingScreen() {
         );
 
       case 4:
-        return <NotificationStep onContinue={handleComplete} />;
+        return <NotificationStep onContinue={() => setStep(5)} />;
+
+      case 5:
+        return <ProTeaserStep onContinue={handleComplete} />;
 
       default:
         return null;

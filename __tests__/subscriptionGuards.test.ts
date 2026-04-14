@@ -39,4 +39,26 @@ describe("createSubscriptionGuards", () => {
     expect(g.canUsePersonaLevel(true).allowed).toBe(false);
     expect(g.canUsePersonaLevel(false).allowed).toBe(true);
   });
+
+  it("allows advanced persona for pro", () => {
+    const g = createSubscriptionGuards(proSnapshot);
+    expect(g.canUsePersonaLevel(true).allowed).toBe(true);
+  });
+
+  it("treats null snapshot as free plan", () => {
+    const g = createSubscriptionGuards(null);
+    expect(g.plan).toBe("free");
+    expect(g.canGenerateQuote(2).allowed).toBe(false);
+  });
+
+  it("respects custom plan limits passed as second argument", () => {
+    const customLimits = {
+      free: { dailyAiLimit: 5, dailyExportLimit: 3 },
+      pro: { dailyAiLimit: null, dailyExportLimit: null },
+    };
+    const g = createSubscriptionGuards(freeSnapshot, customLimits);
+    expect(g.canGenerateQuote(4).allowed).toBe(true);
+    expect(g.canGenerateQuote(5).allowed).toBe(false);
+    expect(g.canExportQuote(3).allowed).toBe(false);
+  });
 });

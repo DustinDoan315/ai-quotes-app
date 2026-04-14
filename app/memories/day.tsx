@@ -63,6 +63,8 @@ export default function MemoriesDayScreen() {
   const {
     cards: friendCards,
     isLoading: friendsLoading,
+    hasError: friendsError,
+    refresh: refreshFriends,
   } = useFriendsMemoriesForDay(dateKey);
   const title = new Date(dateKey).toLocaleDateString(undefined, {
     month: "long",
@@ -207,6 +209,24 @@ export default function MemoriesDayScreen() {
         ) : friendsLoading ? (
           <View className="mt-16 items-center">
             <ActivityIndicator size="large" color="#ffffff" />
+          </View>
+        ) : friendsError ? (
+          <View className="mt-16 items-center px-6">
+            <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+              <Ionicons name="cloud-offline-outline" size={32} color="#ffffff" />
+            </View>
+            <Text className="text-center text-base font-medium text-white/90">
+              Couldn't load friends' memories
+            </Text>
+            <Text className="mt-2 text-center text-sm text-white/50">
+              Check your connection and try again.
+            </Text>
+            <Pressable
+              onPress={refreshFriends}
+              className="mt-5 rounded-xl bg-white/15 px-6 py-3"
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+              <Text className="text-sm font-semibold text-white">Retry</Text>
+            </Pressable>
           </View>
         ) : friendCards.length === 0 ? (
           <View className="mt-16 items-center px-6">

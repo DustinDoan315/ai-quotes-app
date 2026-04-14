@@ -155,6 +155,17 @@ export default function ScanQrModal() {
     goBackOrReplace(router, "/(tabs)/friends");
   }, [router]);
 
+  // Auto-reset scanner 3 s after an error so the user doesn't have to tap "Scan again"
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => {
+      setError(null);
+      setScanned(false);
+      lastValueRef.current = null;
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   const handleResult = useCallback(
     (result: BarcodeScanningResult) => {
       const value = String(result.data ?? "").trim();

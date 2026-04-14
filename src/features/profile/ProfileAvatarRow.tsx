@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
 
 interface ProfileAvatarRowProps {
   avatarUrl: string | null;
@@ -25,7 +25,9 @@ export function ProfileAvatarRow({
         style={({ pressed }) => ({
           opacity: avatarSaving ? 0.5 : pressed ? 0.8 : 1,
         })}>
-        {avatarUrl ? (
+        {avatarSaving ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : avatarUrl ? (
           <Image
             source={{ uri: avatarUrl }}
             className="h-16 w-16 rounded-full"
