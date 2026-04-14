@@ -76,7 +76,9 @@
       [
         "expo-notifications",
         {
-          "defaultChannel": "daily-quote-reminder"
+          "defaultChannel": "daily-quote-reminder",
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#F59E0B"
         }
       ],
       "@react-native-community/datetimepicker"

@@ -33,7 +33,11 @@ export async function ensureReminderNotificationChannel(): Promise<void> {
   if (Platform.OS === "web" || Platform.OS !== "android") return;
   await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
     name: "Daily reminder",
-    importance: Notifications.AndroidImportance.DEFAULT,
+    description: "Your personalized daily quote reminder from Inkly.",
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 150, 250],
+    lightColor: "#F59E0B",
+    sound: "default",
   });
 }
 
