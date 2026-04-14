@@ -1,7 +1,8 @@
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { getStreakTier, STREAK_MILESTONES } from "@/utils/streakMilestones";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, Text, View } from "react-native";
 
 export function ProfileStreakSection() {
   const currentStreak = useStreakStore((s) => getDisplayStreak(s));
@@ -25,6 +26,17 @@ export function ProfileStreakSection() {
     nextMilestone !== null && nextMilestone > prevMilestone
       ? (currentStreak - prevMilestone) / (nextMilestone - prevMilestone)
       : 1;
+
+  // Animated progress bar
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: Math.min(progressRatio * 100, 100),
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [animatedWidth, progressRatio]);
 
   return (
     <View className="mb-6">
@@ -73,15 +85,19 @@ export function ProfileStreakSection() {
           ) : null}
         </View>
 
-        {/* Progress bar toward next milestone */}
+        {/* Animated progress bar toward next milestone */}
         {nextMilestone !== null ? (
           <View className="mx-4 mb-4">
             <View className="h-1.5 overflow-hidden rounded-full bg-white/10">
-              <View
-                className="h-full rounded-full"
+              <Animated.View
                 style={{
-                  width: `${Math.min(progressRatio * 100, 100)}%`,
+                  height: "100%",
+                  borderRadius: 99,
                   backgroundColor: tier.color,
+                  width: animatedWidth.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: ["0%", "100%"],
+                  }),
                 }}
               />
             </View>

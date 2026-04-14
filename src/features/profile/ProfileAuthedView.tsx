@@ -10,6 +10,7 @@ import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
 import * as ImagePicker from "expo-image-picker";
+import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -204,7 +205,10 @@ export function ProfileAuthedView({
         ) : null}
 
         {editing ? (
-          <>
+          <MotiView
+            from={{ opacity: 0, translateY: 10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "spring", damping: 20, stiffness: 200 }}>
             <View className="mb-4">
               <Text className="mb-2 text-sm font-medium text-white/70">
                 {t("profile.displayNameLabel")}
@@ -231,8 +235,11 @@ export function ProfileAuthedView({
                 multiline
                 className="min-h-[96px] rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-base text-white"
               />
+              <Text className="mt-1 text-right text-[10px] text-white/35">
+                {bio.length}/200
+              </Text>
             </View>
-          </>
+          </MotiView>
         ) : profile?.bio ? (
           <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
             <Text className="text-left text-sm leading-5 text-white/85">

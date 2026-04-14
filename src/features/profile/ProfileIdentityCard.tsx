@@ -2,6 +2,8 @@ import { useMemoryStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
 import { useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
+import { Ionicons } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
 import { Text, View } from "react-native";
 
@@ -20,15 +22,27 @@ export function ProfileIdentityCard() {
       : t("profile.identityDefault");
 
   return (
-    <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
+    <MotiView
+      from={{ opacity: 0, translateY: 8 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 400 }}
+      className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
       <Text className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
         Identity
       </Text>
       <Text className="text-base font-semibold text-white">{identityTitle}</Text>
-      <Text className="mt-1.5 text-xs text-white/55">
-        Streak: {currentStreak} day{currentStreak === 1 ? "" : "s"} · Memories:{" "}
-        {memories.length}
-      </Text>
-    </View>
+      <View className="mt-2 flex-row gap-3">
+        <View className="flex-row items-center gap-1">
+          <Ionicons name="flame-outline" size={13} color="rgba(255,255,255,0.5)" />
+          <Text className="text-xs text-white/55">
+            {currentStreak} day{currentStreak === 1 ? "" : "s"}
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1">
+          <Ionicons name="images-outline" size={13} color="rgba(255,255,255,0.5)" />
+          <Text className="text-xs text-white/55">{memories.length} memories</Text>
+        </View>
+      </View>
+    </MotiView>
   );
 }

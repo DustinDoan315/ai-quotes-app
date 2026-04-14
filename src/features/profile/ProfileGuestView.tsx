@@ -1,9 +1,8 @@
 import { useUserStore } from "@/appState/userStore";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
+import { ProfileLanguageSection } from "@/features/profile/ProfileLanguageSection";
 import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
-import { ProfileQuoteLanguageSection } from "@/features/profile/ProfileQuoteLanguageSection";
 import { ProfileReminderSection } from "@/features/profile/ProfileReminderSection";
-import { ProfileUiLanguageSection } from "@/features/profile/ProfileUiLanguageSection";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -52,9 +51,7 @@ export function ProfileGuestView({
           </View>
         ) : null}
 
-        <ProfileUiLanguageSection />
-
-        <ProfileQuoteLanguageSection />
+        <ProfileLanguageSection />
 
         <ProfileReminderSection />
 

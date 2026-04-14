@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { AnimatePresence, MotiView } from "moti";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 interface ProfileAuthedHeaderProps {
@@ -38,35 +39,51 @@ export function ProfileAuthedHeader({
         </Text>
       </View>
 
-      {editing ? (
-        <View className="shrink-0 flex-row gap-3">
-          <Pressable
-            onPress={onCancelEdit}
-            disabled={saving}
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="text-base text-white/60">Cancel</Text>
-          </Pressable>
-          <Pressable
-            onPress={onSave}
-            disabled={!canSave}
-            style={({ pressed }) => ({
-              opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
-            })}>
-            {saving ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text className="text-base font-medium text-white">Save</Text>
-            )}
-          </Pressable>
-        </View>
-      ) : (
-        <Pressable
-          onPress={onStartEdit}
-          className="shrink-0"
-          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-          <Text className="text-base text-white/80">Edit</Text>
-        </Pressable>
-      )}
+      <View style={{ minWidth: 80, alignItems: "flex-end" }}>
+        <AnimatePresence>
+          {editing ? (
+            <MotiView
+              key="editing"
+              from={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              transition={{ type: "timing", duration: 180 }}
+              style={{ flexDirection: "row", gap: 12 }}>
+              <Pressable
+                onPress={onCancelEdit}
+                disabled={saving}
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                <Text className="text-base text-white/60">Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={onSave}
+                disabled={!canSave}
+                style={({ pressed }) => ({
+                  opacity: canSave ? (pressed ? 0.8 : 1) : 0.4,
+                })}>
+                {saving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="text-base font-medium text-white">Save</Text>
+                )}
+              </Pressable>
+            </MotiView>
+          ) : (
+            <MotiView
+              key="view"
+              from={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              transition={{ type: "timing", duration: 180 }}>
+              <Pressable
+                onPress={onStartEdit}
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                <Text className="text-base text-white/80">Edit</Text>
+              </Pressable>
+            </MotiView>
+          )}
+        </AnimatePresence>
+      </View>
     </View>
   );
 }
