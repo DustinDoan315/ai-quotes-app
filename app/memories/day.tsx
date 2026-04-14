@@ -214,10 +214,10 @@ export default function MemoriesDayScreen() {
               <Ionicons name="people-outline" size={32} color="#ffffff" />
             </View>
             <Text className="text-center text-base font-medium text-white/90">
-              {t("memories.friendsPlaceholder")}
+              {t("memories.friendsEmptyForDay")}
             </Text>
             <Text className="mt-2 text-center text-sm text-white/50">
-              {t("memories.emptyForDay")}
+              {t("memories.friendsPlaceholder")}
             </Text>
           </View>
         ) : (

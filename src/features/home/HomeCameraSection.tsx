@@ -15,6 +15,7 @@ import type {
   HomeVibeHintParts,
 } from "@/types/homeBackground";
 import type { RewriteTone } from "@/services/ai/types";
+import type { HomeAiTool } from "@/features/home/useHomeAiReview";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView } from "expo-camera";
 import { Image } from "expo-image";
@@ -30,7 +31,6 @@ import Animated, {
 
 type QuoteFontSize = "small" | "medium" | "large";
 type QuoteColor = "light" | "amber" | "pink";
-type ActiveAiTool = "future" | RewriteTone;
 
 const PANEL_HIGHLIGHT = "#FBBF24";
 
@@ -61,8 +61,9 @@ export type HomeCameraSectionProps = {
   onToggleFacing: () => void;
   onClearImage: () => void;
   onRewriteQuote: (tone: RewriteTone) => void;
-  selectedAiTool: ActiveAiTool | null;
-  pendingAiTool: ActiveAiTool | null;
+  onFutureQuotePress: () => void;
+  selectedAiTool: HomeAiTool | null;
+  pendingAiTool: HomeAiTool | null;
   aiResultTitle: string | null;
   aiResultBody: string | null;
   aiToolsLoading: boolean;
@@ -98,6 +99,7 @@ export const HomeCameraSection = ({
   onToggleFacing,
   onClearImage,
   onRewriteQuote,
+  onFutureQuotePress,
   selectedAiTool,
   pendingAiTool,
   aiResultTitle,
@@ -157,11 +159,6 @@ export const HomeCameraSection = ({
     () => validateEditableQuote(quoteDraft),
     [quoteDraft],
   );
-  const selectedRewriteTool =
-    selectedAiTool === "future" ? null : selectedAiTool;
-  const pendingRewriteTool =
-    pendingAiTool === "future" ? null : pendingAiTool;
-
   useEffect(() => {
     if (!isEditingQuote) {
       setQuoteDraft(dailyQuoteText ?? "");
@@ -590,10 +587,11 @@ export const HomeCameraSection = ({
             </View>
             <View className="mt-5">
               <AiToolsRow
-                selectedAiTool={selectedRewriteTool}
-                pendingAiTool={pendingRewriteTool}
+                selectedAiTool={selectedAiTool}
+                pendingAiTool={pendingAiTool}
                 aiToolsLoading={aiToolsLoading}
                 onRewriteQuote={onRewriteQuote}
+                onFutureQuotePress={onFutureQuotePress}
               />
               {aiResultTitle && aiResultBody ? (
                 <View className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-950/20 px-4 py-4">

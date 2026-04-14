@@ -21,6 +21,9 @@ interface Props {
   visible: boolean;
   initialText: string;
   sourceText: string;
+  title?: string;
+  guidance?: string;
+  approveLabel?: string;
   onApprove: (text: string) => void;
   onCancel: () => void;
 }
@@ -29,6 +32,9 @@ export function RewriteQuoteReviewModal({
   visible,
   initialText,
   sourceText,
+  title,
+  guidance,
+  approveLabel,
   onApprove,
   onCancel,
 }: Props) {
@@ -39,6 +45,13 @@ export function RewriteQuoteReviewModal({
     () => validateRewriteReviewQuote(text, sourceText),
     [text, sourceText],
   );
+
+  const charProgress = Math.min(
+    1,
+    validation.characterCount / MAX_REWRITE_REVIEW_CHARACTERS,
+  );
+  const isNearLimit = charProgress >= 0.85;
+  const isOverLimit = validation.remainingCharacters < 0;
 
   useEffect(() => {
     if (visible) {
@@ -67,7 +80,7 @@ export function RewriteQuoteReviewModal({
             <Ionicons name="close" size={24} color="#fff" />
           </Pressable>
           <Text className="flex-1 text-center text-base font-bold text-white">
-            {t("home.aiTools.rewriteReviewTitle")}
+            {title ?? t("home.aiTools.rewriteReviewTitle")}
           </Text>
           <View className="w-11" />
         </View>
@@ -76,7 +89,7 @@ export function RewriteQuoteReviewModal({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 24 }}>
           <Text className="mb-3 text-sm leading-5 text-white/65">
-            {t("home.aiTools.rewriteGuidance")}
+            {guidance ?? t("home.aiTools.rewriteGuidance")}
           </Text>
           <TextInput
             value={text}
@@ -87,7 +100,22 @@ export function RewriteQuoteReviewModal({
             placeholderTextColor="rgba(255,255,255,0.35)"
             style={{ color: "#FFFFFF" }}
           />
-          <View className="mt-3 flex-row items-center justify-between gap-3">
+          {/* Character progress bar */}
+          <View className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/10">
+            <View
+              style={{
+                height: "100%",
+                width: `${charProgress * 100}%`,
+                borderRadius: 999,
+                backgroundColor: isOverLimit
+                  ? "#FCA5A5"
+                  : isNearLimit
+                    ? "#FCD34D"
+                    : "#F59E0B",
+              }}
+            />
+          </View>
+          <View className="mt-2 flex-row items-center justify-between gap-3">
             <Text
               className="flex-1 text-sm leading-5"
               style={{ color: validation.isValid ? "rgba(255,255,255,0.6)" : "#FCA5A5" }}>
@@ -98,8 +126,7 @@ export function RewriteQuoteReviewModal({
             <Text
               className="text-sm font-semibold"
               style={{
-                color:
-                  validation.remainingCharacters < 0 ? "#FCA5A5" : "rgba(255,255,255,0.65)",
+                color: isOverLimit ? "#FCA5A5" : "rgba(255,255,255,0.65)",
               }}>
               {validation.characterCount}/{MAX_REWRITE_REVIEW_CHARACTERS}
             </Text>
@@ -122,7 +149,7 @@ export function RewriteQuoteReviewModal({
               opacity: !validation.isValid ? 0.45 : pressed ? 0.9 : 1,
             })}>
             <Text className="text-base font-bold text-stone-950">
-              {t("home.aiTools.rewriteApprove")}
+              {approveLabel ?? t("home.aiTools.rewriteApprove")}
             </Text>
           </Pressable>
         </View>

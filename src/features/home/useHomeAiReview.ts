@@ -18,6 +18,8 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
   const [selectedAiTool, setSelectedAiTool] = useState<HomeAiTool | null>(null);
   const [pendingAiTool, setPendingAiTool] = useState<HomeAiTool | null>(null);
+  const [rewriteReviewText, setRewriteReviewText] = useState<string | null>(null);
+  const [futureReviewText, setFutureReviewText] = useState<string | null>(null);
 
   const {
     loading: isRewritingQuote,
@@ -32,6 +34,8 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
       setAiResult(null);
       setSelectedAiTool(null);
       setPendingAiTool(null);
+      setRewriteReviewText(null);
+      setFutureReviewText(null);
       return;
     }
     setAiResult(null);
@@ -43,6 +47,8 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     setAiResult(null);
     setSelectedAiTool(null);
     setPendingAiTool(null);
+    setRewriteReviewText(null);
+    setFutureReviewText(null);
   }
 
   async function handleFutureQuotePress() {
@@ -55,12 +61,23 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
       setPendingAiTool(null);
       return;
     }
-    setAiResult({
-      title: i18n.t("home.aiTools.futureResult"),
-      body: result,
-    });
+    setFutureReviewText(result);
     setSelectedAiTool("future");
     setPendingAiTool(null);
+  }
+
+  function handleApproveFutureQuote(text: string) {
+    applyRewrittenQuote(text);
+    setAiResult({
+      title: i18n.t("home.aiTools.futureResult"),
+      body: text,
+    });
+    setFutureReviewText(null);
+  }
+
+  function handleCancelFutureQuote() {
+    setFutureReviewText(null);
+    setSelectedAiTool((current) => (current === "future" ? "calm" : current));
   }
 
   async function handleRewriteQuote(tone: RewriteTone) {
@@ -71,13 +88,26 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     if (!text) {
       return;
     }
+    setRewriteReviewText(text);
+  }
+
+  function handleApproveRewrite(text: string) {
     applyRewrittenQuote(text);
     setAiResult({
       title: i18n.t("home.aiTools.rewriteResult"),
       body: text,
     });
-    setSelectedAiTool(tone);
+    setRewriteReviewText(null);
   }
+
+  function handleCancelRewrite() {
+    setRewriteReviewText(null);
+  }
+
+  const pendingToneLabel =
+    pendingAiTool && pendingAiTool !== "future"
+      ? i18n.t(`home.aiTools.${pendingAiTool}`)
+      : null;
 
   return {
     aiResult,
@@ -85,10 +115,18 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     pendingAiTool,
     clearAiToolState,
     handleFutureQuotePress,
+    handleApproveFutureQuote,
+    handleCancelFutureQuote,
+    futureReviewText,
     handleRewriteQuote,
+    handleApproveRewrite,
+    handleCancelRewrite,
+    rewriteReviewText,
     isAiToolLoading: isRewritingQuote || isGeneratingFutureQuote,
     aiToolsLoadingLabel: isGeneratingFutureQuote
       ? i18n.t("home.aiTools.loadingFuture")
-      : null,
+      : pendingToneLabel
+        ? i18n.t("home.aiTools.loadingRewrite", { tone: pendingToneLabel })
+        : null,
   };
 }

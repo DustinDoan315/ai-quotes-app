@@ -1,5 +1,6 @@
 import { useMemoryStore } from "@/appState";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
+import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { HomeActionBar } from "@/features/home/HomeActionBar";
@@ -7,6 +8,7 @@ import { StreakModal } from "@/features/streak/StreakModal";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
 import { HomeEmojiOverlay } from "@/features/home/HomeEmojiOverlay";
 import { HomeFeedFlow } from "@/features/home/HomeFeedFlow";
+import { RewriteQuoteReviewModal } from "@/features/home/RewriteQuoteReviewModal";
 import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeAiReview } from "@/features/home/useHomeAiReview";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
@@ -38,6 +40,7 @@ export default function HomeScreen() {
   const [milestone, setMilestone] = useState<number | null>(null);
   const [streakModalVisible, setStreakModalVisible] = useState(false);
   const { t } = useTranslation();
+  const showToast = useUIStore((s) => s.showToast);
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
@@ -96,10 +99,7 @@ export default function HomeScreen() {
   } = useHomeCamera({
     onPhotoSaved: () => {
       refreshSilently();
-      setJustSavedMemory(true);
-      setTimeout(() => {
-        setJustSavedMemory(false);
-      }, 1800);
+      showToast(t("home.savedToMemories"), "success", 3000);
     },
     onMilestoneReached: setMilestone,
     homeVibeKey: palette.vibeKey,
@@ -126,7 +126,6 @@ export default function HomeScreen() {
   const authorName =
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
-  const [justSavedMemory, setJustSavedMemory] = useState(false);
   const actionBarBottomPadding = insets.bottom;
   const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
   const getItemLayout = useMemo(
@@ -155,7 +154,14 @@ export default function HomeScreen() {
     selectedAiTool,
     pendingAiTool,
     clearAiToolState,
+    handleFutureQuotePress,
+    handleApproveFutureQuote,
+    handleCancelFutureQuote,
+    futureReviewText,
     handleRewriteQuote,
+    handleApproveRewrite,
+    handleCancelRewrite,
+    rewriteReviewText,
     isAiToolLoading,
     aiToolsLoadingLabel,
   } = useHomeAiReview(dailyQuoteText);
@@ -233,15 +239,6 @@ export default function HomeScreen() {
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
       />
-      {justSavedMemory && (
-        <View className="absolute left-0 right-0 top-10 z-10 items-center">
-          <View className="rounded-full bg-black/85 px-4 py-2">
-            <Text className="text-xs font-semibold text-white">
-              {t("home.savedToMemories")}
-            </Text>
-          </View>
-        </View>
-      )}
       <HomeFeedFlow
         listRef={listRef}
         quoteStacks={quoteStacks}
@@ -313,6 +310,7 @@ export default function HomeScreen() {
               onToggleFacing: handleToggleFacing,
               onClearImage: handleClearCurrentImage,
               onRewriteQuote: handleRewriteQuote,
+              onFutureQuotePress: handleFutureQuotePress,
               selectedAiTool,
               pendingAiTool,
               aiResultTitle: aiResult?.title ?? null,
@@ -353,6 +351,23 @@ export default function HomeScreen() {
       <StreakModal
         visible={streakModalVisible}
         onClose={() => setStreakModalVisible(false)}
+      />
+      <RewriteQuoteReviewModal
+        visible={rewriteReviewText !== null}
+        initialText={rewriteReviewText ?? ""}
+        sourceText={dailyQuoteText ?? ""}
+        onApprove={handleApproveRewrite}
+        onCancel={handleCancelRewrite}
+      />
+      <RewriteQuoteReviewModal
+        visible={futureReviewText !== null}
+        initialText={futureReviewText ?? ""}
+        sourceText={dailyQuoteText ?? ""}
+        title={t("home.aiTools.futureReviewTitle")}
+        guidance={t("home.aiTools.futureReviewGuidance")}
+        approveLabel={t("home.aiTools.futureReviewApprove")}
+        onApprove={handleApproveFutureQuote}
+        onCancel={handleCancelFutureQuote}
       />
     </View>
   );

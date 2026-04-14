@@ -19,7 +19,8 @@
     "title": "Memories",
     "thisDayInMemoriesLabel": "This day in memories",
     "emptyForDay": "No memories for this day yet.",
-    "friendsPlaceholder": "Friends' memories will appear here.",
+    "friendsEmptyForDay": "No friends shared a memory for this day.",
+    "friendsPlaceholder": "Invite friends so their memories appear here.",
     "publicPlaceholder": "Public memories will appear here."
   },
   "home": {
@@ -47,6 +48,10 @@
       "rewriteResult": "Rewritten quote",
       "loadingExplain": "Reading the feeling behind your quote…",
       "loadingFuture": "Writing the next quote you may need…",
+      "loadingRewrite": "Rewriting as {{tone}}…",
+      "futureReviewTitle": "Next quote",
+      "futureReviewGuidance": "Edit if you want, then apply it as your quote.",
+      "futureReviewApprove": "Use this quote",
       "editQuoteHint": "Tap the quote to edit it.",
       "editQuoteGuidance": "Keep it to one sentence, under 180 characters, and safe to use.",
       "editQuoteSave": "Save",

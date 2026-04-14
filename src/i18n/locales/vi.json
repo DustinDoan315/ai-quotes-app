@@ -19,7 +19,8 @@
     "title": "Kỷ niệm",
     "thisDayInMemoriesLabel": "Ngày này trong kỷ niệm",
     "emptyForDay": "Chưa có kỷ niệm nào cho ngày này.",
-    "friendsPlaceholder": "Kỷ niệm của bạn bè sẽ xuất hiện ở đây.",
+    "friendsEmptyForDay": "Không có bạn bè nào chia sẻ kỷ niệm cho ngày này.",
+    "friendsPlaceholder": "Mời bạn bè để kỷ niệm của họ xuất hiện ở đây.",
     "publicPlaceholder": "Kỷ niệm công khai sẽ xuất hiện ở đây."
   },
   "home": {
@@ -47,6 +48,10 @@
       "rewriteResult": "Câu đã viết lại",
       "loadingExplain": "Đang đọc cảm xúc đằng sau câu trích dẫn của bạn…",
       "loadingFuture": "Đang viết câu tiếp theo bạn có thể cần…",
+      "loadingRewrite": "Đang viết lại theo phong cách {{tone}}…",
+      "futureReviewTitle": "Câu tiếp theo",
+      "futureReviewGuidance": "Chỉnh sửa nếu muốn, rồi áp dụng làm câu của bạn.",
+      "futureReviewApprove": "Dùng câu này",
       "editQuoteHint": "Nhấn vào câu để chỉnh sửa.",
       "editQuoteGuidance": "Giữ một câu, dưới 180 ký tự và an toàn để dùng.",
       "editQuoteSave": "Lưu",

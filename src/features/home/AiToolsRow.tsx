@@ -3,15 +3,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import type { RewriteTone } from "@/services/ai/types";
+import type { HomeAiTool } from "@/features/home/useHomeAiReview";
 import type { ComponentProps } from "react";
 
-type ActiveAiTool = RewriteTone;
-
 type Props = {
-  selectedAiTool: ActiveAiTool | null;
-  pendingAiTool: ActiveAiTool | null;
+  selectedAiTool: HomeAiTool | null;
+  pendingAiTool: HomeAiTool | null;
   aiToolsLoading: boolean;
   onRewriteQuote: (tone: RewriteTone) => void;
+  onFutureQuotePress: () => void;
 };
 
 const tones: RewriteTone[] = ["calm", "funny", "savage"];
@@ -185,6 +185,7 @@ export function AiToolsRow({
   pendingAiTool,
   aiToolsLoading,
   onRewriteQuote,
+  onFutureQuotePress,
 }: Props) {
   const { t } = useTranslation();
   return (
@@ -210,6 +211,14 @@ export function AiToolsRow({
           paddingRight: 20,
         }}
         style={{ width: "100%" }}>
+        <AiToolButton
+          isActive={selectedAiTool === "future"}
+          isPending={pendingAiTool === "future"}
+          loading={aiToolsLoading}
+          onPress={onFutureQuotePress}
+          icon="arrow-forward-circle-outline"
+          label={t("home.aiTools.future")}
+        />
         {tones.map((tone) => {
           const isActive = selectedAiTool === tone;
           const isPending = pendingAiTool === tone;
