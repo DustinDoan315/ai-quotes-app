@@ -8,6 +8,7 @@ import { supabase } from "@/config/supabase";
 import {
   configureNotificationHandler,
   ensureReminderNotificationChannel,
+  setupNotificationCategories,
   syncDailyReminderSchedule,
 } from "@/services/notifications/dailyReminder";
 import { initPostHog } from "@/services/analytics/posthog";
@@ -38,6 +39,7 @@ function syncUiLanguageOnBoot(): (() => void) | undefined {
 
 function syncReminderOnBoot(): (() => void) | undefined {
   configureNotificationHandler();
+  void setupNotificationCategories();
   void ensureReminderNotificationChannel();
 
   const applyReminderSync = () => {
