@@ -1,6 +1,8 @@
-import { useStreakStore } from "@/appState/streakStore";
+import { useStreakStore, getDisplayStreak } from "@/appState/streakStore";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { MotiView } from "moti";
 
 import { useMemoryStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
@@ -26,6 +28,7 @@ type CalendarDayProps = {
   summary: DaySummary | null;
   onPress: (date: string) => void;
   isToday: boolean;
+  count: number;
 };
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -68,7 +71,7 @@ function buildMonthDays(
   return days;
 }
 
-function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
+function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
   if (!summary) {
     return (
       <View className="h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 opacity-30" />
@@ -81,7 +84,10 @@ function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
   const dayNumber = new Date(summary.date).getDate();
   return (
     <Pressable
-      onPress={() => onPress(summary.date)}
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress(summary.date);
+      }}
       className="h-14 w-14 items-center justify-center rounded-2xl overflow-hidden border border-white/10 bg-white/5"
       style={({ pressed }) => ({
         opacity: pressed ? 0.85 : 1,
@@ -95,6 +101,15 @@ function CalendarDay({ summary, onPress, isToday }: CalendarDayProps) {
           />
           <View className="absolute inset-0 bg-black/40" />
         </>
+      ) : null}
+      {count > 1 ? (
+        <View
+          className="absolute right-1 top-1 z-20 rounded-full bg-white/80 px-1"
+          style={{ minWidth: 16, alignItems: "center" }}>
+          <Text style={{ fontSize: 9, fontWeight: "700", color: "#000" }}>
+            {count}
+          </Text>
+        </View>
       ) : null}
       <View className="z-10 items-center justify-center">
         <View
@@ -189,7 +204,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   const getCalendarSummaryForMonth = useMemoryStore(
     (s: MemoryState) => s.getCalendarSummaryForMonth,
   );
-  const currentStreak = useStreakStore((s) => s.currentStreak);
+  const displayStreak = useStreakStore((s) => getDisplayStreak(s));
   const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
 
   const monthKey = getMonthKey(cursorMonth);
@@ -204,8 +219,24 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   );
 
   const streakDates = useMemo(() => {
-    return getHistoricalStreakDates(memories, lastQuoteDate, currentStreak);
-  }, [currentStreak, lastQuoteDate, memories]);
+    return getHistoricalStreakDates(memories, lastQuoteDate, displayStreak);
+  }, [displayStreak, lastQuoteDate, memories]);
+
+  const dayCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    memories.forEach((m) => {
+      if (m.date.slice(0, 7) !== monthKey) return;
+      counts[m.date] = (counts[m.date] ?? 0) + 1;
+    });
+    return counts;
+  }, [memories, monthKey]);
+
+  const monthMemoryCount = useMemo(
+    () => memories.filter((m) => m.date.slice(0, 7) === monthKey).length,
+    [memories, monthKey],
+  );
+
+  const isCurrentMonth = monthKey === formatLocalMonthKey(new Date());
 
   const year = cursorMonth.getFullYear();
   const monthIndex = cursorMonth.getMonth();
@@ -247,11 +278,17 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   monthDays.forEach((d) => gridDays.push(d));
 
   function handleChangeMonth(offset: number) {
+    void Haptics.selectionAsync();
     setCursorMonth((prev) => {
       const next = new Date(prev);
       next.setMonth(prev.getMonth() + offset);
       return next;
     });
+  }
+
+  function handleGoToToday() {
+    void Haptics.selectionAsync();
+    setCursorMonth(new Date());
   }
 
   const monthLabel = cursorMonth.toLocaleDateString(undefined, {
@@ -283,15 +320,46 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         <View className="mt-5 flex-row items-center justify-between">
           <Pressable
             onPress={() => handleChangeMonth(-1)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10"
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
             <Text className="text-lg font-semibold text-white">‹</Text>
           </Pressable>
-          <Text className="text-lg font-semibold text-white">{monthLabel}</Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-lg font-semibold text-white">{monthLabel}</Text>
+            {!isCurrentMonth ? (
+              <Pressable
+                onPress={handleGoToToday}
+                className="rounded-full bg-white/15 px-2.5 py-1"
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+                <Text className="text-[11px] font-semibold text-white/90">Today</Text>
+              </Pressable>
+            ) : null}
+          </View>
           <Pressable
             onPress={() => handleChangeMonth(1)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10"
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
             <Text className="text-lg font-semibold text-white">›</Text>
           </Pressable>
+        </View>
+        <View className="mt-3 flex-row items-center gap-2">
+          <View className="flex-row items-center rounded-full bg-white/10 px-3 py-1">
+            <Text className="text-xs font-medium text-white/80">
+              {monthMemoryCount === 0
+                ? "No memories"
+                : monthMemoryCount === 1
+                  ? "1 memory"
+                  : `${monthMemoryCount} memories`}
+            </Text>
+          </View>
+          {displayStreak > 0 ? (
+            <View className="flex-row items-center gap-1 rounded-full bg-white/10 px-3 py-1">
+              <Text className="text-xs">🔥</Text>
+              <Text className="text-xs font-medium text-white/80">
+                {displayStreak} day streak
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -310,15 +378,23 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 4 }}>
         <View className="flex-row flex-wrap">
           {gridDays.map((day, index) => (
-            <View
-              key={day ? day.date : `empty-${index}`}
+            <MotiView
+              key={day ? `${monthKey}-${day.date}` : `${monthKey}-empty-${index}`}
+              from={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                type: "timing",
+                duration: 220,
+                delay: index * 18,
+              }}
               className="w-[14.28%] items-center pb-3 px-0.5">
               <CalendarDay
                 summary={day}
                 onPress={onPressDay}
                 isToday={day ? day.date === todayKey : false}
+                count={day ? (dayCounts[day.date] ?? 0) : 0}
               />
-            </View>
+            </MotiView>
           ))}
         </View>
         <View className="mt-6 flex-row flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">

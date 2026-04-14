@@ -1,6 +1,6 @@
 import { QUOTE_ASPECT } from "@/constants/quoteImageSize";
 import { Image } from "expo-image";
-import { Dimensions, Text, View } from "react-native";
+import { Dimensions, Pressable, Text, View } from "react-native";
 
 import type { QuoteImageOrientation } from "@/types/memory";
 
@@ -10,6 +10,7 @@ type Props = {
   photoBackgroundUri: string | null;
   photoOrientation?: QuoteImageOrientation;
   isFavorite?: boolean;
+  onToggleFavorite?: () => void;
   createdAt: string;
   styleFontId?: "small" | "medium" | "large";
   styleColorSchemeId?: "light" | "amber" | "pink";
@@ -28,6 +29,7 @@ export function MemoryCard({
   photoBackgroundUri,
   photoOrientation = "portrait",
   isFavorite = false,
+  onToggleFavorite,
   createdAt,
   styleFontId = "medium",
   styleColorSchemeId = "light",
@@ -71,10 +73,19 @@ export function MemoryCard({
 
       <View
         pointerEvents="none"
-        className="absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25"
+        className="absolute inset-0 z-[2]"
+        style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
       />
 
-      {isFavorite ? (
+      {onToggleFavorite ? (
+        <Pressable
+          onPress={onToggleFavorite}
+          hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+          className="absolute right-2 top-2 z-[20] rounded-full bg-amber-400/95 px-1.5 py-0.5"
+          style={{ opacity: isFavorite ? 1 : 0.35 }}>
+          <Text className="text-[10px]">⭐</Text>
+        </Pressable>
+      ) : isFavorite ? (
         <View className="absolute right-2 top-2 z-[20] rounded-full bg-amber-400/95 px-1.5 py-0.5">
           <Text className="text-[10px]">⭐</Text>
         </View>
