@@ -16,7 +16,9 @@
       "Bash(git stash:*)",
       "Bash(xargs ls:*)",
       "Bash(python3:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(grep -E \"\\\\.tsx?$|App|Main\")",
+      "Bash(grep -E \"\\(tsx|jsx\\)$\")"
     ]
   }
 }

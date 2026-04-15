@@ -48,11 +48,11 @@ export const PaywallScrollContent = ({
       }}>
       <View className="w-full max-w-full rounded-3xl border border-white/10 bg-slate-950/95 p-4">
         <View className="mb-3 items-center">
-          <View className="h-[76px] w-[76px] items-center justify-center rounded-[24px] border border-amber-400/40 bg-slate-900">
+          <View className="h-[76px] w-[76px] items-center justify-center rounded-[24px] border border-violet-500/40 bg-slate-900">
             <Text className="text-[42px]">✨</Text>
           </View>
-          <View className="mt-3 rounded-full border border-amber-400/35 bg-amber-500/20 px-4 py-1.5">
-            <Text className="text-center text-[10px] font-bold uppercase tracking-[0.18em] text-amber-100">
+          <View className="mt-3 rounded-full border border-violet-500/35 bg-violet-500/20 px-4 py-1.5">
+            <Text className="text-center text-[10px] font-bold uppercase tracking-[0.18em] text-violet-100">
               {t("subscription.heroEyebrow")}
             </Text>
           </View>
@@ -97,8 +97,8 @@ export const PaywallScrollContent = ({
         <PaywallFeatureComparison />
       </View>
 
-      <View className="mt-5 w-full max-w-full flex-row items-start gap-3 rounded-2xl border border-sky-500/25 bg-slate-950/95 px-4 py-3">
-        <Ionicons name="shield-checkmark" size={22} color="#38bdf8" />
+      <View className="mt-5 w-full max-w-full flex-row items-start gap-3 rounded-2xl border border-violet-500/25 bg-slate-950/95 px-4 py-3">
+        <Ionicons name="shield-checkmark" size={22} color="#A855F7" />
         <Text className="min-w-0 flex-1 text-[13px] leading-[19px] text-slate-200">
           {t("subscription.footerReassurance")}
         </Text>

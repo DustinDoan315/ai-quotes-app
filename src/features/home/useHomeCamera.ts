@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { CameraView } from "expo-camera";
+import { CameraView, type CameraMountError } from "expo-camera";
 import { useFocusEffect } from "@react-navigation/native";
 import { Gesture } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
@@ -16,9 +16,6 @@ import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { compressImageForUpload } from "@/utils/imageProcessor";
-import { centerCropToAspect, getImageDimensions } from "@/utils/imageCrop";
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
-import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
@@ -68,6 +65,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const homeVibeKey = options?.homeVibeKey;
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
@@ -109,6 +107,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   useFocusEffect(
     useCallback(() => {
       setIsCameraActive(true);
+      setCameraError(null);
 
       return () => {
         setIsCameraActive(false);
@@ -151,11 +150,21 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   function handleToggleFacing() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setCameraReady(false);
+    setCameraError(null);
     setFacing((previous) => (previous === "back" ? "front" : "back"));
   }
 
   function handleCameraReady() {
+    setCameraError(null);
     setCameraReady(true);
+  }
+
+  function handleCameraMountError(event: CameraMountError) {
+    console.error("Failed to start camera preview", event);
+    setCameraReady(false);
+    setCameraError(event.message || i18n.t("camera.errors.failedToStartPreview"));
+    showToast(i18n.t("camera.errors.failedToStartPreview"), "error");
   }
 
   function clearSelectedImage() {
@@ -230,20 +239,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
         return;
       }
-      let previewUri = photo.uri;
-      try {
-        const targetAspect = getQuoteAspectRatio("portrait");
-        const { width: srcW, height: srcH } = await getImageDimensions(photo.uri);
-        const cropRect = centerCropToAspect(srcW, srcH, targetAspect);
-        const ctx = ImageManipulator.manipulate(photo.uri);
-        ctx.crop(cropRect);
-        const rendered = await ctx.renderAsync();
-        const cropped = await rendered.saveAsync({ compress: 1, format: SaveFormat.JPEG });
-        previewUri = cropped.uri;
-      } catch {
-        // fall back to raw URI if crop fails
-      }
-      setSelectedImageUri(previewUri);
+      setSelectedImageUri(photo.uri);
       setSelectedImageBase64(null);
       setHideQuote(true);
       await generateForImage(photo.uri, false);
@@ -397,8 +393,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     requestPermission,
     cameraRef,
     cameraReady,
+    cameraError,
     isCameraActive,
     handleCameraReady,
+    handleCameraMountError,
     isCapturing,
     isSavingPhoto,
     selectedImageUri,

@@ -53,7 +53,7 @@ export const PaywallInfoStrip = ({
     <View
       className="border-b px-4 py-3.5"
       style={{
-        borderColor: isError ? "rgba(248,113,113,0.35)" : "rgba(251,191,36,0.28)",
+        borderColor: isError ? "rgba(248,113,113,0.35)" : "rgba(139,92,246,0.28)",
         backgroundColor: isError ? "rgba(69,10,10,0.92)" : "rgba(15,23,42,0.98)",
       }}>
       <View className="flex-row items-start gap-3">
@@ -61,13 +61,13 @@ export const PaywallInfoStrip = ({
           <Ionicons name="alert-circle" size={22} color="#fca5a5" />
         ) : (
           <ActivityIndicator
-            color={isLoadingPlans ? "#fcd34d" : "#fbbf24"}
+            color={isLoadingPlans ? "#c4b5fd" : "#a855f7"}
             size="small"
           />
         )}
         <View className="min-w-0 flex-1">
           <Text
-            className={`text-sm font-semibold ${isError ? "text-red-50" : "text-amber-100"}`}>
+            className={`text-sm font-semibold ${isError ? "text-red-50" : "text-violet-100"}`}>
             {stripTitle(variant)}
           </Text>
           <Text

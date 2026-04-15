@@ -3,7 +3,8 @@
     "errors": {
       "noPhotoToSave": "Không có ảnh để lưu",
       "failedToSavePhoto": "Không thể lưu ảnh",
-      "galleryPermissionRequired": "Chúng tôi cần quyền truy cập thư viện ảnh."
+      "galleryPermissionRequired": "Chúng tôi cần quyền truy cập thư viện ảnh.",
+      "failedToStartPreview": "Không thể khởi động xem trước camera. Hãy đóng và mở lại màn hình."
     },
     "info": {
       "photoAlreadySaved": "Ảnh đã được lưu",
@@ -173,6 +174,10 @@
     "contextGenericTitle": "Nâng cấp lên Pro"
   },
   "profile": {
+    "languageLabel": "Ngôn ngữ",
+    "languageCombinedDescription": "Đổi ngôn ngữ ứng dụng và câu trích dẫn cùng lúc.",
+    "languageUiDescription": "Chọn ngôn ngữ cho giao diện ứng dụng.",
+    "languageQuoteDescription": "Chọn ngôn ngữ dùng để tạo câu trích dẫn.",
     "quoteLanguageLabel": "Ngôn ngữ câu trích dẫn",
     "appLanguageLabel": "Ngôn ngữ ứng dụng",
     "languageVietnamese": "Tiếng Việt",

@@ -13,9 +13,9 @@ type FeatureRowProps = {
 export const PaywallFeatureComparison = () => {
   const { t } = useTranslation();
   return (
-    <View className="mb-5 w-full max-w-full overflow-hidden rounded-3xl border border-amber-400/25 bg-slate-950/95">
-      <View className="border-b border-amber-400/20 bg-amber-500/15 px-3 py-3">
-        <Text className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-amber-100">
+    <View className="mb-5 w-full max-w-full overflow-hidden rounded-3xl border border-violet-500/25 bg-slate-950/95">
+      <View className="border-b border-violet-500/20 bg-violet-500/15 px-3 py-3">
+        <Text className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-violet-100">
           {t("subscription.featureHeaderHighlight")}
         </Text>
       </View>
@@ -28,7 +28,7 @@ export const PaywallFeatureComparison = () => {
           </Text>
         </View>
         <View className="w-[68px] shrink-0 items-center">
-          <Text className="text-[10px] font-bold uppercase tracking-wide text-amber-200">
+          <Text className="text-[10px] font-bold uppercase tracking-wide text-violet-200">
             {t("subscription.proLabel")}
           </Text>
         </View>

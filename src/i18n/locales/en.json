@@ -3,7 +3,8 @@
     "errors": {
       "noPhotoToSave": "No photo to save",
       "failedToSavePhoto": "Failed to save photo",
-      "galleryPermissionRequired": "We need gallery access to pick photos."
+      "galleryPermissionRequired": "We need gallery access to pick photos.",
+      "failedToStartPreview": "Camera preview couldn't start. Close and reopen the screen."
     },
     "info": {
       "photoAlreadySaved": "Photo already saved",
@@ -173,6 +174,10 @@
     "contextGenericTitle": "Upgrade to Pro"
   },
   "profile": {
+    "languageLabel": "Language",
+    "languageCombinedDescription": "Change the app and your quotes together.",
+    "languageUiDescription": "Choose what the app interface speaks.",
+    "languageQuoteDescription": "Choose the language used for your generated quotes.",
     "quoteLanguageLabel": "Quote language",
     "appLanguageLabel": "App language",
     "languageVietnamese": "Tiếng Việt",

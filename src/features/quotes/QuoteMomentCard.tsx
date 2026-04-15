@@ -2,6 +2,8 @@ import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradien
 import { QuoteMomentCardMedia } from "@/features/quotes/QuoteMomentCardMedia";
 import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
+import type { ReactNode } from "react";
+import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
@@ -16,9 +18,10 @@ export interface QuoteMomentCardProps {
   authorName: string;
   authorAvatarUrl: string | null;
   counterLabel?: string | null;
+  dotsContent?: ReactNode;
 }
 
-const FALLBACK_ASPECT = 3 / 4;
+const PORTRAIT_CARD_ASPECT = getQuoteAspectRatio("portrait");
 
 export const QuoteMomentCard = ({
   item,
@@ -26,13 +29,13 @@ export const QuoteMomentCard = ({
   authorName,
   authorAvatarUrl,
   counterLabel,
+  dotsContent,
 }: QuoteMomentCardProps) => {
   const { t } = useTranslation();
   const profile = useUserStore((s) => s.profile);
   const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =
     useQuoteMomentShare();
-  const [aspectRatio, setAspectRatio] = useState<number>(FALLBACK_ASPECT);
   const [bgLayout, setBgLayout] = useState<{
     width: number;
     height: number;
@@ -78,8 +81,7 @@ export const QuoteMomentCard = ({
       item={item}
       bgPalette={bgPalette}
       chrome={chrome}
-      aspectRatio={aspectRatio}
-      onAspectRatioSet={setAspectRatio}
+      aspectRatio={PORTRAIT_CARD_ASPECT}
       bgLayout={bgLayout}
       onBgLayout={(width, height) => setBgLayout({ width, height })}
       watermarkForExport={watermarkForExport}
@@ -148,6 +150,11 @@ export const QuoteMomentCard = ({
             <Ionicons name="share-outline" size={22} color="#ffffff" />
           </Pressable>
         )}
+        {dotsContent ? (
+          <View pointerEvents="none" className="absolute bottom-3 self-center z-50">
+            {dotsContent}
+          </View>
+        ) : null}
       </View>
     </View>
   );

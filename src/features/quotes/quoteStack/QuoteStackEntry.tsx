@@ -1,5 +1,6 @@
 import type { QuoteStack } from "./types";
 import { QuoteMomentCard } from "@/features/quotes/QuoteMomentCard";
+import { getFeedCardWidth } from "@/features/quotes/feedCardSizing";
 import { useMemo, useEffect, useState, useCallback } from "react";
 import { useWindowDimensions, View, StyleSheet } from "react-native";
 import Animated, {
@@ -66,22 +67,23 @@ export function QuoteStackEntry({
   const { width: windowWidth } = useWindowDimensions();
 
   const itemWidth = useMemo(() => {
-    const ideal = windowWidth - 32;
-    const capped = Math.min(448, ideal);
-    return Math.max(280, capped);
+    return getFeedCardWidth(windowWidth);
   }, [windowWidth]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const quoteCount = stack.quotes.length;
+  // Shared values mirror for worklet access — avoids gesture recreation on every swipe
+  const currentIndexSV = useSharedValue(0);
+  const quoteCountSV = useSharedValue(quoteCount);
 
   // Shared values for top card gesture
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const cardRotation = useSharedValue(0);
   const promotionProgress = useSharedValue(0);
+  const backProgress = useSharedValue(0);
   const isAnimatingOut = useSharedValue(false);
   const newTopScale = useSharedValue(1);
-  const newTopOpacity = useSharedValue(1);
 
   const notifyActive = useCallback(
     (index: number) => {
@@ -93,12 +95,18 @@ export function QuoteStackEntry({
   );
 
   useEffect(() => {
+    quoteCountSV.value = quoteCount;
+  }, [quoteCount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (!isActive) return;
+    currentIndexSV.value = 0;
     setCurrentIndex(0);
     translateX.value = 0;
     translateY.value = 0;
     cardRotation.value = 0;
     promotionProgress.value = 0;
+    backProgress.value = 0;
     isAnimatingOut.value = false;
     notifyActive(0);
   }, [isActive, stack.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -111,26 +119,42 @@ export function QuoteStackEntry({
   }, [currentIndex, isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advanceIndex = useCallback(() => {
-    const next = currentIndex + 1;
+    const next = currentIndexSV.value + 1;
+    currentIndexSV.value = next;
     setCurrentIndex(next);
     notifyActive(next);
     translateX.value = 0;
     translateY.value = 0;
     cardRotation.value = 0;
     promotionProgress.value = 0;
+    backProgress.value = 0;
     isAnimatingOut.value = false;
     newTopScale.value = 0.95;
-    newTopOpacity.value = 0.8;
     newTopScale.value = withSpring(1, { damping: 16, stiffness: 200, mass: 0.7 });
-    newTopOpacity.value = withTiming(1, { duration: 220 });
-  }, [currentIndex, notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const decrementIndex = useCallback(() => {
+    const prev = currentIndexSV.value - 1;
+    if (prev < 0) return;
+    currentIndexSV.value = prev;
+    setCurrentIndex(prev);
+    notifyActive(prev);
+    translateX.value = 0;
+    translateY.value = 0;
+    cardRotation.value = 0;
+    promotionProgress.value = 0;
+    backProgress.value = 0;
+    isAnimatingOut.value = false;
+    newTopScale.value = 0.95;
+    newTopScale.value = withSpring(1, { damping: 16, stiffness: 200, mass: 0.7 });
+  }, [notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
         .enabled(isActive)
-        .activeOffsetX([-10, 10])
-        .failOffsetY([-20, 20])
+        .activeOffsetX([-5, 5])
+        .failOffsetY([-40, 40])
         .onUpdate((e) => {
           "worklet";
           if (isAnimatingOut.value) return;
@@ -146,28 +170,36 @@ export function QuoteStackEntry({
         .onEnd((e) => {
           "worklet";
           if (isAnimatingOut.value) return;
-          const shouldDismiss =
-            (Math.abs(e.translationX) > SWIPE_THRESHOLD ||
-              Math.abs(e.velocityX) > VELOCITY_THRESHOLD) &&
-            currentIndex < quoteCount - 1;
 
-          if (shouldDismiss) {
+          const isStrong =
+            Math.abs(e.translationX) > SWIPE_THRESHOLD ||
+            Math.abs(e.velocityX) > VELOCITY_THRESHOLD;
+
+          const shouldGoForward =
+            isStrong && e.translationX < 0 && currentIndexSV.value < quoteCountSV.value - 1;
+          const shouldGoBack = isStrong && e.translationX > 0 && currentIndexSV.value > 0;
+
+          if (shouldGoForward) {
             isAnimatingOut.value = true;
-            const dir = Math.sign(e.translationX);
-            translateX.value = withTiming(dir * SWIPE_OFF_DISTANCE, {
-              duration: 260,
+            translateX.value = withTiming(-SWIPE_OFF_DISTANCE, { duration: 260 }, (finished) => {
+              if (finished) runOnJS(advanceIndex)();
             });
-            cardRotation.value = withTiming(dir * 28, { duration: 260 });
-            promotionProgress.value = withSpring(1, PROMOTION_SPRING, () => {
-              runOnJS(advanceIndex)();
+            cardRotation.value = withTiming(-28, { duration: 260 });
+            promotionProgress.value = withSpring(1, PROMOTION_SPRING);
+          } else if (shouldGoBack) {
+            isAnimatingOut.value = true;
+            translateX.value = withTiming(SWIPE_OFF_DISTANCE, { duration: 260 }, (finished) => {
+              if (finished) runOnJS(decrementIndex)();
             });
+            cardRotation.value = withTiming(28, { duration: 260 });
+            backProgress.value = withSpring(1, PROMOTION_SPRING);
           } else {
             translateX.value = withSpring(0, SNAP_BACK_SPRING);
             translateY.value = withSpring(0, SNAP_BACK_SPRING);
             cardRotation.value = withSpring(0, SNAP_BACK_SPRING);
           }
         }),
-    [isActive, currentIndex, quoteCount, advanceIndex], // eslint-disable-line react-hooks/exhaustive-deps
+    [isActive, advanceIndex, decrementIndex], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const topCardEntranceStyle = useAnimatedStyle(() => ({
@@ -177,81 +209,89 @@ export function QuoteStackEntry({
       { rotate: `${cardRotation.value}deg` },
       { scale: newTopScale.value },
     ],
-    opacity: newTopOpacity.value,
   }));
 
-  const secondCardStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: interpolate(promotionProgress.value, [0, 1], [0.93, 1.0]) },
-      { translateY: interpolate(promotionProgress.value, [0, 1], [14, 0]) },
-    ],
-    opacity: interpolate(promotionProgress.value, [0, 1], [0.82, 1.0]),
-  }));
+  const secondCardStyle = useAnimatedStyle(() => {
+    const p = promotionProgress.value - backProgress.value;
+    return {
+      transform: [
+        { scale: interpolate(p, [-1, 0, 1], [0.86, 0.93, 1.0], Extrapolation.CLAMP) },
+        { translateY: interpolate(p, [-1, 0, 1], [28, 14, 0], Extrapolation.CLAMP) },
+      ],
+      opacity: interpolate(p, [-1, 0, 1], [0.6, 0.82, 1.0], Extrapolation.CLAMP),
+    };
+  });
 
-  const thirdCardStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: interpolate(promotionProgress.value, [0, 1], [0.86, 0.93]) },
-      { translateY: interpolate(promotionProgress.value, [0, 1], [28, 14]) },
-    ],
-    opacity: interpolate(promotionProgress.value, [0, 1], [0.6, 0.82]),
-  }));
+  const thirdCardStyle = useAnimatedStyle(() => {
+    const p = promotionProgress.value - backProgress.value;
+    return {
+      transform: [
+        { scale: interpolate(p, [-1, 0, 1], [0.79, 0.86, 0.93], Extrapolation.CLAMP) },
+        { translateY: interpolate(p, [-1, 0, 1], [42, 28, 14], Extrapolation.CLAMP) },
+      ],
+      opacity: interpolate(p, [-1, 0, 1], [0.4, 0.6, 0.82], Extrapolation.CLAMP),
+    };
+  });
 
   const topItem: QuotePhotoCard | undefined = stack.quotes[currentIndex];
   const secondItem: QuotePhotoCard | undefined = stack.quotes[currentIndex + 1];
   const thirdItem: QuotePhotoCard | undefined = stack.quotes[currentIndex + 2];
 
   return (
-    <View style={{ alignItems: "center" }}>
-      <View style={{ width: itemWidth, height: screenHeight }}>
-        {thirdItem ? (
+    <View style={{ width: itemWidth, height: screenHeight }}>
+      {thirdItem ? (
+        <Animated.View
+          key={`third-${thirdItem.id}`}
+          style={[StyleSheet.absoluteFill, thirdCardStyle]}
+          pointerEvents="none">
+          <QuoteMomentCard
+            item={thirdItem}
+            screenHeight={screenHeight}
+            authorName={authorName}
+            authorAvatarUrl={authorAvatarUrl}
+            counterLabel={null}
+          />
+        </Animated.View>
+      ) : null}
+
+      {secondItem ? (
+        <Animated.View
+          key={`second-${secondItem.id}`}
+          style={[StyleSheet.absoluteFill, secondCardStyle]}
+          pointerEvents="none">
+          <QuoteMomentCard
+            item={secondItem}
+            screenHeight={screenHeight}
+            authorName={authorName}
+            authorAvatarUrl={authorAvatarUrl}
+            counterLabel={null}
+          />
+        </Animated.View>
+      ) : null}
+
+      {topItem ? (
+        <GestureDetector key={`top-gesture-${topItem.id}`} gesture={panGesture}>
           <Animated.View
-            style={[StyleSheet.absoluteFill, thirdCardStyle]}
-            pointerEvents="none">
+            key={`top-${topItem.id}`}
+            style={[StyleSheet.absoluteFill, topCardEntranceStyle]}>
             <QuoteMomentCard
-              item={thirdItem}
+              item={topItem}
               screenHeight={screenHeight}
               authorName={authorName}
               authorAvatarUrl={authorAvatarUrl}
-              counterLabel={null}
+              counterLabel={quoteCount > 1 ? `${currentIndex + 1}/${quoteCount}` : null}
+              dotsContent={
+                quoteCount > 1 ? (
+                  <View style={styles.dotsRow}>
+                    {stack.quotes.map((_, i) => (
+                      <AnimatedDot key={i} isActive={i === currentIndex} />
+                    ))}
+                  </View>
+                ) : null
+              }
             />
           </Animated.View>
-        ) : null}
-
-        {secondItem ? (
-          <Animated.View
-            style={[StyleSheet.absoluteFill, secondCardStyle]}
-            pointerEvents="none">
-            <QuoteMomentCard
-              item={secondItem}
-              screenHeight={screenHeight}
-              authorName={authorName}
-              authorAvatarUrl={authorAvatarUrl}
-              counterLabel={null}
-            />
-          </Animated.View>
-        ) : null}
-
-        {topItem ? (
-          <GestureDetector gesture={panGesture}>
-            <Animated.View style={[StyleSheet.absoluteFill, topCardEntranceStyle]}>
-              <QuoteMomentCard
-                item={topItem}
-                screenHeight={screenHeight}
-                authorName={authorName}
-                authorAvatarUrl={authorAvatarUrl}
-                counterLabel={quoteCount > 1 ? `${currentIndex + 1}/${quoteCount}` : null}
-              />
-            </Animated.View>
-          </GestureDetector>
-        ) : null}
-      </View>
-
-      {quoteCount > 1 ? (
-        <View style={styles.dotsRow}>
-          {stack.quotes.map((_, i) => (
-            <AnimatedDot key={i} isActive={i === currentIndex} />
-          ))}
-        </View>
+        </GestureDetector>
       ) : null}
     </View>
   );
@@ -262,7 +302,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
     gap: 6,
   },
   dot: {

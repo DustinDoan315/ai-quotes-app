@@ -12,7 +12,6 @@ interface QuoteMomentCardMediaProps {
   bgPalette: HomeBackgroundPalette | null;
   chrome: HomeVibeFeedChrome | null;
   aspectRatio: number;
-  onAspectRatioSet: (value: number) => void;
   bgLayout: { width: number; height: number } | null;
   onBgLayout: (width: number, height: number) => void;
   watermarkForExport: boolean;
@@ -30,7 +29,6 @@ export const QuoteMomentCardMedia = ({
   bgPalette,
   chrome,
   aspectRatio,
-  onAspectRatioSet,
   bgLayout,
   onBgLayout,
   watermarkForExport,
@@ -62,15 +60,10 @@ export const QuoteMomentCardMedia = ({
       ) : null}
       <Image
         source={{ uri: item.imageUrl }}
+        recyclingKey={item.id}
         style={{ width: "100%", height: "100%" }}
         contentFit="cover"
-        onLoad={(event) => {
-          const source = event.source;
-          if (!source?.width || !source?.height) {
-            return;
-          }
-          onAspectRatioSet(source.width / source.height);
-        }}
+        transition={0}
       />
       {chrome ? <View pointerEvents="none" style={chrome.imageWash} /> : null}
       <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />

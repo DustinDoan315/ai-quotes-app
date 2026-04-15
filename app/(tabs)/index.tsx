@@ -8,7 +8,6 @@ import { StreakModal } from "@/features/streak/StreakModal";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
 import { HomeEmojiOverlay } from "@/features/home/HomeEmojiOverlay";
 import { HomeFeedFlow } from "@/features/home/HomeFeedFlow";
-import { RewriteQuoteReviewModal } from "@/features/home/RewriteQuoteReviewModal";
 import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeAiReview } from "@/features/home/useHomeAiReview";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
@@ -70,8 +69,10 @@ export default function HomeScreen() {
     requestPermission,
     cameraRef,
     cameraReady,
+    cameraError,
     isCameraActive,
     handleCameraReady,
+    handleCameraMountError,
     isCapturing,
     isSavingPhoto,
     selectedImageUri,
@@ -289,6 +290,7 @@ export default function HomeScreen() {
             cameraSectionProps={{
               cameraRef,
               pinchGesture,
+              cameraError,
               isCameraActive,
               selectedImageUri,
               canDeleteImage: !hasSavedCurrentPhoto,
@@ -309,6 +311,7 @@ export default function HomeScreen() {
               authorName,
               authorAvatarUrl,
               onCameraReady: handleCameraReady,
+              onCameraMountError: handleCameraMountError,
               onZoomPresetPress: handleZoomPreset,
               onToggleFacing: handleToggleFacing,
               onClearImage: handleClearCurrentImage,
@@ -322,6 +325,16 @@ export default function HomeScreen() {
               aiToolsLoadingLabel,
               vibeHint,
               cardPalette: palette,
+              pendingQuoteText: rewriteReviewText ?? futureReviewText ?? null,
+              pendingQuoteTitle: futureReviewText
+                ? t("home.aiTools.futureReviewTitle")
+                : null,
+              onApprovePendingQuote: rewriteReviewText
+                ? handleApproveRewrite
+                : handleApproveFutureQuote,
+              onCancelPendingQuote: rewriteReviewText
+                ? handleCancelRewrite
+                : handleCancelFutureQuote,
             }}
           />
         }
@@ -354,23 +367,6 @@ export default function HomeScreen() {
       <StreakModal
         visible={streakModalVisible}
         onClose={() => setStreakModalVisible(false)}
-      />
-      <RewriteQuoteReviewModal
-        visible={rewriteReviewText !== null}
-        initialText={rewriteReviewText ?? ""}
-        sourceText={dailyQuoteText ?? ""}
-        onApprove={handleApproveRewrite}
-        onCancel={handleCancelRewrite}
-      />
-      <RewriteQuoteReviewModal
-        visible={futureReviewText !== null}
-        initialText={futureReviewText ?? ""}
-        sourceText={dailyQuoteText ?? ""}
-        title={t("home.aiTools.futureReviewTitle")}
-        guidance={t("home.aiTools.futureReviewGuidance")}
-        approveLabel={t("home.aiTools.futureReviewApprove")}
-        onApprove={handleApproveFutureQuote}
-        onCancel={handleCancelFutureQuote}
       />
     </View>
   );

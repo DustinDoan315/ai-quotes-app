@@ -45,14 +45,14 @@ export const PaywallStickyFooter = ({
         <Pressable
           onPress={onPurchase}
           disabled={primaryDisabled}
-          className="h-[54px] flex-row items-center justify-center rounded-full bg-amber-400 shadow-lg shadow-amber-500/40"
+          className="h-[54px] flex-row items-center justify-center rounded-full bg-violet-500 shadow-lg shadow-violet-600/40"
           style={({ pressed }) => ({
             opacity: pressed || primaryDisabled ? 0.75 : 1,
           })}>
           {isPurchasing ? (
-            <ActivityIndicator color="#0f172a" />
+            <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text className="text-base font-bold text-slate-950">{primaryLabel}</Text>
+            <Text className="text-base font-bold text-white">{primaryLabel}</Text>
           )}
         </Pressable>
 

@@ -5,7 +5,7 @@ import {
 import { supabase } from "@/config/supabase";
 import { signInAnonymously } from "@/services/supabase-auth";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
-import { centerCropToAspect, getImageDimensions } from "@/utils/imageCrop";
+import { getImageDimensions } from "@/utils/imageCrop";
 
 type SaveUserPhotoParams = {
   localUri: string;
@@ -65,15 +65,18 @@ export const saveUserPhoto = async (
   const effectiveUserId = userId ?? activeSession?.user?.id ?? null;
 
   const output = QUOTE_OUTPUT_SIZE[orientation];
-  const targetAspect = output.width / output.height;
 
   let uploadUri = localUri;
   try {
     const { width: srcW, height: srcH } = await getImageDimensions(localUri);
-    const cropRect = centerCropToAspect(srcW, srcH, targetAspect);
     const context = ImageManipulator.manipulate(localUri);
-    context.crop(cropRect);
-    context.resize({ width: output.width, height: output.height });
+    const scale = Math.min(output.width / srcW, output.height / srcH, 1);
+    if (scale < 1) {
+      context.resize({
+        width: Math.max(1, Math.round(srcW * scale)),
+        height: Math.max(1, Math.round(srcH * scale)),
+      });
+    }
     const rendered = await context.renderAsync();
     const saved = await rendered.saveAsync({
       compress: 0.75,

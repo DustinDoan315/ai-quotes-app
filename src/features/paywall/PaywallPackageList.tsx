@@ -32,7 +32,7 @@ function ShimmerBadge({ label }: { label: string }) {
   return (
     <View
       style={{
-        backgroundColor: "#FBBF24",
+        backgroundColor: "#A855F7",
         overflow: "hidden",
         paddingVertical: 7,
         alignItems: "center",
@@ -43,7 +43,7 @@ function ShimmerBadge({ label }: { label: string }) {
           fontWeight: "800",
           letterSpacing: 0.8,
           textTransform: "uppercase",
-          color: "#09090b",
+          color: "#ffffff",
         }}>
         {label}
       </Text>
@@ -81,7 +81,7 @@ export const PaywallPackageList = ({
 
   return (
     <View className="mb-2 w-full max-w-full">
-      <Text className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-amber-200/90">
+      <Text className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-violet-300/90">
         {t("subscription.choosePlanHeader")}
       </Text>
       <View className="w-full gap-3">
@@ -126,16 +126,16 @@ export const PaywallPackageList = ({
                 className="w-full max-w-full overflow-hidden rounded-2xl border-2"
                 style={{
                   borderColor: isSelected
-                    ? "#FBBF24"
+                    ? "#A855F7"
                     : isBest
-                      ? "rgba(251,191,36,0.4)"
+                      ? "rgba(168,85,247,0.4)"
                       : "rgba(148,163,184,0.25)",
                   backgroundColor: isSelected
-                    ? "rgba(251,191,36,0.14)"
+                    ? "rgba(139,92,246,0.14)"
                     : isAnnual
                       ? "rgba(15,23,42,0.99)"
                       : "rgba(15,23,42,0.92)",
-                  shadowColor: isSelected ? "#fbbf24" : "transparent",
+                  shadowColor: isSelected ? "#a855f7" : "transparent",
                   shadowOffset: { width: 0, height: 0 },
                   shadowOpacity: isSelected ? 0.45 : 0,
                   shadowRadius: isSelected ? 18 : 0,
@@ -164,9 +164,9 @@ export const PaywallPackageList = ({
                     <MotiView
                       animate={{
                         borderColor: isSelected
-                          ? "#FBBF24"
+                          ? "#A855F7"
                           : "rgba(255,255,255,0.4)",
-                        backgroundColor: isSelected ? "#FBBF24" : "transparent",
+                        backgroundColor: isSelected ? "#A855F7" : "transparent",
                       }}
                       transition={{ type: "timing", duration: 180 }}
                       style={{
@@ -204,7 +204,7 @@ export const PaywallPackageList = ({
                             className="rounded-full px-2 py-0.5"
                             style={{
                               backgroundColor: isAnnual
-                                ? "rgba(251,191,36,0.15)"
+                                ? "rgba(139,92,246,0.15)"
                                 : "rgba(148,163,184,0.15)",
                             }}>
                             <Text
@@ -213,7 +213,7 @@ export const PaywallPackageList = ({
                                 fontWeight: "700",
                                 letterSpacing: 0.3,
                                 color: isAnnual
-                                  ? "#fcd34d"
+                                  ? "#c4b5fd"
                                   : "rgba(148,163,184,0.9)",
                               }}>
                               {periodPillLabel}
@@ -226,7 +226,7 @@ export const PaywallPackageList = ({
                     {/* Price column */}
                     <View className="shrink-0 items-end pl-3">
                       <Text
-                        className="text-right text-base font-extrabold text-amber-300"
+                        className="text-right text-base font-extrabold text-orange-400"
                         numberOfLines={1}>
                         {pkg.priceString}
                       </Text>

@@ -103,6 +103,7 @@ export function HomeFeedFlow({
         <MotiView
           from={{ opacity: 0, translateY: 16 }}
           animate={{ opacity: 1, translateY: 0 }}
+          style={{ alignItems: 'center' }}
           transition={{ type: "timing", duration: 300, delay: index === 0 ? 0 : 60 }}>
           <QuoteStackEntry
             stack={item}

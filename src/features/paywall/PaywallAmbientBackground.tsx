@@ -14,7 +14,7 @@ export const PaywallAmbientBackground = () => {
           repeatReverse: true,
         }}
         className="absolute -left-[20%] -top-[10%] h-[55%] w-[90%] rounded-full"
-        style={{ backgroundColor: "rgba(251, 191, 36, 1)" }}
+        style={{ backgroundColor: "rgba(139, 92, 246, 1)" }}
       />
       <MotiView
         from={{ opacity: 0.05, scale: 1 }}
@@ -26,7 +26,7 @@ export const PaywallAmbientBackground = () => {
           repeatReverse: true,
         }}
         className="absolute -right-[30%] top-[15%] h-[45%] w-[75%] rounded-full"
-        style={{ backgroundColor: "rgba(168, 85, 247, 1)" }}
+        style={{ backgroundColor: "rgba(217, 70, 239, 1)" }}
       />
       <MotiView
         from={{ opacity: 0.04, scale: 1 }}
@@ -38,7 +38,7 @@ export const PaywallAmbientBackground = () => {
           repeatReverse: true,
         }}
         className="absolute bottom-0 left-[10%] h-[40%] w-[80%] rounded-full"
-        style={{ backgroundColor: "rgba(56, 189, 248, 1)" }}
+        style={{ backgroundColor: "rgba(249, 115, 22, 1)" }}
       />
       <View
         className="absolute inset-0"

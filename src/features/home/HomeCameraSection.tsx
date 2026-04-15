@@ -2,11 +2,13 @@ import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { QuoteStyleControls } from "@/features/home/QuoteStyleControls";
 import { ShareQuoteButton } from "@/features/share/ShareQuoteButton";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
+import { getFeedCardWidth } from "@/features/quotes/feedCardSizing";
 import { HomeVibeWatermark } from "@/features/home/HomeVibeWatermark";
 import { PinchGesture } from "@/features/home/useHomeCamera";
 import {
   MAX_REWRITE_REVIEW_CHARACTERS,
   validateEditableQuote,
+  validateRewriteReviewQuote,
 } from "@/services/ai/rewriteReview";
 import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
@@ -18,15 +20,24 @@ import type {
 import type { RewriteTone } from "@/services/ai/types";
 import type { HomeAiTool } from "@/features/home/useHomeAiReview";
 import { Ionicons } from "@expo/vector-icons";
-import { CameraView } from "expo-camera";
+import { CameraView, type CameraMountError } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+  type DimensionValue,
+} from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -35,6 +46,7 @@ import type { QuoteColor, QuoteFontSize } from "@/features/home/QuoteStyleContro
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
   pinchGesture: PinchGesture;
+  cameraError: string | null;
   isCameraActive: boolean;
   selectedImageUri: string | null;
   canDeleteImage: boolean;
@@ -55,6 +67,7 @@ export type HomeCameraSectionProps = {
   authorName: string;
   authorAvatarUrl: string | null;
   onCameraReady: () => void;
+  onCameraMountError: (event: CameraMountError) => void;
   onZoomPresetPress: (preset: 0.5 | 1 | 2) => void;
   onToggleFacing: () => void;
   onClearImage: () => void;
@@ -68,11 +81,16 @@ export type HomeCameraSectionProps = {
   aiToolsLoadingLabel: string | null;
   vibeHint: HomeVibeHintParts | null;
   cardPalette: HomeBackgroundPalette;
+  pendingQuoteText?: string | null;
+  pendingQuoteTitle?: string | null;
+  onApprovePendingQuote?: (text: string) => void;
+  onCancelPendingQuote?: () => void;
 };
 
 export const HomeCameraSection = ({
   cameraRef,
   pinchGesture,
+  cameraError,
   isCameraActive,
   selectedImageUri,
   canDeleteImage,
@@ -93,6 +111,7 @@ export const HomeCameraSection = ({
   authorName,
   authorAvatarUrl,
   onCameraReady,
+  onCameraMountError,
   onZoomPresetPress,
   onToggleFacing,
   onClearImage,
@@ -106,12 +125,19 @@ export const HomeCameraSection = ({
   aiToolsLoadingLabel,
   vibeHint,
   cardPalette,
+  pendingQuoteText = null,
+  pendingQuoteTitle = null,
+  onApprovePendingQuote,
+  onCancelPendingQuote,
 }: HomeCameraSectionProps) => {
   const { t } = useTranslation();
   const [shellSize, setShellSize] = useState<{
     width: number;
     height: number;
   } | null>(null);
+  const cardAspect = getQuoteAspectRatio("portrait");
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = useMemo(() => getFeedCardWidth(windowWidth), [windowWidth]);
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState(dailyQuoteText ?? "");
   const chrome = useMemo(
@@ -122,7 +148,6 @@ export const HomeCameraSection = ({
   const flipIconStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${flipIconRotation.value}deg` }],
   }));
-  const cardAspect = getQuoteAspectRatio("portrait");
   const fontSizeValue = useMemo(() => {
     if (quoteFontSize === "small") {
       return 16;
@@ -142,6 +167,7 @@ export const HomeCameraSection = ({
     return "#FFFFFF";
   }, [quoteColorScheme]);
   const isFutureLoading = aiToolsLoading && pendingAiTool === "future";
+  const isRewriteLoading = aiToolsLoading && pendingAiTool !== null && pendingAiTool !== "future";
 
   const createdTimeLabel = useMemo(
     () =>
@@ -152,10 +178,35 @@ export const HomeCameraSection = ({
     [],
   );
 
-  const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating);
+  const showQuoteOverlay = Boolean(!hideQuote && dailyQuoteText && !isGenerating && selectedImageUri);
   const quoteEditValidation = useMemo(
     () => validateEditableQuote(quoteDraft),
     [quoteDraft],
+  );
+
+  const [pendingDraft, setPendingDraft] = useState(pendingQuoteText ?? "");
+  const pendingOpacity = useSharedValue(0);
+  const pendingScale = useSharedValue(0.94);
+
+  useEffect(() => {
+    if (pendingQuoteText) {
+      setPendingDraft(pendingQuoteText);
+      pendingOpacity.value = withTiming(1, { duration: 300 });
+      pendingScale.value = withSpring(1, { damping: 16, stiffness: 200 });
+    } else {
+      pendingOpacity.value = withTiming(0, { duration: 200 });
+      pendingScale.value = withTiming(0.94, { duration: 200 });
+    }
+  }, [pendingQuoteText]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pendingAnimStyle = useAnimatedStyle(() => ({
+    opacity: pendingOpacity.value,
+    transform: [{ scale: pendingScale.value }],
+  }));
+
+  const pendingValidation = useMemo(
+    () => validateRewriteReviewQuote(pendingDraft, dailyQuoteText ?? ""),
+    [pendingDraft, dailyQuoteText],
   );
   useEffect(() => {
     if (!isEditingQuote) {
@@ -205,8 +256,11 @@ export const HomeCameraSection = ({
       <View className="min-h-0 flex-1 items-center justify-center">
         <GestureDetector gesture={pinchGesture}>
           <View
-            className="w-full max-w-md overflow-hidden rounded-[28px]"
-            style={[chrome.outerShell, { aspectRatio: cardAspect }]}
+            className="overflow-hidden rounded-[28px]"
+            style={[chrome.outerShell, {
+              aspectRatio: cardAspect,
+              width: cardWidth,
+            }]}
             onLayout={(e) => {
               const { width, height } = e.nativeEvent.layout;
               if (width > 0 && height > 0) {
@@ -223,11 +277,12 @@ export const HomeCameraSection = ({
             <View className="absolute inset-[3px] z-[1] flex flex-col overflow-hidden rounded-[25px] bg-black">
               <View pointerEvents="none" style={chrome.hairline} />
               {selectedImageUri ? (
-                <View className="flex-1">
+                <View style={StyleSheet.absoluteFill}>
                   <Image
                     source={{ uri: selectedImageUri }}
-                    style={{ flex: 1 }}
+                    style={StyleSheet.absoluteFill}
                     contentFit="cover"
+                    transition={0}
                   />
                   {canDeleteImage ? (
                     <Pressable
@@ -241,25 +296,29 @@ export const HomeCameraSection = ({
                   ) : null}
                 </View>
               ) : (
-                <View className="flex-1 overflow-hidden">
-                  {isCameraActive ? (
+                <View style={StyleSheet.absoluteFill}>
+                  {cameraError ? (
+                    <View className="flex-1 items-center justify-center px-6">
+                      <Text className="text-center text-sm font-semibold text-white">
+                        {t("camera.errors.failedToStartPreview")}
+                      </Text>
+                      <Text className="mt-2 text-center text-xs text-white/60">
+                        {cameraError}
+                      </Text>
+                    </View>
+                  ) : isCameraActive ? (
                     <CameraView
                       ref={cameraRef}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                      }}
+                      style={StyleSheet.absoluteFill}
+                      active={isCameraActive}
                       facing={facing}
                       zoom={zoom}
                       onCameraReady={onCameraReady}
+                      onMountError={onCameraMountError}
                     />
                   ) : null}
                 </View>
               )}
-              <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
               <View pointerEvents="none" style={chrome.photoBorder} />
               <View
                 pointerEvents="none"
@@ -326,7 +385,7 @@ export const HomeCameraSection = ({
                       borderWidth: 1,
                       borderColor: "rgba(255,255,255,0.28)",
                     }}
-                    disabled={isEditingQuote}
+                    disabled={isEditingQuote || Boolean(pendingQuoteText)}
                   >
                     {isEditingQuote ? (
                       <View>
@@ -381,6 +440,61 @@ export const HomeCameraSection = ({
                           </Pressable>
                         </View>
                       </View>
+                    ) : pendingQuoteText ? (
+                      <Animated.View style={pendingAnimStyle}>
+                        <Text
+                          className="mb-2 text-[10px] font-semibold uppercase tracking-wide"
+                          style={{ color: chrome.cornerColor ?? "#F59E0B" }}
+                          numberOfLines={1}>
+                          {pendingQuoteTitle ?? t("home.aiTools.rewriteReviewTitle")}
+                        </Text>
+                        <TextInput
+                          value={pendingDraft}
+                          onChangeText={setPendingDraft}
+                          multiline
+                          textAlignVertical="top"
+                          style={{ fontSize: fontSizeValue, color: quoteTextColor, minHeight: 72 }}
+                        />
+                        <View className="mt-2 flex-row items-center justify-between">
+                          <Text
+                            className="flex-1 text-[11px]"
+                            style={{
+                              color: pendingValidation.isValid
+                                ? "rgba(255,255,255,0.6)"
+                                : "#FCA5A5",
+                            }}>
+                            {pendingValidation.isValid
+                              ? t("home.aiTools.rewriteReady")
+                              : pendingValidation.reason}
+                          </Text>
+                          <Text className="text-[11px] font-semibold text-white/60">
+                            {pendingValidation.characterCount}/{MAX_REWRITE_REVIEW_CHARACTERS}
+                          </Text>
+                        </View>
+                        <View className="mt-3 flex-row justify-end gap-2">
+                          <Pressable
+                            onPress={onCancelPendingQuote}
+                            className="rounded-full border border-white/20 px-3 py-2"
+                            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+                            <Text className="text-xs font-semibold text-white">
+                              {t("home.aiTools.rewriteCancel")}
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            disabled={!pendingValidation.isValid}
+                            onPress={() =>
+                              onApprovePendingQuote?.(pendingValidation.sanitizedQuote)
+                            }
+                            className="rounded-full bg-amber-400 px-3 py-2"
+                            style={({ pressed }) => ({
+                              opacity: !pendingValidation.isValid ? 0.45 : pressed ? 0.88 : 1,
+                            })}>
+                            <Text className="text-xs font-bold text-black">
+                              {t("home.aiTools.rewriteApprove")}
+                            </Text>
+                          </Pressable>
+                        </View>
+                      </Animated.View>
                     ) : (
                       <>
                         <Text
@@ -403,13 +517,19 @@ export const HomeCameraSection = ({
                 {/* Dark backdrop */}
                 <View className="absolute inset-0 bg-black/72" />
                 {/* Floating particles */}
-                {[
+                {([
                   { left: "12%", size: 5, duration: 1900, delay: 0, travel: 190 },
                   { left: "28%", size: 7, duration: 2200, delay: 350, travel: 170 },
                   { left: "48%", size: 5, duration: 2000, delay: 700, travel: 210 },
                   { left: "65%", size: 6, duration: 2400, delay: 150, travel: 180 },
                   { left: "82%", size: 5, duration: 1800, delay: 500, travel: 200 },
-                ].map((p, i) => (
+                ] as {
+                  left: DimensionValue;
+                  size: number;
+                  duration: number;
+                  delay: number;
+                  travel: number;
+                }[]).map((p, i) => (
                   <MotiView
                     key={i}
                     from={{ translateY: 0, opacity: 0.7 }}
@@ -516,6 +636,36 @@ export const HomeCameraSection = ({
                     {t("home.aiTools.futureResult")}
                   </Text>
                   <Text className="mt-2 text-center text-sm leading-5 text-white/70">
+                    {aiToolsLoadingLabel ?? t("home.aiTools.loadingFuture")}
+                  </Text>
+                </MotiView>
+              </View>
+            ) : null}
+            {isRewriteLoading ? (
+              <View className="absolute inset-0 z-[8] items-center justify-center bg-black/60 px-8">
+                <MotiView
+                  from={{ opacity: 0.6, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "timing", duration: 400 }}
+                  className="w-full max-w-[280px] rounded-[28px] border border-white/15 bg-slate-950/90 px-6 py-7">
+                  <View className="mb-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
+                    <MotiView
+                      from={{ translateX: -180 }}
+                      animate={{ translateX: 180 }}
+                      transition={{
+                        type: "timing",
+                        duration: 900,
+                        loop: true,
+                      }}
+                      style={{
+                        height: "100%",
+                        width: "55%",
+                        borderRadius: 999,
+                        backgroundColor: "#F59E0B",
+                      }}
+                    />
+                  </View>
+                  <Text className="text-center text-lg font-semibold text-white">
                     {aiToolsLoadingLabel ?? t("home.aiTools.loadingFuture")}
                   </Text>
                 </MotiView>
