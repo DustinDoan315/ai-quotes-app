@@ -1,9 +1,11 @@
 import { useReminderStore } from "@/appState/reminderStore";
+import { useUIStore } from "@/appState/uiStore";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Image, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
@@ -107,10 +109,23 @@ export function NotificationStep({ onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const enableReminder = useReminderStore((s) => s.enableReminder);
+  const showToast = useUIStore((s) => s.showToast);
+  const [isEnabling, setIsEnabling] = useState(false);
 
   async function handleEnable() {
-    await enableReminder();
-    onContinue();
+    setIsEnabling(true);
+    try {
+      const granted = await enableReminder();
+      if (!granted) {
+        showToast(t("onboarding.notification.errorPermission"), "info");
+      }
+      onContinue();
+    } catch {
+      showToast(t("onboarding.notification.errorGeneric"), "error");
+      onContinue();
+    } finally {
+      setIsEnabling(false);
+    }
   }
 
   return (
@@ -238,26 +253,31 @@ export function NotificationStep({ onContinue }: Props) {
           transition={{ type: "timing", duration: 380, delay: 600 }}>
           <Pressable
             onPress={() => { void handleEnable(); }}
+            disabled={isEnabling}
             style={({ pressed }) => ({
               backgroundColor: "#f59e0b",
               borderRadius: 18,
               paddingVertical: 16,
               alignItems: "center",
               marginBottom: 12,
-              opacity: pressed ? 0.88 : 1,
+              opacity: isEnabling ? 0.7 : pressed ? 0.88 : 1,
             })}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Ionicons name="notifications" size={18} color="#000" />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "800",
-                  color: "#000",
-                  letterSpacing: 0.2,
-                }}>
-                {t("onboarding.notification.ctaEnable")}
-              </Text>
-            </View>
+            {isEnabling ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="notifications" size={18} color="#000" />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "800",
+                    color: "#000",
+                    letterSpacing: 0.2,
+                  }}>
+                  {t("onboarding.notification.ctaEnable")}
+                </Text>
+              </View>
+            )}
           </Pressable>
 
           <Pressable

@@ -13,7 +13,10 @@
       "Bash(grep -E \"\\\\.tsx?$\")",
       "Bash(wc:*)",
       "Bash(npm test:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(xargs ls:*)",
+      "Bash(python3:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

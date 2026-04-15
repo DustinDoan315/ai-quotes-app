@@ -14,6 +14,32 @@ import Animated, {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { QuotePhotoCard } from "@/services/media/userPhotosApi";
 
+type DotProps = { isActive: boolean };
+
+function AnimatedDot({ isActive }: DotProps) {
+  const dotWidth = useSharedValue(isActive ? 18 : 6);
+
+  useEffect(() => {
+    dotWidth.value = withSpring(isActive ? 18 : 6, {
+      damping: 18,
+      stiffness: 220,
+      mass: 0.6,
+    });
+  }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dotStyle = useAnimatedStyle(() => ({ width: dotWidth.value }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.dot,
+        isActive ? styles.dotActiveColor : styles.dotInactiveColor,
+        dotStyle,
+      ]}
+    />
+  );
+}
+
 const SWIPE_THRESHOLD = 100;
 const VELOCITY_THRESHOLD = 800;
 const SWIPE_OFF_DISTANCE = 500;
@@ -54,6 +80,8 @@ export function QuoteStackEntry({
   const cardRotation = useSharedValue(0);
   const promotionProgress = useSharedValue(0);
   const isAnimatingOut = useSharedValue(false);
+  const newTopScale = useSharedValue(1);
+  const newTopOpacity = useSharedValue(1);
 
   const notifyActive = useCallback(
     (index: number) => {
@@ -91,6 +119,10 @@ export function QuoteStackEntry({
     cardRotation.value = 0;
     promotionProgress.value = 0;
     isAnimatingOut.value = false;
+    newTopScale.value = 0.95;
+    newTopOpacity.value = 0.8;
+    newTopScale.value = withSpring(1, { damping: 16, stiffness: 200, mass: 0.7 });
+    newTopOpacity.value = withTiming(1, { duration: 220 });
   }, [currentIndex, notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const panGesture = useMemo(
@@ -138,12 +170,14 @@ export function QuoteStackEntry({
     [isActive, currentIndex, quoteCount, advanceIndex], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const topCardStyle = useAnimatedStyle(() => ({
+  const topCardEntranceStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
       { rotate: `${cardRotation.value}deg` },
+      { scale: newTopScale.value },
     ],
+    opacity: newTopOpacity.value,
   }));
 
   const secondCardStyle = useAnimatedStyle(() => ({
@@ -199,7 +233,7 @@ export function QuoteStackEntry({
 
         {topItem ? (
           <GestureDetector gesture={panGesture}>
-            <Animated.View style={[StyleSheet.absoluteFill, topCardStyle]}>
+            <Animated.View style={[StyleSheet.absoluteFill, topCardEntranceStyle]}>
               <QuoteMomentCard
                 item={topItem}
                 screenHeight={screenHeight}
@@ -215,13 +249,7 @@ export function QuoteStackEntry({
       {quoteCount > 1 ? (
         <View style={styles.dotsRow}>
           {stack.quotes.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i === currentIndex ? styles.dotActive : styles.dotInactive,
-              ]}
-            />
+            <AnimatedDot key={i} isActive={i === currentIndex} />
           ))}
         </View>
       ) : null}
@@ -241,12 +269,10 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  dotActive: {
+  dotActiveColor: {
     backgroundColor: "rgba(255,255,255,0.9)",
-    width: 18,
   },
-  dotInactive: {
+  dotInactiveColor: {
     backgroundColor: "rgba(255,255,255,0.3)",
-    width: 6,
   },
 });

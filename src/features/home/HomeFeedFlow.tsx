@@ -1,11 +1,14 @@
+import { QuoteCardSkeleton } from "@/features/quotes/QuoteCardSkeleton";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
 import { QuoteStackEntry } from "@/features/quotes/quoteStack/QuoteStackEntry";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
+import { MotiView } from "moti";
 import type { ComponentProps, ReactElement, RefObject } from "react";
 import {
   Dimensions,
   FlatList,
   RefreshControl,
+  View,
 } from "react-native";
 
 type Props = {
@@ -16,6 +19,7 @@ type Props = {
   snapOffsets: number[];
   getItemLayout: ComponentProps<typeof FlatList<QuoteStack>>["getItemLayout"];
   isFeedRefreshing: boolean;
+  isFeedLoading: boolean;
   refreshFeed: () => Promise<void>;
   viewabilityConfig: ComponentProps<typeof FlatList<QuoteStack>>["viewabilityConfig"];
   onViewableItemsChanged: ComponentProps<typeof FlatList<QuoteStack>>["onViewableItemsChanged"];
@@ -39,6 +43,7 @@ export function HomeFeedFlow({
   snapOffsets,
   getItemLayout,
   isFeedRefreshing,
+  isFeedLoading,
   refreshFeed,
   viewabilityConfig,
   onViewableItemsChanged,
@@ -78,24 +83,36 @@ export function HomeFeedFlow({
       onViewableItemsChanged={onViewableItemsChanged}
       ListHeaderComponent={header}
       ListEmptyComponent={
-        <QuoteMomentsFeed
-          items={[]}
-          screenHeight={SCREEN_HEIGHT}
-          onFeedLayoutYChange={() => {}}
-          authorName={authorName}
-          authorAvatarUrl={authorAvatarUrl}
-          onGeneratePress={onGeneratePress}
-        />
+        isFeedLoading ? (
+          <View>
+            <QuoteCardSkeleton screenHeight={viewportHeight} />
+            <QuoteCardSkeleton screenHeight={viewportHeight} />
+          </View>
+        ) : (
+          <QuoteMomentsFeed
+            items={[]}
+            screenHeight={SCREEN_HEIGHT}
+            onFeedLayoutYChange={() => {}}
+            authorName={authorName}
+            authorAvatarUrl={authorAvatarUrl}
+            onGeneratePress={onGeneratePress}
+          />
+        )
       }
       renderItem={({ item, index }) => (
-        <QuoteStackEntry
-          stack={item}
-          screenHeight={viewportHeight}
-          authorName={authorName}
-          authorAvatarUrl={authorAvatarUrl}
-          isActive={isOnFeed && index === currentFeedIndex}
-          onActiveQuoteIdChange={onActiveQuoteIdChange}
-        />
+        <MotiView
+          from={{ opacity: 0, translateY: 16 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 300, delay: index === 0 ? 0 : 60 }}>
+          <QuoteStackEntry
+            stack={item}
+            screenHeight={viewportHeight}
+            authorName={authorName}
+            authorAvatarUrl={authorAvatarUrl}
+            isActive={isOnFeed && index === currentFeedIndex}
+            onActiveQuoteIdChange={onActiveQuoteIdChange}
+          />
+        </MotiView>
       )}
     />
   );

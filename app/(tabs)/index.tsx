@@ -54,6 +54,7 @@ export default function HomeScreen() {
   const showInviteNudge = Boolean(profile && persona && !inviteNudgeDismissed);
   const {
     items: feedItems,
+    isLoading: isFeedLoading,
     isRefreshing: isFeedRefreshing,
     refresh: refreshFeed,
     refreshSilently,
@@ -247,6 +248,7 @@ export default function HomeScreen() {
         snapOffsets={snapOffsets}
         getItemLayout={getItemLayout}
         isFeedRefreshing={isFeedRefreshing}
+        isFeedLoading={isFeedLoading}
         refreshFeed={refreshFeed}
         viewabilityConfig={viewabilityConfig}
         onViewableItemsChanged={onViewableItemsChanged}

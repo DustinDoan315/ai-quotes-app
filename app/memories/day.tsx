@@ -82,6 +82,7 @@ export default function MemoriesDayScreen() {
     cards: friendCards,
     isLoading: friendsLoading,
     hasError: friendsError,
+    errorMessage: friendsErrorMessage,
     refresh: refreshFriends,
   } = useFriendsMemoriesForDay(dateKey);
 
@@ -198,80 +199,84 @@ export default function MemoriesDayScreen() {
         </View>
       </View>
 
+      {/* Two persistent ScrollViews — toggled with display to preserve scroll position per tab */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
-        className="flex-1">
-        {layer === "mine" ? (
-          <>
-            {mineMemories.length === 0 ? (
-              <View className="mt-16 items-center px-6">
-                <MotiView
-                  from={{ scale: 0.9, opacity: 0.7 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "timing", duration: 400 }}>
-                  <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
-                    <Ionicons name="calendar-outline" size={32} color="#ffffff" />
-                  </View>
-                </MotiView>
-                <Text className="text-center text-base font-medium text-white/90">
-                  {t("memories.emptyForDay")}
-                </Text>
-                <Text className="mt-2 text-center text-sm text-white/50">
-                  Save a quote from the camera to see it here
-                </Text>
+        style={{ flex: 1, display: layer === "mine" ? "flex" : "none" }}>
+        {mineMemories.length === 0 ? (
+          <View className="mt-16 items-center px-6">
+            <MotiView
+              from={{ scale: 0.9, opacity: 0.7 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "timing", duration: 400 }}>
+              <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+                <Ionicons name="calendar-outline" size={32} color="#ffffff" />
               </View>
-            ) : (
-              mineMemories.map((memory: QuoteMemory, index: number) => (
-                <MotiView
-                  key={`mine-${layer}-${dateKey}-${memory.id}`}
-                  from={{ opacity: 0, translateY: 16 }}
-                  animate={{ opacity: 1, translateY: 0 }}
-                  transition={{ type: "timing", duration: 280, delay: index * 60 }}>
-                  <MemoryCard
-                    quote={memory.quoteText}
-                    author="Me"
-                    photoBackgroundUri={memory.photoBackgroundUri}
-                    photoOrientation={memory.photoOrientation}
-                    isFavorite={memory.isFavorite}
-                    onToggleFavorite={() => toggleFavorite(memory.id)}
-                    createdAt={memory.createdAt}
-                    styleFontId={memory.styleFontId as "small" | "medium" | "large"}
-                    styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
-                  />
-                </MotiView>
-              ))
-            )}
-            {pastYearMemories.length > 0 && (
-              <View className="mt-8">
-                <View className="mb-3 flex-row items-center gap-2">
-                  <Ionicons name="time-outline" size={15} color="rgba(255,255,255,0.5)" />
-                  <Text className="text-xs font-semibold uppercase tracking-wider text-white/50">
-                    On This Day in Past Years
-                  </Text>
-                </View>
-                {pastYearMemories.map((memory: QuoteMemory, index: number) => (
-                  <MotiView
-                    key={`pastyear-${layer}-${dateKey}-${memory.id}`}
-                    from={{ opacity: 0, translateY: 16 }}
-                    animate={{ opacity: 1, translateY: 0 }}
-                    transition={{ type: "timing", duration: 280, delay: index * 60 }}>
-                    <MemoryCard
-                      quote={memory.quoteText}
-                      author="Me"
-                      photoBackgroundUri={memory.photoBackgroundUri}
-                      photoOrientation={memory.photoOrientation}
-                      isFavorite={memory.isFavorite}
-                      createdAt={memory.createdAt}
-                      styleFontId={memory.styleFontId as "small" | "medium" | "large"}
-                      styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
-                    />
-                  </MotiView>
-                ))}
-              </View>
-            )}
-          </>
-        ) : friendsLoading ? (
+            </MotiView>
+            <Text className="text-center text-base font-medium text-white/90">
+              {t("memories.emptyForDay")}
+            </Text>
+            <Text className="mt-2 text-center text-sm text-white/50">
+              Save a quote from the camera to see it here
+            </Text>
+          </View>
+        ) : (
+          mineMemories.map((memory: QuoteMemory, index: number) => (
+            <MotiView
+              key={`mine-${dateKey}-${memory.id}`}
+              from={{ opacity: 0, translateY: 16 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 280, delay: index * 60 }}>
+              <MemoryCard
+                quote={memory.quoteText}
+                author="Me"
+                photoBackgroundUri={memory.photoBackgroundUri}
+                photoOrientation={memory.photoOrientation}
+                isFavorite={memory.isFavorite}
+                onToggleFavorite={() => toggleFavorite(memory.id)}
+                createdAt={memory.createdAt}
+                styleFontId={memory.styleFontId as "small" | "medium" | "large"}
+                styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
+              />
+            </MotiView>
+          ))
+        )}
+        {pastYearMemories.length > 0 && (
+          <View className="mt-8">
+            <View className="mb-3 flex-row items-center gap-2">
+              <Ionicons name="time-outline" size={15} color="rgba(255,255,255,0.5)" />
+              <Text className="text-xs font-semibold uppercase tracking-wider text-white/50">
+                On This Day in Past Years
+              </Text>
+            </View>
+            {pastYearMemories.map((memory: QuoteMemory, index: number) => (
+              <MotiView
+                key={`pastyear-${dateKey}-${memory.id}`}
+                from={{ opacity: 0, translateY: 16 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ type: "timing", duration: 280, delay: index * 60 }}>
+                <MemoryCard
+                  quote={memory.quoteText}
+                  author="Me"
+                  photoBackgroundUri={memory.photoBackgroundUri}
+                  photoOrientation={memory.photoOrientation}
+                  isFavorite={memory.isFavorite}
+                  createdAt={memory.createdAt}
+                  styleFontId={memory.styleFontId as "small" | "medium" | "large"}
+                  styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
+                />
+              </MotiView>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        style={{ flex: 1, display: layer === "friends" ? "flex" : "none" }}>
+        {friendsLoading ? (
           <View className="mt-16 items-center">
             <ActivityIndicator size="large" color="#ffffff" />
           </View>
@@ -286,10 +291,7 @@ export default function MemoriesDayScreen() {
               </View>
             </MotiView>
             <Text className="text-center text-base font-medium text-white/90">
-              Couldn't load friends' memories
-            </Text>
-            <Text className="mt-2 text-center text-sm text-white/50">
-              Check your connection and try again.
+              {friendsErrorMessage ?? "Couldn't load friends' memories"}
             </Text>
             <Pressable
               onPress={refreshFriends}
@@ -318,7 +320,7 @@ export default function MemoriesDayScreen() {
         ) : (
           friendCards.map((card, index) => (
             <MotiView
-              key={`friend-${layer}-${dateKey}-${card.id}`}
+              key={`friend-${dateKey}-${card.id}`}
               from={{ opacity: 0, translateY: 16 }}
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: "timing", duration: 280, delay: index * 60 }}>

@@ -9,6 +9,7 @@ type FriendsDayState = {
   cards: QuotePhotoCard[];
   isLoading: boolean;
   hasError: boolean;
+  errorMessage: string | null;
   refresh: () => Promise<void>;
 };
 
@@ -17,6 +18,7 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
   const [cards, setCards] = useState<QuotePhotoCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const userId = profile?.user_id ?? null;
@@ -27,6 +29,7 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
 
     setIsLoading(true);
     setHasError(false);
+    setErrorMessage(null);
     try {
       const friends = await listMyFriends(userId);
       const friendIds = friends.map((f) => f.friend_id);
@@ -42,6 +45,15 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
     } catch (err) {
       console.error("[useFriendsMemoriesForDay] failed to load:", err);
       setHasError(true);
+      const isNetworkError =
+        err instanceof TypeError &&
+        (err.message.toLowerCase().includes("network") ||
+          err.message.toLowerCase().includes("fetch"));
+      setErrorMessage(
+        isNetworkError
+          ? "No internet connection. Check your connection and try again."
+          : "Couldn't load friends' memories. Try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -51,6 +63,6 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
     void load();
   }, [load]);
 
-  return { cards, isLoading, hasError, refresh: load };
+  return { cards, isLoading, hasError, errorMessage, refresh: load };
 }
 

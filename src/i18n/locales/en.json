@@ -31,6 +31,9 @@
     "messagePlaceholder": "Send a message…",
     "messageSent": "Message sent",
     "savedToMemories": "Saved to your memories",
+    "generating": {
+      "label": "Crafting your vibe..."
+    },
     "aiTools": {
       "title": "AI tools",
       "explain": "Explain",
@@ -277,7 +280,23 @@
       "previewAppName": "Inkly",
       "previewTime": "now",
       "previewTitle": "Your daily vibe is ready ✨",
-      "previewBody": "Open Inkly to see today's personalized quote."
+      "previewBody": "Open Inkly to see today's personalized quote.",
+      "errorPermission": "Notifications blocked. You can enable them in Settings anytime.",
+      "errorGeneric": "Something went wrong enabling notifications."
+    },
+    "proTeaser": {
+      "header": "You're all set!",
+      "subtitle": "Free plan gets you started. Upgrade anytime to unlock everything.",
+      "cta": "Start for Free",
+      "ctaSubtext": "Upgrade anytime from your profile",
+      "feature_unlimitedAI_title": "Unlimited AI Quotes",
+      "feature_unlimitedAI_subtitle": "Generate as many quotes as you want, every day.",
+      "feature_rewrite_title": "Rewrite & Remix",
+      "feature_rewrite_subtitle": "Rewrite any quote in calm, funny, or savage tones.",
+      "feature_future_title": "Future Quotes",
+      "feature_future_subtitle": "See where your mindset could take you tomorrow.",
+      "feature_watermark_title": "Watermark-Free Sharing",
+      "feature_watermark_subtitle": "Share your moments without the {{brandMark}} badge."
     },
     "processing": {
       "title": "Crafting your first quote...",

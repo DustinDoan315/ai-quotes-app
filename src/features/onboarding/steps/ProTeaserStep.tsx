@@ -1,6 +1,8 @@
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
+import { APP_BRAND_MARK } from "@/theme/appBrand";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -8,40 +10,43 @@ type Props = {
   onContinue: () => void;
 };
 
-const PRO_FEATURES: Array<{
+type ProFeature = {
   icon: React.ComponentProps<typeof Ionicons>["name"];
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   color: string;
-}> = [
+};
+
+const PRO_FEATURES: ProFeature[] = [
   {
     icon: "sparkles-outline",
-    title: "Unlimited AI Quotes",
-    subtitle: "Generate as many quotes as you want, every day.",
+    titleKey: "onboarding.proTeaser.feature_unlimitedAI_title",
+    subtitleKey: "onboarding.proTeaser.feature_unlimitedAI_subtitle",
     color: "#FBBF24",
   },
   {
     icon: "brush-outline",
-    title: "Rewrite & Remix",
-    subtitle: "Rewrite any quote in calm, funny, or savage tones.",
+    titleKey: "onboarding.proTeaser.feature_rewrite_title",
+    subtitleKey: "onboarding.proTeaser.feature_rewrite_subtitle",
     color: "#A78BFA",
   },
   {
     icon: "time-outline",
-    title: "Future Quotes",
-    subtitle: "See where your mindset could take you tomorrow.",
+    titleKey: "onboarding.proTeaser.feature_future_title",
+    subtitleKey: "onboarding.proTeaser.feature_future_subtitle",
     color: "#34D399",
   },
   {
     icon: "share-social-outline",
-    title: "Watermark-Free Sharing",
-    subtitle: "Share your moments without the Inkly badge.",
+    titleKey: "onboarding.proTeaser.feature_watermark_title",
+    subtitleKey: "onboarding.proTeaser.feature_watermark_subtitle",
     color: "#60A5FA",
   },
 ];
 
 export function ProTeaserStep({ onContinue }: Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <OnboardingStepShell>
@@ -60,10 +65,10 @@ export function ProTeaserStep({ onContinue }: Props) {
             </View>
           </MotiView>
           <Text className="text-center text-2xl font-bold text-white">
-            You're all set!
+            {t("onboarding.proTeaser.header")}
           </Text>
           <Text className="mt-2 text-center text-sm text-white/60">
-            Free plan gets you started. Upgrade anytime to unlock everything.
+            {t("onboarding.proTeaser.subtitle")}
           </Text>
         </View>
 
@@ -71,7 +76,7 @@ export function ProTeaserStep({ onContinue }: Props) {
         <View className="mb-6 gap-3">
           {PRO_FEATURES.map((feature, i) => (
             <MotiView
-              key={feature.title}
+              key={feature.titleKey}
               from={{ opacity: 0, translateX: -16 }}
               animate={{ opacity: 1, translateX: 0 }}
               transition={{ type: "timing", duration: 320, delay: 150 + i * 80 }}>
@@ -83,10 +88,10 @@ export function ProTeaserStep({ onContinue }: Props) {
                 </View>
                 <View className="flex-1">
                   <Text className="text-sm font-semibold text-white">
-                    {feature.title}
+                    {t(feature.titleKey)}
                   </Text>
                   <Text className="mt-0.5 text-xs text-white/55">
-                    {feature.subtitle}
+                    {t(feature.subtitleKey, { brandMark: APP_BRAND_MARK })}
                   </Text>
                 </View>
                 <View className="ml-2 rounded-md bg-white/10 px-2 py-0.5">
@@ -108,10 +113,12 @@ export function ProTeaserStep({ onContinue }: Props) {
           onPress={onContinue}
           className="w-full items-center rounded-2xl bg-white py-4"
           style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
-          <Text className="text-base font-bold text-black">Start for Free</Text>
+          <Text className="text-base font-bold text-black">
+            {t("onboarding.proTeaser.cta")}
+          </Text>
         </Pressable>
         <Text className="mt-2 text-center text-xs text-white/40">
-          Upgrade anytime from your profile
+          {t("onboarding.proTeaser.ctaSubtext")}
         </Text>
       </View>
     </OnboardingStepShell>

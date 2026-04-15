@@ -398,6 +398,96 @@ export const HomeCameraSection = ({
                 </View>
               </View>
             ) : null}
+            {(isGenerating || generationProgress > 0) && !isFutureLoading ? (
+              <View className="absolute inset-0 z-[7] overflow-hidden rounded-[25px]">
+                {/* Dark backdrop */}
+                <View className="absolute inset-0 bg-black/72" />
+                {/* Floating particles */}
+                {[
+                  { left: "12%", size: 5, duration: 1900, delay: 0, travel: 190 },
+                  { left: "28%", size: 7, duration: 2200, delay: 350, travel: 170 },
+                  { left: "48%", size: 5, duration: 2000, delay: 700, travel: 210 },
+                  { left: "65%", size: 6, duration: 2400, delay: 150, travel: 180 },
+                  { left: "82%", size: 5, duration: 1800, delay: 500, travel: 200 },
+                ].map((p, i) => (
+                  <MotiView
+                    key={i}
+                    from={{ translateY: 0, opacity: 0.7 }}
+                    animate={{ translateY: -p.travel, opacity: 0 }}
+                    transition={{
+                      type: "timing",
+                      duration: p.duration,
+                      delay: p.delay,
+                      loop: true,
+                    }}
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: p.left,
+                      width: p.size,
+                      height: p.size,
+                      borderRadius: p.size / 2,
+                      backgroundColor: chrome.cornerColor,
+                    }}
+                  />
+                ))}
+                {/* Center content */}
+                <MotiView
+                  from={{ opacity: 0, scale: 0.88, translateY: 14 }}
+                  animate={{ opacity: 1, scale: 1, translateY: 0 }}
+                  transition={{ type: "timing", duration: 480 }}
+                  className="absolute inset-0 items-center justify-center px-8">
+                  {/* Pulsing icon */}
+                  <MotiView
+                    from={{ scale: 1.0 }}
+                    animate={{ scale: 1.12 }}
+                    transition={{ type: "timing", duration: 700, loop: true }}>
+                    <Ionicons name="sparkles" size={44} color={chrome.cornerColor} />
+                  </MotiView>
+                  {/* Progress bar */}
+                  <View className="mt-8 w-3/4 overflow-hidden rounded-full bg-white/15" style={{ height: 6 }}>
+                    <MotiView
+                      from={{ width: "0%" }}
+                      animate={{
+                        width: `${Math.min(100, Math.max(8, generationProgress * 100))}%`,
+                      }}
+                      transition={{ type: "timing", duration: 350 }}
+                      style={{
+                        height: "100%",
+                        borderRadius: 999,
+                        backgroundColor: chrome.cornerColor,
+                      }}
+                    />
+                  </View>
+                  {/* Label + percentage */}
+                  <View className="mt-4 flex-row items-center justify-center gap-2">
+                    <Text className="text-sm font-semibold text-white/90">
+                      {t("home.generating.label")}
+                    </Text>
+                    <Text className="text-xs text-white/40">
+                      {Math.round(generationProgress * 100)}%
+                    </Text>
+                  </View>
+                  {/* Animated 3-dot indicator */}
+                  <View className="mt-3 flex-row items-center justify-center">
+                    {[0, 250, 500].map((delay, i) => (
+                      <MotiView
+                        key={i}
+                        from={{ opacity: 0.25 }}
+                        animate={{ opacity: 0.9 }}
+                        transition={{
+                          type: "timing",
+                          duration: 700,
+                          delay,
+                          loop: true,
+                        }}
+                        className="mx-0.5 h-1.5 w-1.5 rounded-full bg-white/60"
+                      />
+                    ))}
+                  </View>
+                </MotiView>
+              </View>
+            ) : null}
             {isFutureLoading ? (
               <View className="absolute inset-0 z-[8] items-center justify-center bg-black/75 px-8">
                 <MotiView
@@ -447,42 +537,6 @@ export const HomeCameraSection = ({
       </View>
 
       <View className="items-center">
-        {isGenerating || generationProgress > 0 ? (
-          <MotiView
-            from={{ opacity: 0.6, scale: 0.98 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-            }}
-            transition={{
-              type: "timing",
-              duration: 700,
-            }}
-            className="my-3 w-full max-w-md self-center rounded-2xl bg-white/10 px-5 py-4">
-            <View className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-              <MotiView
-                style={{
-                  height: "100%",
-                  borderRadius: 999,
-                  backgroundColor: "#F97316",
-                }}
-                from={{ width: "0%" }}
-                animate={{
-                  width: `${Math.min(100, Math.max(8, generationProgress * 100))}%`,
-                }}
-                transition={{
-                  type: "timing",
-                  duration: 350,
-                }}
-              />
-            </View>
-            <View className="mt-2 space-y-2">
-              <View className="h-3 w-full rounded-full bg-amber-400/40" />
-              <View className="h-3 w-5/6 rounded-full bg-pink-400/40" />
-              <View className="h-3 w-3/4 rounded-full bg-sky-400/40" />
-            </View>
-          </MotiView>
-        ) : null}
         {dailyQuoteText && !hideQuote ? (
           <View className="my-3 w-full max-w-md self-center">
             <QuoteStyleControls

@@ -31,6 +31,9 @@
     "messagePlaceholder": "Gửi tin nhắn…",
     "messageSent": "Đã gửi tin nhắn",
     "savedToMemories": "Đã lưu vào kỷ niệm",
+    "generating": {
+      "label": "Đang tạo câu trích dẫn..."
+    },
     "aiTools": {
       "title": "Công cụ AI",
       "explain": "Giải thích",
@@ -277,7 +280,23 @@
       "previewAppName": "Inkly",
       "previewTime": "vừa xong",
       "previewTitle": "Cảm xúc hàng ngày của bạn đã sẵn sàng ✨",
-      "previewBody": "Mở Inkly để xem câu trích dẫn cá nhân hóa hôm nay."
+      "previewBody": "Mở Inkly để xem câu trích dẫn cá nhân hóa hôm nay.",
+      "errorPermission": "Thông báo bị chặn. Bạn có thể bật trong Cài đặt bất cứ lúc nào.",
+      "errorGeneric": "Đã xảy ra lỗi khi bật thông báo."
+    },
+    "proTeaser": {
+      "header": "Bạn đã sẵn sàng!",
+      "subtitle": "Gói miễn phí giúp bạn bắt đầu. Nâng cấp bất cứ lúc nào để mở khóa mọi thứ.",
+      "cta": "Bắt đầu miễn phí",
+      "ctaSubtext": "Nâng cấp bất cứ lúc nào từ hồ sơ của bạn",
+      "feature_unlimitedAI_title": "Câu trích dẫn AI không giới hạn",
+      "feature_unlimitedAI_subtitle": "Tạo bao nhiêu câu tùy thích, mỗi ngày.",
+      "feature_rewrite_title": "Viết lại & Phối lại",
+      "feature_rewrite_subtitle": "Viết lại bất kỳ câu nào theo phong cách nhẹ nhàng, hài hước hoặc mạnh mẽ.",
+      "feature_future_title": "Câu trích dẫn tương lai",
+      "feature_future_subtitle": "Xem tư duy của bạn có thể đưa bạn đến đâu ngày mai.",
+      "feature_watermark_title": "Chia sẻ không có hình mờ",
+      "feature_watermark_subtitle": "Chia sẻ khoảnh khắc của bạn mà không có huy hiệu {{brandMark}}."
     },
     "processing": {
       "title": "Đang tạo câu trích dẫn đầu tiên...",
