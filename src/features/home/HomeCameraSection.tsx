@@ -317,6 +317,24 @@ export const HomeCameraSection = ({
                       onMountError={onCameraMountError}
                     />
                   ) : null}
+                  {isCameraActive && !dailyQuoteText && !isGenerating ? (
+                    <View
+                      className="absolute inset-0 items-center justify-center"
+                      pointerEvents="none">
+                      <MotiView
+                        from={{ opacity: 0, scale: 0.92 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: "timing", duration: 500 }}
+                        style={{ alignItems: "center", gap: 8 }}>
+                        <Ionicons name="sparkles" size={28} color="rgba(255,255,255,0.35)" />
+                        <Text
+                          className="text-center text-sm font-medium"
+                          style={{ color: "rgba(255,255,255,0.45)", maxWidth: 180 }}>
+                          {t("home.generating.takePhotoPrompt")}
+                        </Text>
+                      </MotiView>
+                    </View>
+                  ) : null}
                 </View>
               )}
               <View pointerEvents="none" style={chrome.photoBorder} />
@@ -345,7 +363,9 @@ export const HomeCameraSection = ({
                 <View className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-3">
                   <View className="mb-2 flex-row items-center justify-between">
                     <View className="flex-row items-center">
-                      <View className="h-8 w-8 overflow-hidden rounded-full bg-white/20">
+                      <View
+                        className="overflow-hidden rounded-full bg-white/20"
+                        style={{ width: 36, height: 36, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)" }}>
                         {authorAvatarUrl ? (
                           <Image
                             source={{ uri: authorAvatarUrl }}
@@ -503,9 +523,12 @@ export const HomeCameraSection = ({
                           numberOfLines={4}>
                           {dailyQuoteText}
                         </Text>
-                        <Text className="mt-2 text-left text-[11px] font-medium text-white/60">
-                          {t("home.aiTools.editQuoteHint")}
-                        </Text>
+                        <View className="mt-2 flex-row items-center gap-1">
+                          <Ionicons name="create-outline" size={11} color="rgba(255,255,255,0.55)" />
+                          <Text className="text-left text-[11px] font-medium text-white/55">
+                            {t("home.aiTools.editQuoteHint")}
+                          </Text>
+                        </View>
                       </>
                     )}
                   </Pressable>

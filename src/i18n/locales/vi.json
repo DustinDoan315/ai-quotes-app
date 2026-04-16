@@ -33,7 +33,8 @@
     "messageSent": "Đã gửi tin nhắn",
     "savedToMemories": "Đã lưu vào kỷ niệm",
     "generating": {
-      "label": "Đang tạo câu trích dẫn..."
+      "label": "Đang tạo câu trích dẫn...",
+      "takePhotoPrompt": "Chụp ảnh để nhận câu trích dẫn của bạn"
     },
     "aiTools": {
       "title": "Công cụ AI",

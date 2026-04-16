@@ -33,6 +33,8 @@ export function HomeHeader({
             className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
+              borderWidth: 1.5,
+              borderColor: "rgba(255,255,255,0.28)",
             })}>
             {avatarUrl ? (
               <Image
@@ -66,8 +68,13 @@ export function HomeHeader({
           <Pressable
             onPress={onPressStreak}
             disabled={!onPressStreak}
-            className="flex-row items-center rounded-full bg-black/40 px-3 py-1.5"
-            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}>
+            className="flex-row items-center rounded-full px-3 py-1.5"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.75 : 1,
+              backgroundColor: `${tier.color}22`,
+              borderWidth: 1,
+              borderColor: `${tier.color}44`,
+            })}>
             <Ionicons name={tier.icon} size={tier.size} color={tier.color} />
             <Text className="ml-1.5 text-sm font-semibold text-white">
               {currentStreak}

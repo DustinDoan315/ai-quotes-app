@@ -33,7 +33,8 @@
     "messageSent": "Message sent",
     "savedToMemories": "Saved to your memories",
     "generating": {
-      "label": "Crafting your vibe..."
+      "label": "Crafting your vibe...",
+      "takePhotoPrompt": "Take a photo to get your vibe"
     },
     "aiTools": {
       "title": "AI tools",

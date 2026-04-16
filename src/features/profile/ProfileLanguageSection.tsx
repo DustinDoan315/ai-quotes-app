@@ -8,7 +8,7 @@ import { Pressable, Text, View } from "react-native";
 
 type LangCode = "vi" | "en";
 const TOGGLE_PADDING = 4;
-const TOGGLE_GAP = 6;
+const TOGGLE_GAP = 12;
 
 const LANGUAGES: {
   code: LangCode;
@@ -47,10 +47,9 @@ function LanguageToggle({
         flexDirection: "row",
         borderRadius: 18,
         borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.08)",
-        backgroundColor: "rgba(255,255,255,0.04)",
+        borderColor: "rgba(255,255,255,0.10)",
+        backgroundColor: "rgba(255,255,255,0.05)",
         padding: TOGGLE_PADDING,
-        gap: TOGGLE_GAP,
         overflow: "hidden",
       }}>
       {thumbWidth > 0 ? (
@@ -65,12 +64,12 @@ function LanguageToggle({
             width: thumbWidth,
             borderRadius: 14,
             borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.18)",
-            backgroundColor: "rgba(255,255,255,0.14)",
+            borderColor: "rgba(255,255,255,0.22)",
+            backgroundColor: "rgba(255,255,255,0.16)",
           }}
         />
       ) : null}
-      {LANGUAGES.map((lang) => {
+      {LANGUAGES.map((lang, index) => {
         const active = value === lang.code;
         return (
           <Pressable
@@ -79,7 +78,6 @@ function LanguageToggle({
               if (lang.code === value) {
                 return;
               }
-
               void Haptics.selectionAsync();
               onChange(lang.code);
             }}
@@ -87,28 +85,21 @@ function LanguageToggle({
               flex: 1,
               borderRadius: 14,
               paddingHorizontal: 10,
-              paddingVertical: 12,
+              paddingVertical: 14,
+              marginLeft: index === 0 ? 0 : TOGGLE_GAP,
               opacity: pressed ? 0.9 : 1,
             })}>
             <MotiView
-              animate={{ scale: active ? 1.02 : 1 }}
+              animate={{ scale: active ? 1.04 : 1 }}
               transition={{ type: "timing", duration: 180 }}
-              style={{ alignItems: "center", gap: 3 }}>
-              <Text style={{ fontSize: 16 }}>{lang.flag}</Text>
+              style={{ alignItems: "center", gap: 5 }}>
+              <Text style={{ fontSize: 22 }}>{lang.flag}</Text>
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: active ? "700" : "500",
-                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.7)",
-                  letterSpacing: 0.4,
-                }}>
-                {lang.shortLabel}
-              </Text>
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 11,
-                  color: active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.45)",
+                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+                  letterSpacing: 0.6,
                 }}>
                 {t(lang.labelKey)}
               </Text>
@@ -116,77 +107,6 @@ function LanguageToggle({
           </Pressable>
         );
       })}
-    </View>
-  );
-}
-
-function LanguagePreferenceCard({
-  icon,
-  title,
-  description,
-  value,
-  onChange,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
-  value: LangCode;
-  onChange: (lang: LangCode) => void;
-}) {
-  const { t } = useTranslation();
-  const selectedLanguage = LANGUAGES.find((lang) => lang.code === value) ?? LANGUAGES[0];
-
-  return (
-    <View
-      style={{
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.10)",
-        backgroundColor: "rgba(255,255,255,0.04)",
-        padding: 16,
-        gap: 14,
-      }}>
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="flex-row flex-1 items-start gap-3">
-          <View
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              backgroundColor: "rgba(255,255,255,0.08)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}>
-            <Ionicons name={icon} size={17} color="rgba(255,255,255,0.72)" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text className="text-[15px] font-semibold text-white">{title}</Text>
-            <Text className="mt-1 text-[12px] leading-5 text-white/55">{description}</Text>
-          </View>
-        </View>
-
-        <MotiView
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "timing", duration: 180 }}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 6,
-            borderRadius: 999,
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.10)",
-            backgroundColor: "rgba(255,255,255,0.06)",
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-          }}>
-          <Text style={{ fontSize: 13 }}>{selectedLanguage.flag}</Text>
-          <Text className="text-[11px] font-semibold text-white/80">
-            {t(selectedLanguage.labelKey)}
-          </Text>
-        </MotiView>
-      </View>
-
-      <LanguageToggle value={value} onChange={onChange} />
     </View>
   );
 }
@@ -214,15 +134,22 @@ export function ProfileLanguageSection() {
 
       <View
         style={{
-          gap: 12,
+          borderRadius: 18,
+          borderWidth: 1,
+          borderColor: "rgba(255,255,255,0.10)",
+          backgroundColor: "rgba(255,255,255,0.04)",
+          padding: 16,
+          gap: 10,
         }}>
-        <LanguagePreferenceCard
-          icon="language-outline"
-          title={t("profile.languageLabel")}
-          description={t("profile.languageCombinedDescription")}
-          value={effectiveLanguage}
-          onChange={handleLanguageChange}
-        />
+        <Text
+          style={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.45)",
+            letterSpacing: 0.2,
+          }}>
+          {t("profile.languageCombinedDescription")}
+        </Text>
+        <LanguageToggle value={effectiveLanguage} onChange={handleLanguageChange} />
       </View>
     </View>
   );
