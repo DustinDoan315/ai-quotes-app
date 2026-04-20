@@ -12,7 +12,7 @@ type Props = {
   onContinue: () => void;
 };
 
-const BULLETS: Array<{ icon: "sunny-outline" | "alarm-outline" | "ban-outline"; key: string }> = [
+const BULLETS: { icon: "sunny-outline" | "alarm-outline" | "ban-outline"; key: string }[] = [
   { icon: "sunny-outline", key: "bullet1" },
   { icon: "alarm-outline", key: "bullet2" },
   { icon: "ban-outline", key: "bullet3" },

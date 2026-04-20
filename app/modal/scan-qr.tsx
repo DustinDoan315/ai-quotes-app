@@ -13,11 +13,13 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const FINDER_SIZE = 256;
 
 function ScannerOverlay({ error }: { error: string | null }) {
+  const { t } = useTranslation();
   const scanAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -134,7 +136,7 @@ function ScannerOverlay({ error }: { error: string | null }) {
         </View>
       </View>
       <Text className="mt-6 text-center text-sm text-white/80">
-        Scan your friend's invite QR
+        {t("friends.scanQrHint")}
       </Text>
       {error ? (
         <Text className="mt-2 text-center text-sm text-red-400">{error}</Text>
@@ -144,6 +146,7 @@ function ScannerOverlay({ error }: { error: string | null }) {
 }
 
 export default function ScanQrModal() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
@@ -176,7 +179,7 @@ export default function ScanQrModal() {
 
       const code = parseInviteCode(value);
       if (!code) {
-        setError("That doesn't look like an invite QR. Try again.");
+        setError(t("friends.scanQrError"));
         return;
       }
 
@@ -184,7 +187,7 @@ export default function ScanQrModal() {
       setError(null);
       router.replace(`/invite/${code}` as never);
     },
-    [router, scanned],
+    [router, scanned, t],
   );
 
   const content = useMemo(() => {
@@ -200,12 +203,14 @@ export default function ScanQrModal() {
       return (
         <View className="flex-1 items-center justify-center px-8">
           <Text className="mb-4 text-center text-white">
-            We need camera access to scan QR codes.
+            {t("friends.scanQrPermissionMessage")}
           </Text>
           <Pressable
             onPress={requestPermission}
             className="rounded-full bg-white px-6 py-3">
-            <Text className="font-semibold text-black">Allow camera</Text>
+            <Text className="font-semibold text-black">
+              {t("friends.scanQrAllowCamera")}
+            </Text>
           </Pressable>
         </View>
       );
@@ -229,12 +234,14 @@ export default function ScanQrModal() {
             }}
             className="rounded-full bg-white/15 px-5 py-2.5"
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="text-sm font-semibold text-white">Scan again</Text>
+            <Text className="text-sm font-semibold text-white">
+              {t("friends.scanQrScanAgain")}
+            </Text>
           </Pressable>
         </View>
       </View>
     );
-  }, [error, handleResult, isGranted, isLoading, requestPermission]);
+  }, [error, handleResult, isGranted, isLoading, requestPermission, t]);
 
   return (
     <View className="flex-1 bg-transparent" style={{ paddingTop: insets.top }}>
@@ -245,7 +252,9 @@ export default function ScanQrModal() {
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Ionicons name="close" size={22} color="#fff" />
         </Pressable>
-        <Text className="text-base font-semibold text-white">Scan QR</Text>
+        <Text className="text-base font-semibold text-white">
+          {t("friends.scanQrTitle")}
+        </Text>
         <View className="h-10 w-10" />
       </View>
       <View className="flex-1">{content}</View>

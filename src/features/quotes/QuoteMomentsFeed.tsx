@@ -35,7 +35,7 @@ export const QuoteMomentsFeed = ({
             Your moments feed
           </Text>
           <Text className="mt-1 text-center text-sm text-white/50">
-            Capture a photo with today's quote to see it here.
+            Capture a photo with today&apos;s quote to see it here.
           </Text>
           {onGeneratePress ? (
             <Pressable

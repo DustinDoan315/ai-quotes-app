@@ -56,7 +56,7 @@ export const PaywallScreen = ({
     }
     showToast(t("subscription.alreadyProToast"), "success", 3000);
     onClose();
-  }, [plan, isPurchasing, isRestoring, onClose, showToast]);
+  }, [plan, isPurchasing, isRestoring, onClose, showToast, t]);
 
   const headline = useMemo(() => {
     if (reason === "ai_limit") return t("subscription.contextAiLimitTitle");
@@ -70,7 +70,7 @@ export const PaywallScreen = ({
       return t("subscription.contextPersonaLockedTitle");
     }
     return t("subscription.paywallHeroTitle");
-  }, [reason]);
+  }, [reason, t]);
 
   const contextBody = useMemo(() => {
     if (reason === "ai_limit") return t("subscription.aiLimitPaywallBody");
@@ -84,7 +84,7 @@ export const PaywallScreen = ({
       return t("subscription.personaPaywallBody");
     }
     return t("subscription.paywallHeroSubtitle");
-  }, [reason]);
+  }, [reason, t]);
 
   const bestValuePackageId = useMemo(() => {
     if (!offerings?.availablePackages.length) {

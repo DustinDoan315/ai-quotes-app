@@ -62,7 +62,7 @@ export function ProfileAuthedView({
     if (trimmedName.length === 0) return t("profile.nameRequired");
     if (trimmedName.length > 40) return t("profile.nameTooLong");
     return null;
-  }, [trimmedName]);
+  }, [trimmedName, t]);
 
   const canSave = useMemo(() => {
     if (!profile?.user_id) return false;

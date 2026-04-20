@@ -229,13 +229,19 @@
     "inviteSectionTitle": "Invite friends",
     "inviteSectionBody": "Share your link so friends can add you and trade quotes.",
     "shareLinkButton": "Share link",
-    "sharingButton": "Sharing\u2026",
+    "sharingButton": "Sharing…",
     "friendsCountLabel": "Your friends ({{count}})",
     "noFriendsPlaceholder": "No friends yet. Share your invite link so friends can add you.",
     "qrModalTitle": "Your invite QR",
     "qrModalBody": "Let a friend scan this to connect.",
     "qrModalClose": "Close invite QR",
-    "inviteMessage": "Join me on {{appName}}! Get your own AI daily quote.\n\n{{url}}"
+    "inviteMessage": "Join me on {{appName}}! Get your own AI daily quote.\n\n{{url}}",
+    "scanQrTitle": "Scan QR",
+    "scanQrHint": "Scan your friend's invite QR",
+    "scanQrError": "That doesn't look like an invite QR. Try again.",
+    "scanQrPermissionMessage": "We need camera access to scan QR codes.",
+    "scanQrAllowCamera": "Allow camera",
+    "scanQrScanAgain": "Scan again"
   },
   "share": {
     "shareButton": "Share",

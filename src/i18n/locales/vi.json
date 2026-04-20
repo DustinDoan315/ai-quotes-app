@@ -229,13 +229,19 @@
     "inviteSectionTitle": "Mời bạn bè",
     "inviteSectionBody": "Chia sẻ link của bạn để bạn bè có thể thêm bạn và trao đổi câu trích dẫn.",
     "shareLinkButton": "Chia sẻ link",
-    "sharingButton": "Đang chia sẻ\u2026",
+    "sharingButton": "Đang chia sẻ…",
     "friendsCountLabel": "Bạn bè của bạn ({{count}})",
     "noFriendsPlaceholder": "Chưa có bạn bè. Chia sẻ link mời để kết nối.",
     "qrModalTitle": "Mã QR mời của bạn",
     "qrModalBody": "Để bạn bè quét để kết nối.",
     "qrModalClose": "Đóng mã QR mời",
-    "inviteMessage": "Tham gia cùng tôi trên {{appName}}! Nhận câu trích dẫn AI hàng ngày của bạn.\n\n{{url}}"
+    "inviteMessage": "Tham gia cùng tôi trên {{appName}}! Nhận câu trích dẫn AI hàng ngày của bạn.\n\n{{url}}",
+    "scanQrTitle": "Quét mã QR",
+    "scanQrHint": "Quét mã QR mời của bạn bè",
+    "scanQrError": "Đây không phải mã QR mời hợp lệ. Thử lại.",
+    "scanQrPermissionMessage": "Cần quyền truy cập camera để quét mã QR.",
+    "scanQrAllowCamera": "Cho phép camera",
+    "scanQrScanAgain": "Quét lại"
   },
   "share": {
     "shareButton": "Chia sẻ",

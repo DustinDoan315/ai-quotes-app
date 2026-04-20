@@ -1,16 +1,18 @@
-jest.mock("@/config/supabase", () => ({
-  supabase: {
-    auth: {
-      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
-    },
-  },
-}));
-
 import {
   explainQuote,
   generateFutureQuote,
   rewriteQuote,
 } from "@/services/ai/client";
+
+jest.mock("@/config/supabase", () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn().mockResolvedValue({
+        data: { session: { access_token: "test-token" } },
+      }),
+    },
+  },
+}));
 
 describe("AI client contract", () => {
   const originalFetch = global.fetch;

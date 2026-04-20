@@ -69,7 +69,6 @@ function ToastItem({ toast }: { toast: Toast }) {
 
   // Swipe — Reanimated for gesture-driven translation
   const translateX = useSharedValue(0);
-  const swipeOpacity = useSharedValue(1);
 
   // Progress bar — RN Animated (width % requires non-native driver)
   const progress = useRef(new RNAnimated.Value(1)).current;
@@ -85,6 +84,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       duration,
       useNativeDriver: false,
     }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const swipeStyle = useAnimatedStyle(() => ({
