@@ -34,8 +34,13 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
     setErrorMessage(null);
     try {
       const friends = await listMyFriends(userId);
-      const friendIds = friends.map((f) => f.friend_id);
-      const feedUserIds = friendIds;
+      const feedUserIds = [
+        ...new Set(
+          friends
+            .map((f) => f.friend_id)
+            .filter((friendId) => friendId !== userId),
+        ),
+      ];
 
       const data = await listQuotePhotoCardsForDay({
         dateKey,

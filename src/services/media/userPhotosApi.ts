@@ -39,6 +39,10 @@ type ListQuotePhotoCardsParams = {
 export const listQuotePhotoCards = async (
   params: ListQuotePhotoCardsParams,
 ): Promise<QuotePhotoCard[]> => {
+  if (params.feedUserIds && params.feedUserIds.length === 0) {
+    return [];
+  }
+
   let query = supabase
     .from("user_photos")
     .select(
@@ -139,6 +143,10 @@ export const listQuotePhotoCardsForDay = async (
   params: ListQuotePhotoCardsForDayParams,
 ): Promise<QuotePhotoCard[]> => {
   const { dateKey, feedUserIds, guestId, limit } = params;
+  if (feedUserIds && feedUserIds.length === 0) {
+    return [];
+  }
+
   const { startIso, endIso } = getUtcDayRange(dateKey);
 
   let query = supabase
@@ -225,4 +233,3 @@ export const listQuotePhotoCardsForDay = async (
     };
   });
 };
-
