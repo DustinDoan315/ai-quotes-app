@@ -18,7 +18,20 @@
       "Bash(python3:*)",
       "Bash(npm run:*)",
       "Bash(grep -E \"\\\\.tsx?$|App|Main\")",
-      "Bash(grep -E \"\\(tsx|jsx\\)$\")"
+      "Bash(grep -E \"\\(tsx|jsx\\)$\")",
+      "Bash(grep -E \"^[^:]+:\\\\s*\\(function|const\\).*\\\\{$\")",
+      "Bash(ls:*)",
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(read f:*)",
+      "Bash(grep -r \"signUp\\\\|signIn\" app/*.tsx)",
+      "Bash(claude install-skill:*)",
+      "Bash(claude --version)",
+      "Bash(claude plugin:*)",
+      "Bash(cp -r /tmp/claude-skill-aso-appstore-screenshots/assets ~/.claude/skills/aso-appstore-screenshots/)",
+      "Bash(cp /tmp/claude-skill-aso-appstore-screenshots/device_frame.png ~/.claude/skills/aso-appstore-screenshots/)",
+      "Bash(cp:*)",
+      "Bash(pip install:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
