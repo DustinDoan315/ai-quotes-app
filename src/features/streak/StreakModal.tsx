@@ -2,6 +2,7 @@ import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { getStreakTier } from "@/utils/streakMilestones";
 import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function StreakModal({ visible, onClose }: Props) {
+  const { i18n, t } = useTranslation();
   const insets = useSafeAreaInsets();
   const currentStreak = useStreakStore((s) => getDisplayStreak(s));
   const longestStreak = useStreakStore((s) => s.longestStreak);
@@ -17,7 +19,7 @@ export function StreakModal({ visible, onClose }: Props) {
   const tier = getStreakTier(currentStreak);
 
   const lastDateLabel = lastQuoteDate
-    ? new Date(lastQuoteDate).toLocaleDateString(undefined, {
+    ? new Date(lastQuoteDate).toLocaleDateString(i18n.language, {
         month: "long",
         day: "numeric",
       })
@@ -25,10 +27,10 @@ export function StreakModal({ visible, onClose }: Props) {
 
   const statusMessage =
     currentStreak === 0
-      ? "Start your streak by capturing a quote today."
+      ? t("streak.modalEmptyMessage")
       : currentStreak === 1
-        ? "First day! Come back tomorrow to keep it going."
-        : `${currentStreak} days in a row — keep it up!`;
+        ? t("streak.modalFirstDayMessage")
+        : t("streak.modalActiveMessage", { count: currentStreak });
 
   return (
     <Modal
@@ -46,7 +48,9 @@ export function StreakModal({ visible, onClose }: Props) {
           style={{ maxWidth: 400 }}>
           {/* Header */}
           <View className="mb-6 flex-row items-center justify-between">
-            <Text className="text-lg font-bold text-white">Your Streak</Text>
+            <Text className="text-lg font-bold text-white">
+              {t("streak.modalTitle")}
+            </Text>
             <Pressable
               onPress={onClose}
               hitSlop={12}
@@ -63,7 +67,7 @@ export function StreakModal({ visible, onClose }: Props) {
             </View>
             <Text className="text-6xl font-bold text-white">{currentStreak}</Text>
             <Text className="mt-1 text-base text-white/60">
-              {currentStreak === 1 ? "day streak" : "day streak"}
+              {t("streak.modalDayStreak", { count: currentStreak })}
             </Text>
           </View>
 
@@ -77,14 +81,18 @@ export function StreakModal({ visible, onClose }: Props) {
             <View className="flex-1 items-center rounded-2xl border border-white/10 bg-white/5 py-4">
               <Ionicons name="trophy-outline" size={20} color="#ffd700" />
               <Text className="mt-2 text-xl font-bold text-white">{longestStreak}</Text>
-              <Text className="mt-0.5 text-xs text-white/50">Longest</Text>
+              <Text className="mt-0.5 text-xs text-white/50">
+                {t("profile.streakLongestLabel")}
+              </Text>
             </View>
             <View className="flex-1 items-center rounded-2xl border border-white/10 bg-white/5 py-4">
               <Ionicons name="calendar-outline" size={20} color="rgba(255,255,255,0.6)" />
               <Text className="mt-2 text-sm font-semibold text-white">
-                {lastDateLabel ?? "—"}
+                {lastDateLabel ?? t("profile.streakNoLastQuote")}
               </Text>
-              <Text className="mt-0.5 text-xs text-white/50">Last quote</Text>
+              <Text className="mt-0.5 text-xs text-white/50">
+                {t("profile.streakLastQuoteLabel")}
+              </Text>
             </View>
           </View>
         </Pressable>

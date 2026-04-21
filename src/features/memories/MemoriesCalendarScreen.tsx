@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { MotiView } from "moti";
+import { useTranslation } from "react-i18next";
 
 import { useMemoryStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
@@ -30,8 +31,6 @@ type CalendarDayProps = {
   isToday: boolean;
   count: number;
 };
-
-const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function getMonthKey(date: Date) {
   return formatLocalMonthKey(date);
@@ -198,6 +197,7 @@ function getHistoricalStreakDates(
 }
 
 export function MemoriesCalendarScreen({ onPressDay }: Props) {
+  const { i18n, t } = useTranslation();
   const router = useRouter();
   const [cursorMonth, setCursorMonth] = useState(() => new Date());
   const memories = useMemoryStore((s: MemoryState) => s.memories);
@@ -291,10 +291,20 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
     setCursorMonth(new Date());
   }
 
-  const monthLabel = cursorMonth.toLocaleDateString(undefined, {
+  const monthLabel = cursorMonth.toLocaleDateString(i18n.language, {
     year: "numeric",
     month: "long",
   });
+
+  const weekdayLabels = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, index) =>
+        new Date(2024, 0, 7 + index).toLocaleDateString(i18n.language, {
+          weekday: "short",
+        }),
+      ),
+    [i18n.language],
+  );
 
   return (
     <View className="flex-1 bg-transparent">
@@ -307,15 +317,15 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
             <Ionicons name="chevron-back" size={22} color="#ffffff" />
           </Pressable>
           <Text className="text-xs font-semibold uppercase tracking-wide text-white/60">
-            Memories
+            {t("memories.title")}
           </Text>
           <View className="h-10 w-10" />
         </View>
         <Text className="text-2xl font-bold tracking-tight text-white">
-          Quote calendar
+          {t("memories.calendarTitle")}
         </Text>
         <Text className="mt-0.5 text-sm text-white/70">
-          Tap a day to revisit your saved quotes.
+          {t("memories.calendarSubtitle")}
         </Text>
         <View className="mt-5 flex-row items-center justify-between">
           <Pressable
@@ -331,7 +341,9 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
                 onPress={handleGoToToday}
                 className="rounded-full bg-white/15 px-2.5 py-1"
                 style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                <Text className="text-[11px] font-semibold text-white/90">Today</Text>
+                <Text className="text-[11px] font-semibold text-white/90">
+                  {t("memories.todayButton")}
+                </Text>
               </Pressable>
             ) : null}
           </View>
@@ -345,18 +357,18 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         <View className="mt-3 flex-row items-center gap-2">
           <View className="flex-row items-center rounded-full bg-white/10 px-3 py-1">
             <Text className="text-xs font-medium text-white/80">
-              {monthMemoryCount === 0
-                ? "No memories"
-                : monthMemoryCount === 1
-                  ? "1 memory"
-                  : `${monthMemoryCount} memories`}
+              {t("memories.calendarMonthCount", {
+                count: monthMemoryCount,
+              })}
             </Text>
           </View>
           {displayStreak > 0 ? (
             <View className="flex-row items-center gap-1 rounded-full bg-white/10 px-3 py-1">
               <Text className="text-xs">🔥</Text>
               <Text className="text-xs font-medium text-white/80">
-                {displayStreak} day streak
+                {t("memories.calendarStreakCount", {
+                  count: displayStreak,
+                })}
               </Text>
             </View>
           ) : null}
@@ -400,15 +412,21 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         <View className="mt-6 flex-row flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
           <View className="flex-row items-center gap-2">
             <View className="h-2.5 w-2.5 rounded-full bg-white" />
-            <Text className="text-xs text-white/80">Your quote</Text>
+            <Text className="text-xs text-white/80">
+              {t("memories.calendarLegendYourQuote")}
+            </Text>
           </View>
           <View className="flex-row items-center gap-1">
             <Text className="text-sm">🔥</Text>
-            <Text className="text-xs text-white/80">Streak day</Text>
+            <Text className="text-xs text-white/80">
+              {t("memories.calendarLegendStreakDay")}
+            </Text>
           </View>
           <View className="flex-row items-center gap-1">
             <Text className="text-sm">⭐</Text>
-            <Text className="text-xs text-white/80">Favorite</Text>
+            <Text className="text-xs text-white/80">
+              {t("memories.calendarLegendFavorite")}
+            </Text>
           </View>
         </View>
       </ScrollView>

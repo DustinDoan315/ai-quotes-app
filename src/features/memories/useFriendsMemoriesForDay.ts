@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { useUserStore } from "@/appState";
 import type { QuotePhotoCard } from "@/services/media/userPhotosApi";
@@ -14,6 +15,7 @@ type FriendsDayState = {
 };
 
 export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
+  const { t } = useTranslation();
   const profile = useUserStore((s) => s.profile);
   const [cards, setCards] = useState<QuotePhotoCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,13 +53,13 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
           err.message.toLowerCase().includes("fetch"));
       setErrorMessage(
         isNetworkError
-          ? "No internet connection. Check your connection and try again."
-          : "Couldn't load friends' memories. Try again.",
+          ? t("memories.networkError")
+          : t("memories.friendsLoadErrorWithRetry"),
       );
     } finally {
       setIsLoading(false);
     }
-  }, [dateKey, profile?.user_id]);
+  }, [dateKey, profile?.user_id, t]);
 
   useEffect(() => {
     void load();
@@ -65,4 +67,3 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
 
   return { cards, isLoading, hasError, errorMessage, refresh: load };
 }
-

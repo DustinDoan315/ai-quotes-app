@@ -3,6 +3,7 @@ import { addFriend, resolveInviteCode } from "@/services/inviteApi";
 import { captureMessage } from "@/services/analytics/sentry";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -35,6 +36,7 @@ async function processInviteCode(
 }
 
 export default function InviteByCodeScreen() {
+  const { t } = useTranslation();
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -81,39 +83,43 @@ export default function InviteByCodeScreen() {
       {status === "loading" && (
         <>
           <ActivityIndicator size="large" color="#fff" />
-          <Text className="mt-4 text-center text-white/80">Connecting…</Text>
+          <Text className="mt-4 text-center text-white/80">
+            {t("friends.inviteAcceptConnecting")}
+          </Text>
         </>
       )}
       {status === "success" && (
         <Text className="text-center text-lg text-white">
-          You’re now connected. Taking you to Friends…
+          {t("friends.inviteAcceptSuccess")}
         </Text>
       )}
       {status === "invalid" && (
         <Text className="text-center text-white/80">
-          Invalid or expired invite. Going to Friends…
+          {t("friends.inviteAcceptInvalid")}
         </Text>
       )}
       {status === "self" && (
         <Text className="text-center text-white/80">
-          That’s your invite code. Share it with a friend to connect.
+          {t("friends.inviteAcceptSelf")}
         </Text>
       )}
       {status === "error" && (
         <Text className="text-center text-white/80">
-          Something went wrong. Going back home…
+          {t("friends.inviteAcceptError")}
         </Text>
       )}
       {status === "need_login" && (
         <>
           <Text className="mb-6 text-center text-white/80">
-            Sign in to accept this invite and connect with your friend.
+            {t("friends.inviteAcceptSignInPrompt")}
           </Text>
           <Pressable
             onPress={() => router.push({ pathname: "/login", params: { returnTo } } as never)}
             className="rounded-xl bg-white px-8 py-3"
             style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
-            <Text className="text-base font-semibold text-black">Sign in with phone</Text>
+            <Text className="text-base font-semibold text-black">
+              {t("friends.signInButton")}
+            </Text>
           </Pressable>
         </>
       )}

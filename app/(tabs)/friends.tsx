@@ -209,7 +209,7 @@ export default function FriendsScreen() {
               {t("friends.noFriendsPlaceholder")}
             </Text>
             <Text className="mt-1 text-center text-sm text-white/50">
-              {t("friends.noFriendsSubtitle", "Invite friends to share daily vibes together.")}
+              {t("friends.noFriendsSubtitle")}
             </Text>
             <Pressable
               onPress={handleInviteShare}
@@ -217,7 +217,7 @@ export default function FriendsScreen() {
               className="mt-5 rounded-xl bg-white px-6 py-3"
               style={({ pressed }) => ({ opacity: pressed || !inviteUrl ? 0.75 : 1 })}>
               <Text className="text-center text-sm font-semibold text-black">
-                {t("friends.inviteButtonLabel", "Invite a Friend")}
+                {t("friends.inviteButtonLabel")}
               </Text>
             </Pressable>
           </View>

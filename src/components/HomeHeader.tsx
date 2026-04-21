@@ -2,6 +2,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getStreakTier } from "@/utils/streakMilestones";
 import { useUserStore } from "@/appState/userStore";
+import { useTranslation } from "react-i18next";
 
 interface HomeHeaderProps {
   readonly currentStreak: number;
@@ -18,6 +19,7 @@ export function HomeHeader({
   onPressSignIn,
   onPressStreak,
 }: HomeHeaderProps) {
+  const { t } = useTranslation();
   const tier = getStreakTier(currentStreak);
   const profile = useUserStore((state) => state.profile);
   const avatarUrl = profile?.avatar_url ?? null;
@@ -50,7 +52,9 @@ export function HomeHeader({
               onPress={onPressSignIn}
               className="rounded-full bg-white/20 px-3 py-2"
               style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
-              <Text className="text-sm font-semibold text-white">Sign in with phone</Text>
+              <Text className="text-sm font-semibold text-white">
+                {t("friends.signInButton")}
+              </Text>
             </Pressable>
           ) : null}
         </View>
@@ -63,7 +67,9 @@ export function HomeHeader({
               opacity: onPressFriends ? (pressed ? 0.8 : 1) : 0.5,
             })}>
             <Ionicons name="share-social-outline" size={18} color="#ffffff" />
-            <Text className="ml-2 text-sm font-semibold text-white">Invite</Text>
+            <Text className="ml-2 text-sm font-semibold text-white">
+              {t("home.inviteCta")}
+            </Text>
           </Pressable>
           <Pressable
             onPress={onPressStreak}
@@ -85,4 +91,3 @@ export function HomeHeader({
     </View>
   );
 }
-

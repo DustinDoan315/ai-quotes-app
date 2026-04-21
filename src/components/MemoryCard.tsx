@@ -1,5 +1,6 @@
 import { QUOTE_ASPECT } from "@/constants/quoteImageSize";
 import { Image } from "expo-image";
+import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, Text, View } from "react-native";
 
 import type { QuoteImageOrientation } from "@/types/memory";
@@ -34,14 +35,15 @@ export function MemoryCard({
   styleFontId = "medium",
   styleColorSchemeId = "light",
 }: Props) {
+  const { i18n } = useTranslation();
   const aspect = getCardAspect(photoOrientation);
   const cardWidth = MAX_WIDTH;
   const cardHeight = cardWidth / aspect;
   const createdDateLabel = new Date(createdAt).toLocaleDateString(
-    undefined,
+    i18n.language,
     { month: "short", day: "numeric" },
   );
-  const createdTimeLabel = new Date(createdAt).toLocaleTimeString(undefined, {
+  const createdTimeLabel = new Date(createdAt).toLocaleTimeString(i18n.language, {
     hour: "2-digit",
     minute: "2-digit",
   });

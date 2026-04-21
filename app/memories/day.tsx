@@ -22,7 +22,7 @@ import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemories
 type Layer = "mine" | "friends";
 
 export default function MemoriesDayScreen() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{ date?: string }>();
   const dateParam = params.date;
@@ -103,25 +103,24 @@ export default function MemoriesDayScreen() {
     } as never);
   }
 
-  const title = new Date(dateKey).toLocaleDateString(undefined, {
+  const title = new Date(dateKey).toLocaleDateString(i18n.language, {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
-  const weekday = new Date(dateKey).toLocaleDateString(undefined, {
+  const weekday = new Date(dateKey).toLocaleDateString(i18n.language, {
     weekday: "long",
   });
 
-  const mineLabel = `Mine (${mineMemories.length})`;
-  const friendsLabel = friendsLoading ? "Friends" : `Friends (${friendCards.length})`;
+  const mineLabel = t("memories.mineTab", { count: mineMemories.length });
+  const friendsLabel = friendsLoading
+    ? t("memories.friendsTabLoading")
+    : t("memories.friendsTab", { count: friendCards.length });
 
   const activeCount = layer === "mine" ? mineMemories.length : friendCards.length;
-  const memoryCountLabel =
-    activeCount === 0
-      ? "No memories saved"
-      : activeCount === 1
-        ? "1 memory saved"
-        : `${activeCount} memories saved`;
+  const memoryCountLabel = t("memories.daySavedCount", {
+    count: activeCount,
+  });
 
   if (!hasHydrated) {
     return (
@@ -218,7 +217,7 @@ export default function MemoriesDayScreen() {
               {t("memories.emptyForDay")}
             </Text>
             <Text className="mt-2 text-center text-sm text-white/50">
-              Save a quote from the camera to see it here
+              {t("memories.emptyForDayHint")}
             </Text>
           </View>
         ) : (
@@ -230,7 +229,7 @@ export default function MemoriesDayScreen() {
               transition={{ type: "timing", duration: 280, delay: index * 60 }}>
               <MemoryCard
                 quote={memory.quoteText}
-                author="Me"
+                author={t("memories.meAuthor")}
                 photoBackgroundUri={memory.photoBackgroundUri}
                 photoOrientation={memory.photoOrientation}
                 isFavorite={memory.isFavorite}
@@ -247,7 +246,7 @@ export default function MemoriesDayScreen() {
             <View className="mb-3 flex-row items-center gap-2">
               <Ionicons name="time-outline" size={15} color="rgba(255,255,255,0.5)" />
               <Text className="text-xs font-semibold uppercase tracking-wider text-white/50">
-                On This Day in Past Years
+                {t("memories.pastYearsTitle")}
               </Text>
             </View>
             {pastYearMemories.map((memory: QuoteMemory, index: number) => (
@@ -258,7 +257,7 @@ export default function MemoriesDayScreen() {
                 transition={{ type: "timing", duration: 280, delay: index * 60 }}>
                 <MemoryCard
                   quote={memory.quoteText}
-                  author="Me"
+                  author={t("memories.meAuthor")}
                   photoBackgroundUri={memory.photoBackgroundUri}
                   photoOrientation={memory.photoOrientation}
                   isFavorite={memory.isFavorite}
@@ -291,13 +290,15 @@ export default function MemoriesDayScreen() {
               </View>
             </MotiView>
             <Text className="text-center text-base font-medium text-white/90">
-              {friendsErrorMessage ?? "Couldn't load friends' memories"}
+              {friendsErrorMessage ?? t("memories.friendsLoadError")}
             </Text>
             <Pressable
               onPress={refreshFriends}
               className="mt-5 rounded-xl bg-white/15 px-6 py-3"
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-              <Text className="text-sm font-semibold text-white">Retry</Text>
+              <Text className="text-sm font-semibold text-white">
+                {t("memories.retryButton")}
+              </Text>
             </Pressable>
           </View>
         ) : friendCards.length === 0 ? (
