@@ -2,13 +2,12 @@ import { useUserStore } from "@/appState/userStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { MotiView } from "moti";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 type LangCode = "vi" | "en";
 const TOGGLE_PADDING = 4;
-const TOGGLE_GAP = 12;
+const TOGGLE_GAP = 10;
 
 const LANGUAGES: {
   code: LangCode;
@@ -20,6 +19,62 @@ const LANGUAGES: {
   { code: "en", flag: "🇺🇸", shortLabel: "EN", labelKey: "profile.languageEnglish" },
 ];
 
+function LanguageOption({
+  active,
+  flag,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  flag: string;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        width: "100%",
+        minHeight: 92,
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: active
+          ? "rgba(255,255,255,0.22)"
+          : "rgba(255,255,255,0.08)",
+        backgroundColor: active
+          ? "rgba(255,255,255,0.16)"
+          : "rgba(255,255,255,0.04)",
+        paddingHorizontal: 8,
+        paddingVertical: 12,
+        opacity: pressed ? 0.9 : 1,
+      })}>
+      <MotiView
+        animate={{ scale: active ? 1.04 : 1 }}
+        transition={{ type: "timing", duration: 180 }}
+        style={{ width: "100%", alignItems: "center", gap: 5 }}>
+        <Text style={{ fontSize: 22 }}>{flag}</Text>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+          style={{
+            width: "100%",
+            fontSize: 13,
+            fontWeight: active ? "700" : "500",
+            color: active ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+            includeFontPadding: false,
+            letterSpacing: 0,
+            textAlign: "center",
+          }}>
+          {label}
+        </Text>
+      </MotiView>
+    </Pressable>
+  );
+}
+
 function LanguageToggle({
   value,
   onChange,
@@ -28,22 +83,22 @@ function LanguageToggle({
   onChange: (lang: LangCode) => void;
 }) {
   const { t } = useTranslation();
-  const [trackWidth, setTrackWidth] = useState(0);
-  const activeIndex = Math.max(
-    LANGUAGES.findIndex((lang) => lang.code === value),
-    0,
-  );
-  const thumbWidth =
-    trackWidth > 0
-      ? (trackWidth - TOGGLE_PADDING * 2 - TOGGLE_GAP * (LANGUAGES.length - 1)) /
-        LANGUAGES.length
-      : 0;
+  const vietnamese = LANGUAGES[0];
+  const english = LANGUAGES[1];
+
+  const handlePress = (lang: LangCode) => {
+    if (lang === value) {
+      return;
+    }
+    void Haptics.selectionAsync();
+    onChange(lang);
+  };
 
   return (
     <View
-      onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
       style={{
-        position: "relative",
+        alignSelf: "stretch",
+        width: "100%",
         flexDirection: "row",
         borderRadius: 18,
         borderWidth: 1,
@@ -52,61 +107,23 @@ function LanguageToggle({
         padding: TOGGLE_PADDING,
         overflow: "hidden",
       }}>
-      {thumbWidth > 0 ? (
-        <MotiView
-          animate={{ translateX: activeIndex * (thumbWidth + TOGGLE_GAP) }}
-          transition={{ type: "timing", duration: 220 }}
-          style={{
-            position: "absolute",
-            top: TOGGLE_PADDING,
-            bottom: TOGGLE_PADDING,
-            left: TOGGLE_PADDING,
-            width: thumbWidth,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.22)",
-            backgroundColor: "rgba(255,255,255,0.16)",
-          }}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <LanguageOption
+          active={value === vietnamese.code}
+          flag={vietnamese.flag}
+          label={t(vietnamese.labelKey)}
+          onPress={() => handlePress(vietnamese.code)}
         />
-      ) : null}
-      {LANGUAGES.map((lang, index) => {
-        const active = value === lang.code;
-        return (
-          <Pressable
-            key={lang.code}
-            onPress={() => {
-              if (lang.code === value) {
-                return;
-              }
-              void Haptics.selectionAsync();
-              onChange(lang.code);
-            }}
-            style={({ pressed }) => ({
-              flex: 1,
-              borderRadius: 14,
-              paddingHorizontal: 10,
-              paddingVertical: 14,
-              marginLeft: index === 0 ? 0 : TOGGLE_GAP,
-              opacity: pressed ? 0.9 : 1,
-            })}>
-            <MotiView
-              animate={{ scale: active ? 1.04 : 1 }}
-              transition={{ type: "timing", duration: 180 }}
-              style={{ alignItems: "center", gap: 5 }}>
-              <Text style={{ fontSize: 22 }}>{lang.flag}</Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: active ? "700" : "500",
-                  color: active ? "#FFFFFF" : "rgba(255,255,255,0.55)",
-                  letterSpacing: 0.6,
-                }}>
-                {t(lang.labelKey)}
-              </Text>
-            </MotiView>
-          </Pressable>
-        );
-      })}
+      </View>
+      <View style={{ width: TOGGLE_GAP }} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <LanguageOption
+          active={value === english.code}
+          flag={english.flag}
+          label={t(english.labelKey)}
+          onPress={() => handlePress(english.code)}
+        />
+      </View>
     </View>
   );
 }
@@ -134,6 +151,7 @@ export function ProfileLanguageSection() {
 
       <View
         style={{
+          alignSelf: "stretch",
           borderRadius: 18,
           borderWidth: 1,
           borderColor: "rgba(255,255,255,0.10)",
