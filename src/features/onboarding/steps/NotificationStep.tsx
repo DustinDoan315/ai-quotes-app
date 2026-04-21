@@ -130,12 +130,10 @@ export function NotificationStep({ onContinue }: Props) {
 
   return (
     <OnboardingStepShell>
-      <View
-        className="flex-1"
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
+      <View className="flex-1">
         <ScrollView
           className="flex-1 px-6"
-          contentContainerStyle={{ paddingBottom: 24 }}
+          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 132 }}
           showsVerticalScrollIndicator={false}>
           {/* Animated bell icon */}
           <MotiView
@@ -253,50 +251,66 @@ export function NotificationStep({ onContinue }: Props) {
           from={{ opacity: 0, translateY: 24 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: "timing", duration: 380, delay: 600 }}
-          style={{ paddingHorizontal: 24, paddingTop: 4 }}>
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10,
+            paddingHorizontal: 24,
+            paddingTop: 16,
+            paddingBottom: Math.max(insets.bottom, 24),
+            backgroundColor: "rgba(9,9,11,0.96)",
+          }}>
           <Pressable
             onPress={() => { void handleEnable(); }}
             disabled={isEnabling}
             style={({ pressed }) => ({
-              backgroundColor: "#fff",
               borderRadius: 18,
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 56,
-              paddingHorizontal: 18,
-              paddingVertical: 14,
               marginBottom: 12,
               shadowColor: "#f59e0b",
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.22,
-              shadowRadius: 18,
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.38,
+              shadowRadius: 22,
+              elevation: 8,
               opacity: isEnabling ? 0.7 : pressed ? 0.88 : 1,
             })}>
-            {isEnabling ? (
-              <ActivityIndicator size="small" color="#000" />
-            ) : (
-              <View
-                style={{
-                  maxWidth: "100%",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                }}>
-                <Ionicons name="notifications" size={18} color="#000" />
-                <Text
-                  numberOfLines={2}
+            <View
+              style={{
+                minHeight: 56,
+                borderRadius: 18,
+                backgroundColor: "#f59e0b",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: 18,
+                paddingVertical: 14,
+              }}>
+              {isEnabling ? (
+                <ActivityIndicator size="small" color="#000" />
+              ) : (
+                <View
                   style={{
-                    flexShrink: 1,
-                    textAlign: "center",
-                    fontSize: 16,
-                    fontWeight: "800",
-                    color: "#000",
+                    maxWidth: "100%",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
                   }}>
-                  {t("onboarding.notification.ctaEnable")}
-                </Text>
-              </View>
-            )}
+                  <Ionicons name="notifications" size={18} color="#000" />
+                  <Text
+                    numberOfLines={2}
+                    style={{
+                      flexShrink: 1,
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "800",
+                      color: "#000",
+                    }}>
+                    {t("onboarding.notification.ctaEnable")}
+                  </Text>
+                </View>
+              )}
+            </View>
           </Pressable>
 
           <Pressable
