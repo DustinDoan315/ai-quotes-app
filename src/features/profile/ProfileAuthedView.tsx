@@ -167,7 +167,7 @@ export function ProfileAuthedView({
   };
 
   const avatarUrl = avatarUrlLocal ?? profile?.avatar_url ?? null;
-  const titleName = profile?.display_name || profile?.username || "Profile";
+  const titleName = profile?.display_name || profile?.username || t("profile.guestTitle");
 
   return (
     <View className="flex-1 bg-transparent">

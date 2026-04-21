@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 interface ProfileSignOutButtonProps {
@@ -6,6 +7,8 @@ interface ProfileSignOutButtonProps {
 }
 
 export function ProfileSignOutButton({ onPress }: ProfileSignOutButtonProps) {
+  const { t } = useTranslation();
+
   return (
     <Pressable
       onPress={onPress}
@@ -13,7 +16,7 @@ export function ProfileSignOutButton({ onPress }: ProfileSignOutButtonProps) {
       style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
       <View className="flex-row items-center justify-center gap-2">
         <Ionicons name="log-out-outline" size={17} color="#f87171" />
-        <Text className="text-base font-medium text-red-400">Sign out</Text>
+        <Text className="text-base font-medium text-red-400">{t("profile.signOutButton")}</Text>
       </View>
     </Pressable>
   );

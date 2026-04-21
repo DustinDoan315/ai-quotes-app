@@ -28,19 +28,21 @@ export function ProfileIdentityCard() {
       transition={{ type: "timing", duration: 400 }}
       className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
       <Text className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
-        Identity
+        {t("profile.identityLabel")}
       </Text>
       <Text className="text-base font-semibold text-white">{identityTitle}</Text>
       <View className="mt-2 flex-row gap-3">
         <View className="flex-row items-center gap-1">
           <Ionicons name="flame-outline" size={13} color="rgba(255,255,255,0.5)" />
           <Text className="text-xs text-white/55">
-            {currentStreak} day{currentStreak === 1 ? "" : "s"}
+            {t("profile.identityStreakDays", { count: currentStreak })}
           </Text>
         </View>
         <View className="flex-row items-center gap-1">
           <Ionicons name="images-outline" size={13} color="rgba(255,255,255,0.5)" />
-          <Text className="text-xs text-white/55">{memories.length} memories</Text>
+          <Text className="text-xs text-white/55">
+            {t("profile.identityMemories", { count: memories.length })}
+          </Text>
         </View>
       </View>
     </MotiView>

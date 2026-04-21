@@ -18,7 +18,7 @@ export function ProfilePhoneCard({
         <View className="flex-row items-center gap-1">
           <Ionicons name="shield-checkmark-outline" size={12} color="rgba(255,255,255,0.45)" />
           <Text className="text-xs font-medium uppercase tracking-wide text-white/50">
-            Phone
+            {t("profile.phoneLabel")}
           </Text>
         </View>
         <Text className="mt-0.5 text-sm text-white">{phoneDisplay}</Text>
