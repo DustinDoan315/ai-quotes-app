@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export type QuoteFontSize = "small" | "medium" | "large";
 export type QuoteColor = "light" | "amber" | "pink";
@@ -30,6 +31,7 @@ export function QuoteStyleControls({
   onChangeQuoteFontSize,
   onChangeQuoteColorScheme,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <View
       className="rounded-[20px] px-2 py-2"
@@ -44,7 +46,7 @@ export function QuoteStyleControls({
           className="w-[42%] rounded-[16px] px-2 py-1.5"
           style={{ backgroundColor: "rgba(255,255,255,0.03)" }}>
           <Text className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
-            Size
+            {t("home.quoteStyle.size")}
           </Text>
           <View className="flex-row items-center gap-2">
             {FONT_CONTROLS.map((control) => {
@@ -83,7 +85,7 @@ export function QuoteStyleControls({
           className="flex-1 rounded-[16px] px-2 py-1.5"
           style={{ backgroundColor: "rgba(255,255,255,0.03)" }}>
           <Text className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
-            Color
+            {t("home.quoteStyle.color")}
           </Text>
           <View className="flex-row items-center justify-center gap-2.5">
             {COLOR_CONTROLS.map((control) => {

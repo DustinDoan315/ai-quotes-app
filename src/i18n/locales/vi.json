@@ -14,7 +14,9 @@
     "success": {
       "quoteGenerated": "Đã tạo câu trích dẫn",
       "photoSaved": "Đã lưu ảnh"
-    }
+    },
+    "saveButton": "Lưu",
+    "savingButton": "Đang lưu"
   },
   "memories": {
     "title": "Kỷ niệm",
@@ -122,7 +124,11 @@
     },
     "replyPlaceholder": "Trả lời…",
     "sendButton": "Gửi",
-    "sendingButton": "Đang gửi…"
+    "sendingButton": "Đang gửi…",
+    "quoteStyle": {
+      "size": "Cỡ chữ",
+      "color": "Màu sắc"
+    }
   },
   "streak": {
     "modalTitle": "Chuỗi ngày của bạn",
@@ -270,7 +276,11 @@
     "signOutButton": "Đăng xuất",
     "editProfileButton": "Sửa",
     "saveProfileButton": "Lưu",
-    "cancelEditButton": "Hủy"
+    "cancelEditButton": "Hủy",
+    "guestTitle": "Hồ sơ",
+    "yourStyleLabel": "Phong cách của bạn",
+    "displayNameHint": "Tên hiển thị (lưu trên thiết bị này)",
+    "guestSignInHint": "Đăng nhập để lưu hồ sơ và mời bạn bè."
   },
   "auth": {
     "phoneNumberPlaceholder": "Số điện thoại"
@@ -346,7 +356,7 @@
       "title": "Đừng bỏ lỡ cảm xúc hàng ngày.",
       "subtitle": "Một thông báo. Câu trích dẫn của bạn, sẵn sàng khi bạn thức dậy.",
       "bullet1": "Nhận câu trích dẫn cá nhân hóa ngay khi thức dậy",
-      "bullet2": "Chọn giờ của bạn — chúng tôi sẽ xuất hiện đúng lúc, mỗi ngày",
+      "bullet2": "Đều đặn và yên tĩnh — xuất hiện cùng một khung giờ mỗi sáng",
       "bullet3": "Không spam. Chỉ một khoảnh khắc hàng ngày của bạn.",
       "ctaEnable": "Bật nhắc nhở hàng ngày",
       "ctaSkip": "Để sau",

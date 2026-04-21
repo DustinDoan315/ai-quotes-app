@@ -31,7 +31,11 @@
       "Bash(cp /tmp/claude-skill-aso-appstore-screenshots/device_frame.png ~/.claude/skills/aso-appstore-screenshots/)",
       "Bash(cp:*)",
       "Bash(pip install:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(curl:*)",
+      "Bash(mkdir -p /Users/dustin/.claude/skills)",
+      "Bash(cp /tmp/aso-appstore-screenshots-SKILL.md /Users/dustin/.claude/skills/aso-appstore-screenshots.md)"
     ]
   }
 }

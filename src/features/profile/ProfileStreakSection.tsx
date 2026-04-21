@@ -3,8 +3,10 @@ import { getStreakTier, STREAK_MILESTONES } from "@/utils/streakMilestones";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export function ProfileStreakSection() {
+  const { t } = useTranslation();
   const currentStreak = useStreakStore((s) => getDisplayStreak(s));
   const longestStreak = useStreakStore((s) => s.longestStreak);
   const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
@@ -41,7 +43,7 @@ export function ProfileStreakSection() {
   return (
     <View className="mb-6">
       <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
-        Streak
+        {t("profile.streakLabel")}
       </Text>
       <View className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
         {/* Current streak row */}
@@ -53,14 +55,14 @@ export function ProfileStreakSection() {
             <Text className="text-2xl font-bold text-white">
               {currentStreak}{" "}
               <Text className="text-base font-normal text-white/60">
-                {currentStreak === 1 ? "day" : "days"}
+                {t("profile.streakDayCount", { count: currentStreak })}
               </Text>
             </Text>
-            <Text className="mt-0.5 text-xs text-white/50">Current streak</Text>
+            <Text className="mt-0.5 text-xs text-white/50">{t("profile.streakCurrentLabel")}</Text>
           </View>
           <View className="items-end">
             <Text className="text-lg font-bold text-white">{longestStreak}</Text>
-            <Text className="mt-0.5 text-xs text-white/50">Longest</Text>
+            <Text className="mt-0.5 text-xs text-white/50">{t("profile.streakLongestLabel")}</Text>
           </View>
         </View>
 
@@ -70,16 +72,16 @@ export function ProfileStreakSection() {
         {/* Last quote + next milestone */}
         <View className="flex-row px-4 py-3">
           <View className="flex-1">
-            <Text className="text-xs text-white/50">Last quote</Text>
+            <Text className="text-xs text-white/50">{t("profile.streakLastQuoteLabel")}</Text>
             <Text className="mt-0.5 text-sm font-medium text-white/80">
               {lastDateLabel}
             </Text>
           </View>
           {nextMilestone !== null ? (
             <View className="flex-1 items-end">
-              <Text className="text-xs text-white/50">Next milestone</Text>
+              <Text className="text-xs text-white/50">{t("profile.streakNextMilestoneLabel")}</Text>
               <Text className="mt-0.5 text-sm font-medium text-white/80">
-                {nextMilestone} days
+                {t("profile.streakMilestoneDays", { count: nextMilestone })}
               </Text>
             </View>
           ) : null}

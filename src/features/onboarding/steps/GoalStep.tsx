@@ -41,7 +41,7 @@ const GOAL_GRADIENTS: Record<OnboardingGoal, HomeBackgroundPalette> = {
 };
 
 type Props = {
-  onContinue: () => void;
+  onContinue: (goal: OnboardingGoal) => void;
 };
 
 export function GoalStep({ onContinue }: Props) {
@@ -134,7 +134,7 @@ export function GoalStep({ onContinue }: Props) {
           }}
           className="px-6 pt-4">
           <Pressable
-            onPress={() => selected && onContinue()}
+            onPress={() => selected && onContinue(selected)}
             disabled={!selected}
             className={`rounded-2xl py-4 ${selected ? "bg-white" : "bg-white/20"}`}
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>

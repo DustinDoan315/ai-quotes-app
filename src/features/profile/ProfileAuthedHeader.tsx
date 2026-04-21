@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { AnimatePresence, MotiView } from "moti";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface ProfileAuthedHeaderProps {
   titleName: string;
@@ -23,6 +24,7 @@ export function ProfileAuthedHeader({
   onSave,
   onStartEdit,
 }: ProfileAuthedHeaderProps) {
+  const { t } = useTranslation();
   return (
     <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
       <View className="min-w-0 flex-1 flex-row items-center">
@@ -53,7 +55,7 @@ export function ProfileAuthedHeader({
                 onPress={onCancelEdit}
                 disabled={saving}
                 style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                <Text className="text-base text-white/60">Cancel</Text>
+                <Text className="text-base text-white/60">{t("profile.cancelEditButton")}</Text>
               </Pressable>
               <Pressable
                 onPress={onSave}
@@ -64,7 +66,7 @@ export function ProfileAuthedHeader({
                 {saving ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text className="text-base font-medium text-white">Save</Text>
+                  <Text className="text-base font-medium text-white">{t("profile.saveProfileButton")}</Text>
                 )}
               </Pressable>
             </MotiView>
@@ -78,7 +80,7 @@ export function ProfileAuthedHeader({
               <Pressable
                 onPress={onStartEdit}
                 style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-                <Text className="text-base text-white/80">Edit</Text>
+                <Text className="text-base text-white/80">{t("profile.editProfileButton")}</Text>
               </Pressable>
             </MotiView>
           )}

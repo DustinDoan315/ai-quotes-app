@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 interface CameraActionsBarProps {
   onGenerate: () => void;
@@ -26,6 +27,7 @@ export function CameraActionsBar({
   canSave,
   isSaving,
 }: CameraActionsBarProps) {
+  const { t } = useTranslation();
   return (
     <View className="flex-row items-center justify-center gap-10">
       <View className="w-20 items-center">
@@ -51,11 +53,11 @@ export function CameraActionsBar({
               <>
                 <ActivityIndicator size="small" color="#ffffff" />
                 <Text className="ml-2 text-sm font-semibold text-white">
-                  Saving
+                  {t("camera.savingButton")}
                 </Text>
               </>
             ) : (
-              <Text className="text-sm font-semibold text-white">Save</Text>
+              <Text className="text-sm font-semibold text-white">{t("camera.saveButton")}</Text>
             )}
           </Pressable>
         ) : (

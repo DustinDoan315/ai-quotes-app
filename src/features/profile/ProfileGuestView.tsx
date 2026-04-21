@@ -32,7 +32,7 @@ export function ProfileGuestView({
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Ionicons name="chevron-back" size={22} color="#fff" />
         </Pressable>
-        <Text className="text-lg font-semibold text-white">Profile</Text>
+        <Text className="text-lg font-semibold text-white">{t("profile.guestTitle")}</Text>
         <View className="h-10 w-10" />
       </View>
 
@@ -41,7 +41,7 @@ export function ProfileGuestView({
         {persona ? (
           <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
             <Text className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
-              Your style
+              {t("profile.yourStyleLabel")}
             </Text>
             <Text className="text-sm leading-5 text-white/85">
               {persona.traits?.length
@@ -57,7 +57,7 @@ export function ProfileGuestView({
 
         <View className="mb-6">
           <Text className="mb-2 text-sm font-medium text-white/70">
-            Display name (saved on this device)
+            {t("profile.displayNameHint")}
           </Text>
           <TextInput
             value={guestDisplayName ?? ""}
@@ -73,19 +73,19 @@ export function ProfileGuestView({
           className="mb-3 rounded-2xl bg-white py-3.5"
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
           <Text className="text-center text-base font-semibold text-black">
-            Sign in with phone
+            {t("friends.signInButton")}
           </Text>
         </Pressable>
 
         <Text className="mb-4 text-center text-xs text-white/50">
-          Sign in to save your profile and invite friends.
+          {t("profile.guestSignInHint")}
         </Text>
 
         <Pressable
           onPress={onInviteFriends}
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
           <Text className="text-center text-sm text-white/70">
-            Invite friends
+            {t("friends.inviteButtonLabel")}
           </Text>
         </Pressable>
 
