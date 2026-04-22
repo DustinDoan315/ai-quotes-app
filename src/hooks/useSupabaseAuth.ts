@@ -71,6 +71,7 @@ export function useAuth(): UseAuthReturn {
       await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
+      if (userProfile) useUserStore.getState().setProfile(userProfile);
       setUser(newUser);
       setSession(newSession);
     }
@@ -83,6 +84,7 @@ export function useAuth(): UseAuthReturn {
       await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
+      if (userProfile) useUserStore.getState().setProfile(userProfile);
       setUser(newUser);
       setSession(newSession);
     }
