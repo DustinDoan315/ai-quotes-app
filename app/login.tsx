@@ -70,6 +70,7 @@ export default function LoginScreen() {
   };
 
   const handleAppleSignIn = async () => {
+    if (isBusy) return;
     setError(null);
     setLoadingApple(true);
     try {
