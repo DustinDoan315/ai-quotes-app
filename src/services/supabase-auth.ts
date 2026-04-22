@@ -52,7 +52,7 @@ export async function signInWithGoogle(idToken: string): Promise<{
     provider: "google",
     token: idToken,
   });
-  return { user: data.user ?? null, session: data.session ?? null, error };
+  return { user: data.user, session: data.session, error };
 }
 
 export async function signInWithApple(identityToken: string): Promise<{
@@ -64,7 +64,7 @@ export async function signInWithApple(identityToken: string): Promise<{
     provider: "apple",
     token: identityToken,
   });
-  return { user: data.user ?? null, session: data.session ?? null, error };
+  return { user: data.user, session: data.session, error };
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {
