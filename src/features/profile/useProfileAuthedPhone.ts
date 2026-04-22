@@ -1,42 +1,30 @@
 import { getCurrentUser } from "@/services/supabase-auth";
 import { useEffect, useState } from "react";
 
+/** Returns a human-readable label for the social provider the user signed in with. */
 export function useProfileAuthedPhone() {
-  const [phoneDisplay, setPhoneDisplay] = useState<string | null>(null);
-  const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
+  const [authProvider, setAuthProvider] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const loadPhone = async () => {
+    const load = async () => {
       const user = await getCurrentUser();
-      if (!user || cancelled) {
-        setPhoneDisplay(null);
-        setPhoneVerified(null);
+      if (!user || cancelled) return;
+      const provider = (user.app_metadata?.provider as string | undefined) ?? null;
+      if (!provider || provider === "anonymous") {
+        setAuthProvider(null);
         return;
       }
-      const raw = (user.phone ?? "").trim();
-      if (!raw) {
-        setPhoneDisplay(null);
-        setPhoneVerified(null);
-        return;
-      }
-      const last4 = raw.slice(-4);
-      const masked =
-        raw.startsWith("+") && raw.length > 4
-          ? `+*** *** ${last4}`
-          : `*** *** ${last4}`;
-      setPhoneDisplay(masked);
-      setPhoneVerified(
-        Boolean(
-          (user as { phone_confirmed_at?: string | null }).phone_confirmed_at,
-        ),
-      );
+      const label =
+        provider === "google" ? "Google" :
+        provider === "apple" ? "Apple" :
+        provider;
+      setAuthProvider(label);
     };
-    loadPhone();
-    return () => {
-      cancelled = true;
-    };
+    load();
+    return () => { cancelled = true; };
   }, []);
 
-  return { phoneDisplay, phoneVerified };
+  // Keep the same return shape so ProfileAuthedView needs no change
+  return { phoneDisplay: authProvider ? `Signed in with ${authProvider}` : null, phoneVerified: true };
 }
