@@ -16,10 +16,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
 
-// Replace with your iOS client ID from Google Cloud Console
-const IOS_CLIENT_ID = "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com";
-// Replace with your Web client ID from Google Cloud Console (same one pasted in Supabase)
-const WEB_CLIENT_ID = "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com";
+const IOS_CLIENT_ID = "744209131746-b05bu8ei1gqsa7s62b8ve4v2re3n3dsd.apps.googleusercontent.com";
+const WEB_CLIENT_ID = "744209131746-c948eqrvvencbe2ijqu5qjtf4f5m39li.apps.googleusercontent.com";
 
 GoogleSignin.configure({
   iosClientId: IOS_CLIENT_ID,
