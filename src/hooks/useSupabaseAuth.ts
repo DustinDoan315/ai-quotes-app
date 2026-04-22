@@ -3,12 +3,10 @@ import { syncUserProfile } from "@/features/auth/authService";
 import { supabase } from "@/config/supabase";
 import {
   getCurrentUserProfile,
-  signIn,
-  signInWithPhoneOtp as signInWithPhoneOtpApi,
+  signInWithGoogle as signInWithGoogleApi,
+  signInWithApple as signInWithAppleApi,
   signOut,
-  signUp,
   updateUserProfile,
-  verifyPhoneOtp as verifyPhoneOtpApi,
   type UserProfile,
 } from "@/services/supabase-auth";
 import type { Session, User } from "@supabase/supabase-js";
@@ -19,15 +17,9 @@ export interface UseAuthReturn {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (
-    email: string,
-    password: string,
-    metadata?: { username?: string; display_name?: string },
-  ) => Promise<{ error: unknown }>;
-  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signInWithGoogle: (idToken: string) => Promise<{ error: unknown }>;
+  signInWithApple: (identityToken: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<{ error: unknown }>;
-  signInWithPhoneOtp: (phone: string) => Promise<{ error: unknown }>;
-  verifyPhoneOtp: (phone: string, token: string) => Promise<{ error: unknown }>;
   updateProfile: (updates: {
     username?: string;
     display_name?: string;
@@ -73,17 +65,29 @@ export function useAuth(): UseAuthReturn {
     }
   }, [user, profile]);
 
-  const handleSignUp = async (
-    email: string,
-    password: string,
-    metadata?: { username?: string; display_name?: string },
-  ) => {
-    const { error } = await signUp(email, password, metadata);
+  const handleSignInWithGoogle = async (idToken: string) => {
+    const { user: newUser, session: newSession, error } = await signInWithGoogleApi(idToken);
+    if (!error && newSession && newUser) {
+      await syncUserProfile(newUser);
+      const userProfile = await getCurrentUserProfile();
+      setProfile(userProfile);
+      if (userProfile) useUserStore.getState().setProfile(userProfile);
+      setUser(newUser);
+      setSession(newSession);
+    }
     return { error };
   };
 
-  const handleSignIn = async (email: string, password: string) => {
-    const { error } = await signIn(email, password);
+  const handleSignInWithApple = async (identityToken: string) => {
+    const { user: newUser, session: newSession, error } = await signInWithAppleApi(identityToken);
+    if (!error && newSession && newUser) {
+      await syncUserProfile(newUser);
+      const userProfile = await getCurrentUserProfile();
+      setProfile(userProfile);
+      if (userProfile) useUserStore.getState().setProfile(userProfile);
+      setUser(newUser);
+      setSession(newSession);
+    }
     return { error };
   };
 
@@ -92,23 +96,6 @@ export function useAuth(): UseAuthReturn {
     setProfile(null);
     if (!error) {
       await syncUserProfile(null);
-    }
-    return { error };
-  };
-
-  const handleSignInWithPhoneOtp = async (phone: string) => {
-    const { error } = await signInWithPhoneOtpApi(phone);
-    return { error };
-  };
-
-  const handleVerifyPhoneOtp = async (phone: string, token: string) => {
-    const { session: newSession, user: newUser, error } = await verifyPhoneOtpApi(phone, token);
-    if (!error && newSession && newUser) {
-      await syncUserProfile(newUser);
-      const userProfile = await getCurrentUserProfile();
-      setProfile(userProfile);
-      setUser(newUser);
-      setSession(newSession);
     }
     return { error };
   };
@@ -144,13 +131,10 @@ export function useAuth(): UseAuthReturn {
     session,
     profile,
     loading,
-    signUp: handleSignUp,
-    signIn: handleSignIn,
+    signInWithGoogle: handleSignInWithGoogle,
+    signInWithApple: handleSignInWithApple,
     signOut: handleSignOut,
-    signInWithPhoneOtp: handleSignInWithPhoneOtp,
-    verifyPhoneOtp: handleVerifyPhoneOtp,
     updateProfile: handleUpdateProfile,
     refreshProfile,
   };
 }
-

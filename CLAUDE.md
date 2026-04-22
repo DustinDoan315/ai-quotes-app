@@ -99,7 +99,7 @@ Copy `.env.example` to `.env` and fill in:
 - Do not change AI request/response shapes without updating `docs/ai-api-contract.md`.
 
 ### Auth
-- Phone OTP via Supabase Auth
+- Google and Apple OAuth via Supabase Auth (signInWithIdToken)
 - Logic: `src/features/auth/`, `src/services/supabase-auth.ts`, `src/hooks/useSupabaseAuth.ts`
 - Do not put auth state logic inside route files.
 

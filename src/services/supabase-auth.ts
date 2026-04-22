@@ -43,17 +43,28 @@ export async function signInAnonymously(): Promise<{
   return { user: data.user, session: data.session, error };
 }
 
-export async function signInWithPhoneOtp(phone: string): Promise<{ error: AuthError | null }> {
-  const { error } = await supabase.auth.signInWithOtp({ phone });
-  return { error };
+export async function signInWithGoogle(idToken: string): Promise<{
+  user: User | null;
+  session: Session | null;
+  error: AuthError | null;
+}> {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "google",
+    token: idToken,
+  });
+  return { user: data.user, session: data.session, error };
 }
 
-export async function verifyPhoneOtp(
-  phone: string,
-  token: string,
-): Promise<{ session: Session | null; user: User | null; error: AuthError | null }> {
-  const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: "sms" });
-  return { session: data.session ?? null, user: data.user ?? null, error };
+export async function signInWithApple(identityToken: string): Promise<{
+  user: User | null;
+  session: Session | null;
+  error: AuthError | null;
+}> {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "apple",
+    token: identityToken,
+  });
+  return { user: data.user, session: data.session, error };
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {
