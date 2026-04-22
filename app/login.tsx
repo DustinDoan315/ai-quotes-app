@@ -16,8 +16,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
 
-const IOS_CLIENT_ID = "REMOVED_IOS_CLIENT_ID.apps.googleusercontent.com";
-const WEB_CLIENT_ID = "REMOVED_WEB_CLIENT_ID.apps.googleusercontent.com";
+const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
+const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
 
 GoogleSignin.configure({
   iosClientId: IOS_CLIENT_ID,
