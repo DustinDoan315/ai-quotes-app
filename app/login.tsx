@@ -38,6 +38,7 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
+    if (isBusy) return;
     setError(null);
     setLoadingGoogle(true);
     try {
