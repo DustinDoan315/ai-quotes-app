@@ -3,14 +3,13 @@ import { syncUserProfile } from "@/features/auth/authService";
 import { supabase } from "@/config/supabase";
 import {
   getCurrentUserProfile,
-  getOAuthSignInUrl,
+  signInWithGoogle as signInWithGoogleApi,
+  signInWithApple as signInWithAppleApi,
   signOut,
   updateUserProfile,
   type UserProfile,
 } from "@/services/supabase-auth";
 import type { Session, User } from "@supabase/supabase-js";
-import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 
 export interface UseAuthReturn {
@@ -18,7 +17,8 @@ export interface UseAuthReturn {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signInWithOAuth: (provider: "google" | "apple") => Promise<{ error: unknown }>;
+  signInWithGoogle: (idToken: string, nonce?: string) => Promise<{ error: unknown }>;
+  signInWithApple: (identityToken: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<{ error: unknown }>;
   updateProfile: (updates: {
     username?: string;
@@ -38,7 +38,6 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        // Stale or revoked refresh token — clear it so the user lands on the sign-in screen
         supabase.auth.signOut();
         setLoading(false);
         return;
@@ -71,22 +70,30 @@ export function useAuth(): UseAuthReturn {
     }
   }, [user, profile]);
 
-  const handleSignInWithOAuth = async (provider: "google" | "apple") => {
-    const redirectTo = Linking.createURL("/auth/callback");
-    const { url, error: urlError } = await getOAuthSignInUrl(provider, redirectTo);
-    if (urlError || !url) return { error: urlError ?? new Error("No OAuth URL") };
-
-    const result = await WebBrowser.openAuthSessionAsync(url, redirectTo);
-    if (result.type !== "success") return { error: null };
-
-    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(result.url);
-    if (!sessionError && sessionData?.session && sessionData?.user) {
-      await syncUserProfile(sessionData.user);
+  const handleSignInWithGoogle = async (idToken: string, nonce?: string) => {
+    const { user: newUser, session: newSession, error } = await signInWithGoogleApi(idToken, nonce);
+    if (!error && newSession && newUser) {
+      await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
+      setUser(newUser);
+      setSession(newSession);
       if (userProfile) useUserStore.getState().setProfile(userProfile);
     }
-    return { error: sessionError };
+    return { error };
+  };
+
+  const handleSignInWithApple = async (identityToken: string) => {
+    const { user: newUser, session: newSession, error } = await signInWithAppleApi(identityToken);
+    if (!error && newSession && newUser) {
+      await syncUserProfile(newUser);
+      const userProfile = await getCurrentUserProfile();
+      setProfile(userProfile);
+      setUser(newUser);
+      setSession(newSession);
+      if (userProfile) useUserStore.getState().setProfile(userProfile);
+    }
+    return { error };
   };
 
   const handleSignOut = async () => {
@@ -129,7 +136,8 @@ export function useAuth(): UseAuthReturn {
     session,
     profile,
     loading,
-    signInWithOAuth: handleSignInWithOAuth,
+    signInWithGoogle: handleSignInWithGoogle,
+    signInWithApple: handleSignInWithApple,
     signOut: handleSignOut,
     updateProfile: handleUpdateProfile,
     refreshProfile,

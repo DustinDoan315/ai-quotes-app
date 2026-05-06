@@ -43,15 +43,29 @@ export async function signInAnonymously(): Promise<{
   return { user: data.user, session: data.session, error };
 }
 
-export async function getOAuthSignInUrl(
-  provider: "google" | "apple",
-  redirectTo: string,
-): Promise<{ url: string | null; error: AuthError | null }> {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: { redirectTo, skipBrowserRedirect: true },
+export async function signInWithGoogle(idToken: string, nonce?: string): Promise<{
+  user: User | null;
+  session: Session | null;
+  error: AuthError | null;
+}> {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "google",
+    token: idToken,
+    nonce,
   });
-  return { url: data.url ?? null, error };
+  return { user: data.user ?? null, session: data.session ?? null, error };
+}
+
+export async function signInWithApple(identityToken: string): Promise<{
+  user: User | null;
+  session: Session | null;
+  error: AuthError | null;
+}> {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "apple",
+    token: identityToken,
+  });
+  return { user: data.user ?? null, session: data.session ?? null, error };
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {

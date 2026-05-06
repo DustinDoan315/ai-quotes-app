@@ -1,4 +1,7 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import * as Crypto from "expo-crypto";
+import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -10,34 +13,92 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
-import { AntDesign } from "@expo/vector-icons";
+
+GoogleSignin.configure({
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  scopes: ["profile", "email"],
+});
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ returnTo?: string }>();
   const returnTo = params.returnTo ?? "/(tabs)";
-  const { signInWithOAuth } = useAuth();
-  const [loadingProvider, setLoadingProvider] = useState<"google" | "apple" | null>(null);
+  const { signInWithGoogle, signInWithApple } = useAuth();
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [loadingApple, setLoadingApple] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isBusy = loadingProvider !== null;
+  const isBusy = loadingGoogle || loadingApple;
 
-  const handleOAuthSignIn = async (provider: "google" | "apple") => {
-    if (isBusy) return;
+  const handleGoogleSignIn = async () => {
     setError(null);
-    setLoadingProvider(provider);
+    setLoadingGoogle(true);
     try {
-      const { error: authError } = await signInWithOAuth(provider);
+      await GoogleSignin.hasPlayServices();
+      const rawNonce = Crypto.randomUUID();
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce,
+      );
+      await GoogleSignin.signIn({ nonce: hashedNonce });
+      const tokens = await GoogleSignin.getTokens();
+      const idToken = tokens.idToken;
+      if (!idToken) {
+        setError("Google sign-in failed. Please try again.");
+        return;
+      }
+      const { error: authError } = await signInWithGoogle(idToken, rawNonce);
       if (authError) {
         setError("Sign-in failed. Please try again.");
         return;
       }
       router.replace(returnTo as never);
-    } catch {
-      setError("Sign-in failed. Please try again.");
+    } catch (err: unknown) {
+      const e = err as { code?: string };
+      if (e?.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled — no error shown
+      } else if (e?.code === statusCodes.IN_PROGRESS) {
+        // already in progress — ignore
+      } else {
+        setError("Google sign-in failed. Please try again.");
+      }
     } finally {
-      setLoadingProvider(null);
+      setLoadingGoogle(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setError(null);
+    setLoadingApple(true);
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      const identityToken = credential.identityToken;
+      if (!identityToken) {
+        setError("Apple sign-in failed. Please try again.");
+        return;
+      }
+      const { error: authError } = await signInWithApple(identityToken);
+      if (authError) {
+        setError("Sign-in failed. Please try again.");
+        return;
+      }
+      router.replace(returnTo as never);
+    } catch (err: unknown) {
+      const e = err as { code?: string };
+      if (e?.code === "ERR_REQUEST_CANCELED") {
+        // user cancelled — no error shown
+      } else {
+        setError("Apple sign-in failed. Please try again.");
+      }
+    } finally {
+      setLoadingApple(false);
     }
   };
 
@@ -64,38 +125,26 @@ export default function LoginScreen() {
           </Text>
 
           {Platform.OS === "ios" && (
-            <Pressable
-              onPress={() => handleOAuthSignIn("apple")}
-              disabled={isBusy}
-              className="mt-5 flex-row items-center justify-center gap-2 rounded-2xl bg-white py-3.5"
-              style={({ pressed }) => ({ opacity: isBusy ? 0.5 : pressed ? 0.8 : 1 })}>
-              {loadingProvider === "apple" ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <>
-                  <AntDesign name="apple1" size={18} color="#000" />
-                  <Text className="text-base font-semibold text-black">
-                    Sign in with Apple
-                  </Text>
-                </>
-              )}
-            </Pressable>
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+              cornerRadius={16}
+              style={{ width: "100%", height: 50, marginTop: 20 }}
+              onPress={handleAppleSignIn}
+            />
           )}
 
           <Pressable
-            onPress={() => handleOAuthSignIn("google")}
+            onPress={handleGoogleSignIn}
             disabled={isBusy}
             className="mt-3 flex-row items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 py-3.5"
             style={({ pressed }) => ({ opacity: isBusy ? 0.5 : pressed ? 0.8 : 1 })}>
-            {loadingProvider === "google" ? (
+            {loadingGoogle ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <>
-                <AntDesign name="google" size={18} color="#fff" />
-                <Text className="text-base font-semibold text-white">
-                  Sign in with Google
-                </Text>
-              </>
+              <Text className="text-base font-semibold text-white">
+                Sign in with Google
+              </Text>
             )}
           </Pressable>
 
