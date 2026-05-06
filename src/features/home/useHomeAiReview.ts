@@ -39,7 +39,7 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
       return;
     }
     setAiResult(null);
-    setSelectedAiTool((current) => current ?? "calm");
+    setSelectedAiTool(null);
     setPendingAiTool(null);
   }, [dailyQuoteText]);
 
@@ -77,7 +77,7 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
 
   function handleCancelFutureQuote() {
     setFutureReviewText(null);
-    setSelectedAiTool((current) => (current === "future" ? "calm" : current));
+    setSelectedAiTool((current) => (current === "future" ? null : current));
   }
 
   async function handleRewriteQuote(tone: RewriteTone) {

@@ -23,7 +23,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Pressable,
   Text,
   View,
 } from "react-native";
@@ -220,20 +219,6 @@ export default function HomeScreen() {
     );
   }
 
-  if (!isGranted) {
-    return (
-      <View className="flex-1 items-center justify-center bg-transparent px-8">
-        <Text className="mb-4 text-center text-white">
-          {t("home.cameraPermissionRequired")}
-        </Text>
-        <Pressable
-          onPress={requestPermission}
-          className="rounded-full bg-white px-6 py-3">
-          <Text className="font-semibold text-black">Allow camera</Text>
-        </Pressable>
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1">
@@ -259,7 +244,6 @@ export default function HomeScreen() {
         currentFeedIndex={currentFeedIndex}
         isOnFeed={isOnFeed}
         onActiveQuoteIdChange={setActiveQuoteId}
-        onGeneratePress={handleCameraButtonPress}
         header={
           <HomeCaptureFlow
             viewportHeight={viewportHeight}

@@ -8,6 +8,7 @@ export type Quote = {
   text: string;
   author?: string;
   personaId?: string;
+  language?: 'vi' | 'en';
   createdAt: number;
   imageUrl?: string;
   fontSize?: 'small' | 'medium' | 'large';
@@ -73,12 +74,21 @@ export const useQuoteStore = create<QuoteState>()(
     }),
     {
       name: "quote-storage",
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         dailyQuote: state.dailyQuote,
         savedQuotes: state.savedQuotes,
         recentQuoteIds: state.recentQuoteIds,
       }),
+      migrate: (persistedState) => {
+        const s = persistedState as Partial<Pick<QuoteState, 'dailyQuote' | 'savedQuotes' | 'recentQuoteIds'>>;
+        // Drop any cached quote with no language stamp (old English quotes).
+        if (s.dailyQuote && !s.dailyQuote.language) {
+          s.dailyQuote = null;
+        }
+        return s;
+      },
     },
   ),
 );

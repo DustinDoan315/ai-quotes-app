@@ -1,6 +1,7 @@
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { ScreenshotSeeder } from "@/features/dev/ScreenshotSeeder";
 import { ProfileAuthedHeader } from "@/features/profile/ProfileAuthedHeader";
 import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
@@ -251,6 +252,7 @@ export function ProfileAuthedView({
         <ProfileAuthedSettingsSections />
 
         <ProfileSignOutButton onPress={handleSignOut} />
+        {__DEV__ && <ScreenshotSeeder />}
       </ScrollView>
     </View>
   );

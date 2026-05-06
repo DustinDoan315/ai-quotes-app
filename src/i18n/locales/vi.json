@@ -256,7 +256,7 @@
     "failedToSignOut": "Không thể đăng xuất",
     "personalizedQuotes": "Câu trích dẫn cá nhân hóa",
     "addAName": "Thêm tên",
-    "phoneLabel": "Số điện thoại",
+    "phoneLabel": "Tài khoản",
     "phoneVerified": "Đã xác minh",
     "phoneNotVerified": "Chưa xác minh",
     "identityDisciplined": "Người Kỷ Luật",
@@ -288,7 +288,7 @@
   "friends": {
     "title": "Bạn bè",
     "signInPrompt": "Đăng nhập để thêm và mời bạn bè.",
-    "signInButton": "Đăng nhập bằng số điện thoại",
+    "signInButton": "Đăng nhập",
     "inviteSectionTitle": "Mời bạn bè",
     "inviteSectionBody": "Chia sẻ link của bạn để bạn bè có thể thêm bạn và trao đổi câu trích dẫn.",
     "shareLinkButton": "Chia sẻ link",

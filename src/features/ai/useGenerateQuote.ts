@@ -117,6 +117,7 @@ export const useGenerateQuote = () => {
         id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
         text: response.quote,
         personaId: effectivePersonaId,
+        language: (quoteLanguage ?? "vi") as "vi" | "en",
         createdAt: Date.now(),
       };
 

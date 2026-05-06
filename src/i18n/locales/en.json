@@ -256,7 +256,7 @@
     "failedToSignOut": "Failed to sign out",
     "personalizedQuotes": "Personalized quotes",
     "addAName": "Add a name",
-    "phoneLabel": "Phone",
+    "phoneLabel": "Account",
     "phoneVerified": "Verified",
     "phoneNotVerified": "Not verified",
     "identityDisciplined": "The Disciplined One",
@@ -288,7 +288,7 @@
   "friends": {
     "title": "Friends",
     "signInPrompt": "Sign in to add and invite friends.",
-    "signInButton": "Sign in with phone",
+    "signInButton": "Sign in",
     "inviteSectionTitle": "Invite friends",
     "inviteSectionBody": "Share your link so friends can add you and trade quotes.",
     "shareLinkButton": "Share link",

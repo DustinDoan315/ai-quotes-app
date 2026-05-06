@@ -35,7 +35,11 @@
       "Bash(echo \"Exit code: $?\")",
       "Bash(curl:*)",
       "Bash(mkdir -p /Users/dustin/.claude/skills)",
-      "Bash(cp /tmp/aso-appstore-screenshots-SKILL.md /Users/dustin/.claude/skills/aso-appstore-screenshots.md)"
+      "Bash(cp /tmp/aso-appstore-screenshots-SKILL.md /Users/dustin/.claude/skills/aso-appstore-screenshots.md)",
+      "Bash(GEMINI_API_KEY=\"AIzaSyBukAn7-nxV4v9hMZeHaM6yk-8kskoB4xA\" /Users/dustin/.nvm/versions/node/v20.19.6/bin/gemini-mcp)",
+      "Bash(open:*)",
+      "Skill(update-config)",
+      "Bash(npx expo:*)"
     ]
   }
 }

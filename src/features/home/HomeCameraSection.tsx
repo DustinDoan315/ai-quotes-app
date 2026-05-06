@@ -710,7 +710,7 @@ export const HomeCameraSection = ({
       </View>
 
       <View className="items-center">
-        {dailyQuoteText && !hideQuote ? (
+        {dailyQuoteText && !hideQuote && selectedImageUri ? (
           <View className="my-3 w-full max-w-md self-center">
             <QuoteStyleControls
               quoteFontSize={quoteFontSize}
