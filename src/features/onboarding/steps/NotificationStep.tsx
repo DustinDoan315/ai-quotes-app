@@ -1,39 +1,57 @@
 import { useReminderStore } from "@/appState/reminderStore";
 import { useUIStore } from "@/appState/uiStore";
+import { HomeBackground } from "@/features/home/HomeBackground";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
+import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { MotiView } from "moti";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Props = {
-  onContinue: () => void;
+const DAWN_PALETTE = HOME_BACKGROUNDS[0]; // dawn — purple/orange
+
+type SlotId = "predawn" | "morning" | "midday" | "evening";
+
+type TimeSlot = {
+  id: SlotId;
+  hour: number;
+  minute: number;
+  icon: "moon-outline" | "sunny-outline" | "partly-sunny-outline" | "moon";
 };
 
-const BULLETS: { icon: "sunny-outline" | "alarm-outline" | "ban-outline"; key: string }[] = [
-  { icon: "sunny-outline", key: "bullet1" },
-  { icon: "alarm-outline", key: "bullet2" },
-  { icon: "ban-outline", key: "bullet3" },
+const TIME_SLOTS: TimeSlot[] = [
+  { id: "predawn", hour: 6, minute: 0, icon: "moon-outline" },
+  { id: "morning", hour: 8, minute: 30, icon: "sunny-outline" },
+  { id: "midday", hour: 12, minute: 30, icon: "partly-sunny-outline" },
+  { id: "evening", hour: 20, minute: 0, icon: "moon" },
 ];
 
-function NotificationPreview() {
+function NotificationPreview({ time }: { time: string }) {
   const { t } = useTranslation();
   return (
     <MotiView
       from={{ opacity: 0, translateY: 8 }}
       animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: "timing", duration: 400, delay: 300 }}
+      transition={{ type: "timing", duration: 380, delay: 200 }}
       style={{
         borderRadius: 18,
         overflow: "hidden",
-        backgroundColor: "rgba(255,255,255,0.08)",
+        backgroundColor: "rgba(255,255,255,0.07)",
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.12)",
-        marginBottom: 28,
+        marginBottom: 24,
       }}>
-      {/* Notification chrome bar */}
       <View
         style={{
           flexDirection: "row",
@@ -43,7 +61,6 @@ function NotificationPreview() {
           paddingTop: 12,
           paddingBottom: 6,
         }}>
-        {/* App icon badge */}
         <View
           style={{
             width: 28,
@@ -58,59 +75,42 @@ function NotificationPreview() {
             resizeMode="cover"
           />
         </View>
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 12,
-            fontWeight: "700",
-            color: "rgba(255,255,255,0.85)",
-          }}>
+        <Text style={{ flex: 1, fontSize: 12, fontWeight: "700", color: "rgba(255,255,255,0.85)" }}>
           {t("onboarding.notification.previewAppName")}
         </Text>
-        <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
-          {t("onboarding.notification.previewTime")}
-        </Text>
+        <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{time}</Text>
       </View>
-
-      {/* Notification body */}
       <View style={{ paddingHorizontal: 14, paddingBottom: 14, gap: 2 }}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "700",
-            color: "#fff",
-            lineHeight: 20,
-          }}>
+        <Text style={{ fontSize: 14, fontWeight: "700", color: "#fff", lineHeight: 20 }}>
           {t("onboarding.notification.previewTitle")}
         </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            color: "rgba(255,255,255,0.55)",
-            lineHeight: 18,
-          }}>
+        <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 18 }}>
           {t("onboarding.notification.previewBody")}
         </Text>
       </View>
-
-      {/* Amber accent bottom line */}
-      <View
-        style={{
-          height: 2,
-          backgroundColor: "#f59e0b",
-          opacity: 0.6,
-        }}
-      />
+      <View style={{ height: 2, backgroundColor: "#6d28d9", opacity: 0.6 }} />
     </MotiView>
   );
 }
+
+type Props = {
+  onContinue: () => void;
+};
 
 export function NotificationStep({ onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const enableReminder = useReminderStore((s) => s.enableReminder);
+  const setReminderTime = useReminderStore((s) => s.setReminderTime);
   const showToast = useUIStore((s) => s.showToast);
+  const [selectedSlot, setSelectedSlot] = useState<SlotId>("morning");
   const [isEnabling, setIsEnabling] = useState(false);
+
+  function handleSlotSelect(slot: TimeSlot) {
+    setSelectedSlot(slot.id);
+    void setReminderTime(slot.hour, slot.minute);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
 
   async function handleEnable() {
     setIsEnabling(true);
@@ -128,62 +128,51 @@ export function NotificationStep({ onContinue }: Props) {
     }
   }
 
+  const selectedSlotData = TIME_SLOTS.find((s) => s.id === selectedSlot)!;
+  const previewTime = `${selectedSlotData.hour}:${String(selectedSlotData.minute).padStart(2, "0")}`;
+
   return (
     <OnboardingStepShell>
       <View className="flex-1">
         <ScrollView
           className="flex-1 px-6"
-          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 132 }}
+          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 140 }}
           showsVerticalScrollIndicator={false}>
-          {/* Animated bell icon */}
+
+          {/* Section label */}
           <MotiView
-            from={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", damping: 14, stiffness: 160, delay: 80 }}
-            style={{ alignItems: "center", marginBottom: 24 }}>
-            <MotiView
-              animate={{ rotate: ["0deg", "-12deg", "12deg", "-8deg", "8deg", "0deg"] }}
-              transition={{
-                type: "timing",
-                duration: 700,
-                delay: 900,
-                loop: true,
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", duration: 300, delay: 40 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 1.2,
+                color: "#c2410c",
+                marginBottom: 12,
               }}>
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 28,
-                  backgroundColor: "rgba(245,158,11,0.12)",
-                  borderWidth: 1,
-                  borderColor: "rgba(245,158,11,0.3)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                <Ionicons name="notifications" size={36} color="#f59e0b" />
-              </View>
-            </MotiView>
+              {t("onboarding.notification.sectionLabel")}
+            </Text>
           </MotiView>
 
           {/* Title + subtitle */}
           <MotiView
             from={{ opacity: 0, translateY: 12 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 360, delay: 200 }}>
+            transition={{ type: "timing", duration: 360, delay: 80 }}>
             <Text
               style={{
-                textAlign: "center",
-                fontSize: 26,
+                fontSize: 28,
                 fontWeight: "800",
-                lineHeight: 32,
+                lineHeight: 34,
                 color: "#fff",
-                marginBottom: 10,
+                marginBottom: 8,
               }}>
               {t("onboarding.notification.title")}
             </Text>
             <Text
               style={{
-                textAlign: "center",
                 fontSize: 15,
                 lineHeight: 22,
                 color: "rgba(255,255,255,0.5)",
@@ -193,64 +182,102 @@ export function NotificationStep({ onContinue }: Props) {
             </Text>
           </MotiView>
 
-          {/* Notification preview mockup */}
-          <NotificationPreview />
+          {/* Notification preview */}
+          <NotificationPreview time={previewTime} />
 
-          {/* Bullet list */}
-          <View style={{ gap: 14 }}>
-            {BULLETS.map(({ icon, key }, i) => (
-              <MotiView
-                key={key}
-                from={{ opacity: 0, translateX: -16 }}
-                animate={{ opacity: 1, translateX: 0 }}
-                transition={{ type: "timing", duration: 340, delay: 400 + i * 80 }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 14,
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.07)",
-                    paddingVertical: 12,
-                    paddingHorizontal: 14,
-                  }}>
-                  <View
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 10,
-                      backgroundColor: "rgba(245,158,11,0.12)",
-                      borderWidth: 1,
-                      borderColor: "rgba(245,158,11,0.2)",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}>
-                    <Ionicons name={icon} size={17} color="#f59e0b" />
-                  </View>
-                  <Text
-                    style={{
-                      flex: 1,
-                      fontSize: 14,
-                      lineHeight: 20,
-                      color: "rgba(255,255,255,0.75)",
-                      fontWeight: "500",
-                    }}>
-                    {t(`onboarding.notification.${key}`)}
-                  </Text>
-                </View>
-              </MotiView>
-            ))}
+          {/* 2×2 time slot grid */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+            {TIME_SLOTS.map((slot, index) => {
+              const isSelected = selectedSlot === slot.id;
+              return (
+                <MotiView
+                  key={slot.id}
+                  from={{ opacity: 0, translateY: 12 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{
+                    type: "spring",
+                    delay: 200 + index * 60,
+                    damping: 20,
+                    stiffness: 180,
+                  }}
+                  style={{ width: "47%" }}>
+                  <Pressable
+                    onPress={() => handleSlotSelect(slot)}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+                    <View style={{ overflow: "hidden", borderRadius: 16 }}>
+                      {isSelected && <HomeBackground palette={DAWN_PALETTE} />}
+                      {isSelected && (
+                        <View
+                          style={[
+                            StyleSheet.absoluteFillObject,
+                            { backgroundColor: "rgba(0,0,0,0.28)" },
+                          ]}
+                          pointerEvents="none"
+                        />
+                      )}
+                      <View
+                        style={{
+                          padding: 14,
+                          borderRadius: 16,
+                          borderWidth: 1,
+                          borderColor: isSelected
+                            ? "rgba(255,255,255,0.38)"
+                            : "rgba(255,255,255,0.12)",
+                          backgroundColor: isSelected ? "transparent" : "rgba(255,255,255,0.04)",
+                          minHeight: 90,
+                        }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 6,
+                            marginBottom: 6,
+                          }}>
+                          <Ionicons
+                            name={slot.icon}
+                            size={14}
+                            color={isSelected ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.4)"}
+                          />
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontWeight: "700",
+                              color: "#fff",
+                            }}>
+                            {t(`onboarding.notification.slot_${slot.id}_time`)}
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "600",
+                            color: "#fff",
+                            marginBottom: 2,
+                          }}>
+                          {t(`onboarding.notification.slot_${slot.id}`)}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            lineHeight: 16,
+                            color: "rgba(255,255,255,0.5)",
+                          }}>
+                          {t(`onboarding.notification.slot_${slot.id}_desc`)}
+                        </Text>
+                      </View>
+                    </View>
+                  </Pressable>
+                </MotiView>
+              );
+            })}
           </View>
         </ScrollView>
 
-        {/* CTAs */}
+        {/* CTAs — sticky bottom */}
         <MotiView
           from={{ opacity: 0, translateY: 24 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 380, delay: 600 }}
+          transition={{ type: "timing", duration: 380, delay: 500 }}
           style={{
             position: "absolute",
             left: 0,
@@ -268,18 +295,13 @@ export function NotificationStep({ onContinue }: Props) {
             style={({ pressed }) => ({
               borderRadius: 18,
               marginBottom: 12,
-              shadowColor: "#f59e0b",
-              shadowOffset: { width: 0, height: 12 },
-              shadowOpacity: 0.38,
-              shadowRadius: 22,
-              elevation: 8,
               opacity: isEnabling ? 0.7 : pressed ? 0.88 : 1,
             })}>
             <View
               style={{
                 minHeight: 56,
                 borderRadius: 18,
-                backgroundColor: "#f59e0b",
+                backgroundColor: "#fff",
                 alignItems: "center",
                 justifyContent: "center",
                 paddingHorizontal: 18,
@@ -288,27 +310,14 @@ export function NotificationStep({ onContinue }: Props) {
               {isEnabling ? (
                 <ActivityIndicator size="small" color="#000" />
               ) : (
-                <View
+                <Text
                   style={{
-                    maxWidth: "100%",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
+                    fontSize: 16,
+                    fontWeight: "800",
+                    color: "#000",
                   }}>
-                  <Ionicons name="notifications" size={18} color="#000" />
-                  <Text
-                    numberOfLines={2}
-                    style={{
-                      flexShrink: 1,
-                      textAlign: "center",
-                      fontSize: 16,
-                      fontWeight: "800",
-                      color: "#000",
-                    }}>
-                    {t("onboarding.notification.ctaEnable")}
-                  </Text>
-                </View>
+                  {t("onboarding.notification.ctaEnable")} →
+                </Text>
               )}
             </View>
           </Pressable>
