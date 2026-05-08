@@ -283,7 +283,32 @@
     "guestSignInHint": "Sign in to save your profile and invite friends."
   },
   "auth": {
-    "phoneNumberPlaceholder": "Phone number"
+    "phoneNumberPlaceholder": "Phone number",
+    "login": {
+      "back": "Back",
+      "todaysVibeLabel": "Today's Vibe",
+      "welcome": "Welcome to Inkly",
+      "subtitle": "Continue to verify your account and unlock your daily vibe.",
+      "continueWithGoogle": "Continue with Google",
+      "continueAsGuest": "Continue as guest →",
+      "termsPrefix": "By continuing you accept our",
+      "terms": "Terms",
+      "and": "and",
+      "privacy": "Privacy",
+      "features": {
+        "verifiedTitle": "Verified, not tracked",
+        "verifiedDesc": "We only use your account to sync vibes across devices.",
+        "personaTitle": "Picks up your persona",
+        "personaDesc": "Today's quote is tuned to traits and goals you set later.",
+        "memoriesTitle": "Memories travel with you",
+        "memoriesDesc": "Reinstall, switch phones — your saved vibes follow."
+      },
+      "errors": {
+        "googleFailed": "Google sign-in failed. Please try again.",
+        "appleFailed": "Apple sign-in failed. Please try again.",
+        "signInFailed": "Sign-in failed. Please try again."
+      }
+    }
   },
   "friends": {
     "title": "Friends",

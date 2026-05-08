@@ -283,7 +283,32 @@
     "guestSignInHint": "Đăng nhập để lưu hồ sơ và mời bạn bè."
   },
   "auth": {
-    "phoneNumberPlaceholder": "Số điện thoại"
+    "phoneNumberPlaceholder": "Số điện thoại",
+    "login": {
+      "back": "Quay lại",
+      "todaysVibeLabel": "Vibe Hôm Nay",
+      "welcome": "Chào mừng đến với Inkly",
+      "subtitle": "Tiếp tục xác minh tài khoản và mở khóa vibe hằng ngày của bạn.",
+      "continueWithGoogle": "Tiếp tục với Google",
+      "continueAsGuest": "Tiếp tục với tư cách khách →",
+      "termsPrefix": "Bằng cách tiếp tục, bạn đồng ý với",
+      "terms": "Điều khoản",
+      "and": "và",
+      "privacy": "Chính sách Riêng tư",
+      "features": {
+        "verifiedTitle": "Được xác minh, không theo dõi",
+        "verifiedDesc": "Chúng tôi chỉ dùng tài khoản để đồng bộ vibe trên các thiết bị.",
+        "personaTitle": "Hiểu được phong cách của bạn",
+        "personaDesc": "Câu trích dẫn hôm nay được điều chỉnh theo đặc điểm và mục tiêu bạn đặt ra.",
+        "memoriesTitle": "Ký ức theo bạn mọi nơi",
+        "memoriesDesc": "Cài lại, đổi điện thoại — vibe đã lưu vẫn theo bạn."
+      },
+      "errors": {
+        "googleFailed": "Đăng nhập Google thất bại. Vui lòng thử lại.",
+        "appleFailed": "Đăng nhập Apple thất bại. Vui lòng thử lại.",
+        "signInFailed": "Đăng nhập thất bại. Vui lòng thử lại."
+      }
+    }
   },
   "friends": {
     "title": "Bạn bè",
