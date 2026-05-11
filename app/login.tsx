@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
 import { AppIcon } from "@/components/AppIcon";
+import { LEGAL_LINKS } from "@/config/legalLinks";
 import { APP_BRAND_MARK } from "@/theme/appBrand";
 import * as Crypto from "expo-crypto";
 import * as AppleAuthentication from "expo-apple-authentication";
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
+import { sanitizeReturnTo } from "@/utils/navigation";
 import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -85,7 +87,7 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ returnTo?: string }>();
-  const returnTo = params.returnTo ?? "/(tabs)";
+  const returnTo = sanitizeReturnTo(params.returnTo);
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
@@ -94,6 +96,8 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const isBusy = loadingGoogle || loadingApple;
   const appVersion = Constants.expoConfig?.version ?? "1.0.0";
+  const privacyUrl = LEGAL_LINKS.privacyPolicyUrl;
+  const termsUrl = LEGAL_LINKS.termsOfServiceUrl;
 
   const featureRows = [
     {
@@ -313,15 +317,19 @@ export default function LoginScreen() {
             {t("auth.login.termsPrefix")}{" "}
             <Text
               className="underline text-white/35"
-              onPress={() => Linking.openURL("https://inkly.app/terms")}>
+              onPress={() => Linking.openURL(termsUrl)}>
               {t("auth.login.terms")}
             </Text>
-            {" "}{t("auth.login.and")}{" "}
-            <Text
-              className="underline text-white/35"
-              onPress={() => Linking.openURL("https://inkly.app/privacy")}>
-              {t("auth.login.privacy")}
-            </Text>
+            {privacyUrl ? (
+              <>
+                {" "}{t("auth.login.and")}{" "}
+                <Text
+                  className="underline text-white/35"
+                  onPress={() => Linking.openURL(privacyUrl)}>
+                  {t("auth.login.privacy")}
+                </Text>
+              </>
+            ) : null}
           </Text>
         </View>
       </View>
