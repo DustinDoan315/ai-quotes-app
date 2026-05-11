@@ -1,16 +1,17 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
 import * as Crypto from "expo-crypto";
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   Linking,
+  NativeModules,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  TurboModuleRegistry,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,11 +20,58 @@ import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-GoogleSignin.configure({
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  scopes: ["profile", "email"],
-});
+type GoogleSigninModule = {
+  GoogleSignin: {
+    configure: (options: {
+      iosClientId?: string;
+      webClientId?: string;
+      scopes?: string[];
+    }) => void;
+    hasPlayServices: () => Promise<boolean>;
+    signIn: (options?: { nonce?: string }) => Promise<unknown>;
+    getTokens: () => Promise<{ idToken: string | null }>;
+  };
+  statusCodes: {
+    SIGN_IN_CANCELLED: string;
+    IN_PROGRESS: string;
+  };
+};
+
+let cachedGoogleSigninModulePromise: Promise<GoogleSigninModule> | null = null;
+
+function hasGoogleSigninNativeModule(): boolean {
+  const turboModuleRegistry = TurboModuleRegistry as {
+    get?: (name: string) => unknown;
+  };
+
+  return Boolean(
+    turboModuleRegistry.get?.("RNGoogleSignin") ??
+      (NativeModules as Record<string, unknown>).RNGoogleSignin,
+  );
+}
+
+async function getGoogleSigninModule(): Promise<GoogleSigninModule> {
+  if (cachedGoogleSigninModulePromise) {
+    return cachedGoogleSigninModulePromise;
+  }
+
+  if (!hasGoogleSigninNativeModule()) {
+    throw new Error("RNGoogleSignin native module is unavailable in this build.");
+  }
+
+  cachedGoogleSigninModulePromise = import(
+      "@react-native-google-signin/google-signin",
+    ).then((googleSigninModule) => {
+    googleSigninModule.GoogleSignin.configure({
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      scopes: ["profile", "email"],
+    });
+    return googleSigninModule as GoogleSigninModule;
+  });
+
+  return cachedGoogleSigninModulePromise;
+}
 
 const FEATURE_ROW_ICONS = [
   "shield-checkmark-outline",
@@ -67,7 +115,11 @@ export default function LoginScreen() {
     setError(null);
     setLoadingGoogle(true);
     try {
-      await GoogleSignin.hasPlayServices();
+      const googleSigninModule = await getGoogleSigninModule();
+      const { GoogleSignin } = googleSigninModule;
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices();
+      }
       const rawNonce = Crypto.randomUUID();
       const hashedNonce = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
@@ -88,10 +140,13 @@ export default function LoginScreen() {
       router.replace(returnTo as never);
     } catch (err: unknown) {
       const e = err as { code?: string };
-      if (e?.code === statusCodes.SIGN_IN_CANCELLED) {
+      const googleSigninModule = await cachedGoogleSigninModulePromise?.catch(() => null);
+      if (e?.code === googleSigninModule?.statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled — no error shown
-      } else if (e?.code === statusCodes.IN_PROGRESS) {
+      } else if (e?.code === googleSigninModule?.statusCodes.IN_PROGRESS) {
         // already in progress — ignore
+      } else if (err instanceof Error && err.message.includes("RNGoogleSignin")) {
+        setError("Google Sign-In requires a development build or production app.");
       } else {
         setError(t("auth.login.errors.googleFailed"));
       }
