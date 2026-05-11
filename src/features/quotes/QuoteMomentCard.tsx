@@ -144,7 +144,9 @@ export const QuoteMomentCard = ({
         {watermarkForExport ? null : (
           <Pressable
             accessibilityLabel={t("home.momentsFeed.shareMomentA11y")}
-            onPress={shareMoment}
+            onPress={() => {
+              void shareMoment(item.id);
+            }}
             className="absolute right-2 top-2 z-50 rounded-full bg-black/55 p-2.5"
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
             <Ionicons name="share-outline" size={22} color="#ffffff" />
