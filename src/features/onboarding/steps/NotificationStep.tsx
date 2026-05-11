@@ -1,5 +1,6 @@
 import { useReminderStore } from "@/appState/reminderStore";
 import { useUIStore } from "@/appState/uiStore";
+import { AppIcon } from "@/components/AppIcon";
 import { HomeBackground } from "@/features/home/HomeBackground";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
@@ -10,7 +11,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -69,11 +69,7 @@ function NotificationPreview({ time }: { time: string }) {
             overflow: "hidden",
             backgroundColor: "#000",
           }}>
-          <Image
-            source={require("../../../../assets/images/icon.png")}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
+          <AppIcon size={28} borderRadius={7} />
         </View>
         <Text style={{ flex: 1, fontSize: 12, fontWeight: "700", color: "rgba(255,255,255,0.85)" }}>
           {t("onboarding.notification.previewAppName")}

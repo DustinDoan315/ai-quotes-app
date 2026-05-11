@@ -73,10 +73,36 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
   return { error };
 }
 
-export async function getSession(): Promise<Session | null> {
+async function clearStoredSession(): Promise<void> {
+  await supabase.auth.signOut({ scope: "local" });
+}
+
+export async function getSessionSafely(): Promise<{
+  session: Session | null;
+  error: AuthError | null;
+}> {
   const {
     data: { session },
+    error,
   } = await supabase.auth.getSession();
+
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("refresh token")) {
+      try {
+        await clearStoredSession();
+      } catch {
+        // Best effort cleanup for corrupt local auth state.
+      }
+    }
+    return { session: null, error };
+  }
+
+  return { session, error: null };
+}
+
+export async function getSession(): Promise<Session | null> {
+  const { session } = await getSessionSafely();
   return session;
 }
 
@@ -141,4 +167,3 @@ export async function updateUserProfile(
 export function onAuthStateChange(callback: (event: string, session: Session | null) => void) {
   return supabase.auth.onAuthStateChange((event, session) => callback(event, session));
 }
-

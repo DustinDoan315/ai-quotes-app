@@ -1,16 +1,19 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { AppIcon } from "@/components/AppIcon";
+import { APP_BRAND_MARK } from "@/theme/appBrand";
 import * as Crypto from "expo-crypto";
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   Linking,
+  NativeModules,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  TurboModuleRegistry,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,11 +22,58 @@ import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-GoogleSignin.configure({
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  scopes: ["profile", "email"],
-});
+type GoogleSigninModule = {
+  GoogleSignin: {
+    configure: (options: {
+      iosClientId?: string;
+      webClientId?: string;
+      scopes?: string[];
+    }) => void;
+    hasPlayServices: () => Promise<boolean>;
+    signIn: (options?: { nonce?: string }) => Promise<unknown>;
+    getTokens: () => Promise<{ idToken: string | null }>;
+  };
+  statusCodes: {
+    SIGN_IN_CANCELLED: string;
+    IN_PROGRESS: string;
+  };
+};
+
+let cachedGoogleSigninModulePromise: Promise<GoogleSigninModule> | null = null;
+
+function hasGoogleSigninNativeModule(): boolean {
+  const turboModuleRegistry = TurboModuleRegistry as {
+    get?: (name: string) => unknown;
+  };
+
+  return Boolean(
+    turboModuleRegistry.get?.("RNGoogleSignin") ??
+      (NativeModules as Record<string, unknown>).RNGoogleSignin,
+  );
+}
+
+async function getGoogleSigninModule(): Promise<GoogleSigninModule> {
+  if (cachedGoogleSigninModulePromise) {
+    return cachedGoogleSigninModulePromise;
+  }
+
+  if (!hasGoogleSigninNativeModule()) {
+    throw new Error("RNGoogleSignin native module is unavailable in this build.");
+  }
+
+  cachedGoogleSigninModulePromise = import(
+      "@react-native-google-signin/google-signin",
+    ).then((googleSigninModule) => {
+    googleSigninModule.GoogleSignin.configure({
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      scopes: ["profile", "email"],
+    });
+    return googleSigninModule as GoogleSigninModule;
+  });
+
+  return cachedGoogleSigninModulePromise;
+}
 
 const FEATURE_ROW_ICONS = [
   "shield-checkmark-outline",
@@ -67,7 +117,11 @@ export default function LoginScreen() {
     setError(null);
     setLoadingGoogle(true);
     try {
-      await GoogleSignin.hasPlayServices();
+      const googleSigninModule = await getGoogleSigninModule();
+      const { GoogleSignin } = googleSigninModule;
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices();
+      }
       const rawNonce = Crypto.randomUUID();
       const hashedNonce = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
@@ -88,10 +142,13 @@ export default function LoginScreen() {
       router.replace(returnTo as never);
     } catch (err: unknown) {
       const e = err as { code?: string };
-      if (e?.code === statusCodes.SIGN_IN_CANCELLED) {
+      const googleSigninModule = await cachedGoogleSigninModulePromise?.catch(() => null);
+      if (e?.code === googleSigninModule?.statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled — no error shown
-      } else if (e?.code === statusCodes.IN_PROGRESS) {
+      } else if (e?.code === googleSigninModule?.statusCodes.IN_PROGRESS) {
         // already in progress — ignore
+      } else if (err instanceof Error && err.message.includes("RNGoogleSignin")) {
+        setError("Google Sign-In requires a development build or production app.");
       } else {
         setError(t("auth.login.errors.googleFailed"));
       }
@@ -160,49 +217,25 @@ export default function LoginScreen() {
         <View className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 mb-7">
           {/* Card header row */}
           <View className="flex-row items-center justify-between px-5 pt-4 pb-2">
-            <Text className="text-white text-base font-semibold">Inkly</Text>
+            <View className="flex-row items-center gap-2">
+              <AppIcon size={26} borderRadius={7} />
+              <Text className="text-white text-base font-semibold">{APP_BRAND_MARK}</Text>
+            </View>
             <View className="w-10 h-5 rounded-full bg-white/20 border border-white/10" />
           </View>
 
-          {/* Orb */}
+          {/* App icon */}
           <View className="items-center justify-center py-6">
-            <View
+            <AppIcon
+              size={150}
+              borderRadius={34}
               style={{
-                width: 150,
-                height: 150,
-                borderRadius: 75,
-                backgroundColor: "#1a2a6c",
-                shadowColor: "#4B6CB7",
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.9,
-                shadowRadius: 40,
-                elevation: 25,
-              }}>
-              {/* Highlight shimmer */}
-              <View
-                style={{
-                  position: "absolute",
-                  top: 18,
-                  left: 22,
-                  width: 55,
-                  height: 55,
-                  borderRadius: 27.5,
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                }}
-              />
-              {/* Darker centre depth */}
-              <View
-                style={{
-                  position: "absolute",
-                  top: 40,
-                  left: 40,
-                  width: 70,
-                  height: 70,
-                  borderRadius: 35,
-                  backgroundColor: "rgba(0,0,40,0.35)",
-                }}
-              />
-            </View>
+                shadowColor: "#f97316",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.35,
+                shadowRadius: 32,
+              }}
+            />
           </View>
 
           {/* Vibe label */}

@@ -1,10 +1,11 @@
 import { useUserStore } from "@/appState/userStore";
 import { syncUserProfile } from "@/features/auth/authService";
-import { supabase } from "@/config/supabase";
 import {
   getCurrentUserProfile,
+  getSessionSafely,
   signInWithGoogle as signInWithGoogleApi,
   signInWithApple as signInWithAppleApi,
+  onAuthStateChange,
   signOut,
   updateUserProfile,
   type UserProfile,
@@ -36,9 +37,10 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    getSessionSafely().then(({ session, error }) => {
       if (error) {
-        supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
         setLoading(false);
         return;
       }
@@ -49,7 +51,7 @@ export function useAuth(): UseAuthReturn {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {

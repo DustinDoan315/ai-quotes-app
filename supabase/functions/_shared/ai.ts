@@ -4,34 +4,26 @@ export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 // We only need to decode the payload to extract the user ID.
 export const requireAuth = (req: Request): { userId: string } | Response => {
   const authHeader = req.headers.get("Authorization");
-  console.log("[requireAuth] authHeader exists:", !!authHeader);
   if (!authHeader?.startsWith("Bearer ")) {
-    console.log("[requireAuth] returning 401: no Bearer header");
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
   const token = authHeader.slice(7).trim();
-  console.log("[requireAuth] token length:", token.length);
 
   try {
     const parts = token.split(".");
-    console.log("[requireAuth] JWT parts:", parts.length);
     if (parts.length !== 3) {
-      console.log("[requireAuth] returning 401: not 3 parts");
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
     const raw = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     const padded = raw + "=".repeat((4 - (raw.length % 4)) % 4);
     const payload = JSON.parse(atob(padded)) as { sub?: string; role?: string; exp?: number };
-    console.log("[requireAuth] payload role:", payload.role, "has sub:", !!payload.sub);
 
     if (payload.role !== "authenticated" || !payload.sub) {
-      console.log("[requireAuth] returning 401: role/sub check failed");
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
-    console.log("[requireAuth] auth success");
     return { userId: payload.sub };
   } catch (err) {
     console.error("[requireAuth] exception:", err);
