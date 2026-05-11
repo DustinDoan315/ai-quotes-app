@@ -1,3 +1,4 @@
+import { AppIcon } from "@/components/AppIcon";
 import { HomeBackground } from "@/features/home/HomeBackground";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { APP_BRAND_MARK } from "@/theme/appBrand";
@@ -29,8 +30,15 @@ export function WelcomeStep({ onContinue }: Props) {
         <MotiView
           from={{ opacity: 0, translateY: 8 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 380, delay: 60 }}>
-          <Text className="mb-8 text-sm font-semibold uppercase tracking-widest text-white/50">
+          transition={{ type: "timing", duration: 380, delay: 60 }}
+          style={{
+            marginBottom: 32,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+          }}>
+          <AppIcon size={34} borderRadius={9} />
+          <Text className="text-sm font-semibold uppercase tracking-widest text-white/60">
             {APP_BRAND_MARK}
           </Text>
         </MotiView>

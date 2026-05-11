@@ -1,4 +1,6 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { AppIcon } from "@/components/AppIcon";
+import { APP_BRAND_MARK } from "@/theme/appBrand";
 import * as Crypto from "expo-crypto";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -215,49 +217,25 @@ export default function LoginScreen() {
         <View className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 mb-7">
           {/* Card header row */}
           <View className="flex-row items-center justify-between px-5 pt-4 pb-2">
-            <Text className="text-white text-base font-semibold">Inkly</Text>
+            <View className="flex-row items-center gap-2">
+              <AppIcon size={26} borderRadius={7} />
+              <Text className="text-white text-base font-semibold">{APP_BRAND_MARK}</Text>
+            </View>
             <View className="w-10 h-5 rounded-full bg-white/20 border border-white/10" />
           </View>
 
-          {/* Orb */}
+          {/* App icon */}
           <View className="items-center justify-center py-6">
-            <View
+            <AppIcon
+              size={150}
+              borderRadius={34}
               style={{
-                width: 150,
-                height: 150,
-                borderRadius: 75,
-                backgroundColor: "#1a2a6c",
-                shadowColor: "#4B6CB7",
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.9,
-                shadowRadius: 40,
-                elevation: 25,
-              }}>
-              {/* Highlight shimmer */}
-              <View
-                style={{
-                  position: "absolute",
-                  top: 18,
-                  left: 22,
-                  width: 55,
-                  height: 55,
-                  borderRadius: 27.5,
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                }}
-              />
-              {/* Darker centre depth */}
-              <View
-                style={{
-                  position: "absolute",
-                  top: 40,
-                  left: 40,
-                  width: 70,
-                  height: 70,
-                  borderRadius: 35,
-                  backgroundColor: "rgba(0,0,40,0.35)",
-                }}
-              />
-            </View>
+                shadowColor: "#f97316",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.35,
+                shadowRadius: 32,
+              }}
+            />
           </View>
 
           {/* Vibe label */}
