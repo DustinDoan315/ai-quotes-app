@@ -24,6 +24,7 @@ import { CameraView, type CameraMountError } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
+import { QuoteInkBloom } from "@/components/QuoteInkBloom";
 import {
   Pressable,
   StyleSheet,
@@ -31,7 +32,6 @@ import {
   TextInput,
   View,
   useWindowDimensions,
-  type DimensionValue,
 } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -536,100 +536,12 @@ export const HomeCameraSection = ({
               </View>
             ) : null}
             {(isGenerating || generationProgress > 0) && !isFutureLoading ? (
-              <View className="absolute inset-0 z-[7] overflow-hidden rounded-[25px]">
-                {/* Dark backdrop */}
-                <View className="absolute inset-0 bg-black/72" />
-                {/* Floating particles */}
-                {([
-                  { left: "12%", size: 5, duration: 1900, delay: 0, travel: 190 },
-                  { left: "28%", size: 7, duration: 2200, delay: 350, travel: 170 },
-                  { left: "48%", size: 5, duration: 2000, delay: 700, travel: 210 },
-                  { left: "65%", size: 6, duration: 2400, delay: 150, travel: 180 },
-                  { left: "82%", size: 5, duration: 1800, delay: 500, travel: 200 },
-                ] as {
-                  left: DimensionValue;
-                  size: number;
-                  duration: number;
-                  delay: number;
-                  travel: number;
-                }[]).map((p, i) => (
-                  <MotiView
-                    key={i}
-                    from={{ translateY: 0, opacity: 0.7 }}
-                    animate={{ translateY: -p.travel, opacity: 0 }}
-                    transition={{
-                      type: "timing",
-                      duration: p.duration,
-                      delay: p.delay,
-                      loop: true,
-                    }}
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: p.left,
-                      width: p.size,
-                      height: p.size,
-                      borderRadius: p.size / 2,
-                      backgroundColor: chrome.cornerColor,
-                    }}
-                  />
-                ))}
-                {/* Center content */}
-                <MotiView
-                  from={{ opacity: 0, scale: 0.88, translateY: 14 }}
-                  animate={{ opacity: 1, scale: 1, translateY: 0 }}
-                  transition={{ type: "timing", duration: 480 }}
-                  className="absolute inset-0 items-center justify-center px-8">
-                  {/* Pulsing icon */}
-                  <MotiView
-                    from={{ scale: 1.0 }}
-                    animate={{ scale: 1.12 }}
-                    transition={{ type: "timing", duration: 700, loop: true }}>
-                    <Ionicons name="sparkles" size={44} color={chrome.cornerColor} />
-                  </MotiView>
-                  {/* Progress bar */}
-                  <View className="mt-8 w-3/4 overflow-hidden rounded-full bg-white/15" style={{ height: 6 }}>
-                    <MotiView
-                      from={{ width: "0%" }}
-                      animate={{
-                        width: `${Math.min(100, Math.max(8, generationProgress * 100))}%`,
-                      }}
-                      transition={{ type: "timing", duration: 350 }}
-                      style={{
-                        height: "100%",
-                        borderRadius: 999,
-                        backgroundColor: chrome.cornerColor,
-                      }}
-                    />
-                  </View>
-                  {/* Label + percentage */}
-                  <View className="mt-4 flex-row items-center justify-center gap-2">
-                    <Text className="text-sm font-semibold text-white/90">
-                      {t("home.generating.label")}
-                    </Text>
-                    <Text className="text-xs text-white/40">
-                      {Math.round(generationProgress * 100)}%
-                    </Text>
-                  </View>
-                  {/* Animated 3-dot indicator */}
-                  <View className="mt-3 flex-row items-center justify-center">
-                    {[0, 250, 500].map((delay, i) => (
-                      <MotiView
-                        key={i}
-                        from={{ opacity: 0.25 }}
-                        animate={{ opacity: 0.9 }}
-                        transition={{
-                          type: "timing",
-                          duration: 700,
-                          delay,
-                          loop: true,
-                        }}
-                        className="mx-0.5 h-1.5 w-1.5 rounded-full bg-white/60"
-                      />
-                    ))}
-                  </View>
-                </MotiView>
-              </View>
+              <QuoteInkBloom
+                accentColor={chrome.cornerColor}
+                progress={generationProgress}
+                isComplete={!isGenerating && generationProgress >= 1}
+                quoteText={dailyQuoteText ?? undefined}
+              />
             ) : null}
             {isFutureLoading ? (
               <View className="absolute inset-0 z-[8] items-center justify-center bg-black/75 px-8">
