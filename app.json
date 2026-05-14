@@ -17,6 +17,9 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Inkly to access your camera for taking photos.",
         "NSUserNotificationsUsageDescription": "Inkly can send one daily reminder at the time you choose."
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "android": {
