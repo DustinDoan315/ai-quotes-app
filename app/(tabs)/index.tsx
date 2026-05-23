@@ -23,7 +23,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -64,8 +63,6 @@ export default function HomeScreen() {
   const { vibeHint, palette } = useHomeBackgroundPalette();
   const {
     isLoading,
-    isGranted,
-    requestPermission,
     cameraRef,
     cameraReady,
     cameraError,

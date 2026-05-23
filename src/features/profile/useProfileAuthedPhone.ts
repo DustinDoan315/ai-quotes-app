@@ -10,7 +10,16 @@ export function useProfileAuthedPhone() {
     const load = async () => {
       const user = await getCurrentUser();
       if (!user || cancelled) return;
-      const provider = (user.app_metadata?.provider as string | undefined) ?? null;
+      const identities = user.identities ?? [];
+      let provider: string | null = null;
+      if (identities.length > 0) {
+        const lastUsed = identities.reduce((a, b) =>
+          new Date(a.last_sign_in_at ?? 0) > new Date(b.last_sign_in_at ?? 0) ? a : b
+        );
+        provider = lastUsed.provider ?? null;
+      } else {
+        provider = (user.app_metadata?.provider as string | undefined) ?? null;
+      }
       if (!provider || provider === "anonymous") {
         setAuthProvider(null);
         return;

@@ -11,6 +11,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTranslation } from "react-i18next";
 
+import { LEGAL_LINKS } from "@/config/legalLinks";
+
 type Props = {
   primaryLabel: string;
   primaryDisabled: boolean;
@@ -20,9 +22,6 @@ type Props = {
   onRestore: () => void;
   onDismiss: () => void;
 };
-
-const APPLE_SUBSCRIPTION_TERMS =
-  "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
 export const PaywallStickyFooter = ({
   primaryLabel,
@@ -35,7 +34,8 @@ export const PaywallStickyFooter = ({
 }: Props) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const privacyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
+  const privacyUrl = LEGAL_LINKS.privacyPolicyUrl;
+  const termsUrl = LEGAL_LINKS.termsOfServiceUrl;
 
   return (
     <View
@@ -93,7 +93,7 @@ export const PaywallStickyFooter = ({
         <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-2 gap-y-2 px-1">
           <Pressable
             onPress={() => {
-              void Linking.openURL(APPLE_SUBSCRIPTION_TERMS);
+              void Linking.openURL(termsUrl);
             }}>
             <Text className="text-[11px] leading-4 text-slate-400 underline">
               {t("subscription.subscriptionTermsLink")}

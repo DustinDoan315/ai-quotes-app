@@ -4,7 +4,6 @@ import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUserStore } from "@/appState/userStore";
 import i18n from "@/i18n";
 import { syncUserProfile } from "@/features/auth/authService";
-import { supabase } from "@/config/supabase";
 import {
   configureNotificationHandler,
   ensureReminderNotificationChannel,
@@ -13,6 +12,7 @@ import {
 } from "@/services/notifications/dailyReminder";
 import { initPostHog } from "@/services/analytics/posthog";
 import { initSentry } from "@/services/analytics/sentry";
+import { getSessionSafely } from "@/services/supabase-auth";
 import {
   initializeRevenueCat,
   isRevenueCatInitialized,
@@ -67,7 +67,7 @@ async function bootstrapRevenueCat(): Promise<void> {
 }
 
 async function bootstrapAuth(): Promise<void> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { session } = await getSessionSafely();
   if (session) {
     await syncUserProfile(session.user);
     return;

@@ -1,10 +1,12 @@
+import { LEGAL_LINKS } from "@/config/legalLinks";
 import { useTranslation } from "react-i18next";
 import { Linking, Pressable, Text, View } from "react-native";
 
 export function ProfileLegalLinks() {
   const { t } = useTranslation();
-  const privacyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
-  const termsUrl = process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL?.trim();
+  const privacyUrl = LEGAL_LINKS.privacyPolicyUrl;
+  const termsUrl = LEGAL_LINKS.termsOfServiceUrl;
+
   if (!privacyUrl && !termsUrl) {
     return null;
   }

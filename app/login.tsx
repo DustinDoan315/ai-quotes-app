@@ -1,42 +1,131 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { AppIcon } from "@/components/AppIcon";
+import { LEGAL_LINKS } from "@/config/legalLinks";
+import { APP_BRAND_MARK } from "@/theme/appBrand";
 import * as Crypto from "expo-crypto";
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
+  NativeModules,
   Platform,
   Pressable,
+  ScrollView,
   Text,
+  TurboModuleRegistry,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
+import { sanitizeReturnTo } from "@/utils/navigation";
+import Constants from "expo-constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
-GoogleSignin.configure({
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  scopes: ["profile", "email"],
-});
+type GoogleSigninModule = {
+  GoogleSignin: {
+    configure: (options: {
+      iosClientId?: string;
+      webClientId?: string;
+      scopes?: string[];
+    }) => void;
+    hasPlayServices: () => Promise<boolean>;
+    signIn: (options?: { nonce?: string }) => Promise<unknown>;
+    getTokens: () => Promise<{ idToken: string | null }>;
+  };
+  statusCodes: {
+    SIGN_IN_CANCELLED: string;
+    IN_PROGRESS: string;
+  };
+};
+
+let cachedGoogleSigninModulePromise: Promise<GoogleSigninModule> | null = null;
+
+function hasGoogleSigninNativeModule(): boolean {
+  const turboModuleRegistry = TurboModuleRegistry as {
+    get?: (name: string) => unknown;
+  };
+
+  return Boolean(
+    turboModuleRegistry.get?.("RNGoogleSignin") ??
+      (NativeModules as Record<string, unknown>).RNGoogleSignin,
+  );
+}
+
+async function getGoogleSigninModule(): Promise<GoogleSigninModule> {
+  if (cachedGoogleSigninModulePromise) {
+    return cachedGoogleSigninModulePromise;
+  }
+
+  if (!hasGoogleSigninNativeModule()) {
+    throw new Error("RNGoogleSignin native module is unavailable in this build.");
+  }
+
+  cachedGoogleSigninModulePromise = import(
+      "@react-native-google-signin/google-signin",
+    ).then((googleSigninModule) => {
+    googleSigninModule.GoogleSignin.configure({
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      scopes: ["profile", "email"],
+    });
+    return googleSigninModule as GoogleSigninModule;
+  });
+
+  return cachedGoogleSigninModulePromise;
+}
+
+const FEATURE_ROW_ICONS = [
+  "shield-checkmark-outline",
+  "settings-outline",
+  "cloud-outline",
+] as const;
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ returnTo?: string }>();
-  const returnTo = params.returnTo ?? "/(tabs)";
+  const returnTo = sanitizeReturnTo(params.returnTo);
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { t } = useTranslation();
   const isBusy = loadingGoogle || loadingApple;
+  const appVersion = Constants.expoConfig?.version ?? "1.0.0";
+  const privacyUrl = LEGAL_LINKS.privacyPolicyUrl;
+  const termsUrl = LEGAL_LINKS.termsOfServiceUrl;
+
+  const featureRows = [
+    {
+      icon: FEATURE_ROW_ICONS[0],
+      title: t("auth.login.features.verifiedTitle"),
+      description: t("auth.login.features.verifiedDesc"),
+    },
+    {
+      icon: FEATURE_ROW_ICONS[1],
+      title: t("auth.login.features.personaTitle"),
+      description: t("auth.login.features.personaDesc"),
+    },
+    {
+      icon: FEATURE_ROW_ICONS[2],
+      title: t("auth.login.features.memoriesTitle"),
+      description: t("auth.login.features.memoriesDesc"),
+    },
+  ];
 
   const handleGoogleSignIn = async () => {
     setError(null);
     setLoadingGoogle(true);
     try {
-      await GoogleSignin.hasPlayServices();
+      const googleSigninModule = await getGoogleSigninModule();
+      const { GoogleSignin } = googleSigninModule;
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices();
+      }
       const rawNonce = Crypto.randomUUID();
       const hashedNonce = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
@@ -46,23 +135,26 @@ export default function LoginScreen() {
       const tokens = await GoogleSignin.getTokens();
       const idToken = tokens.idToken;
       if (!idToken) {
-        setError("Google sign-in failed. Please try again.");
+        setError(t("auth.login.errors.googleFailed"));
         return;
       }
       const { error: authError } = await signInWithGoogle(idToken, rawNonce);
       if (authError) {
-        setError("Sign-in failed. Please try again.");
+        setError(t("auth.login.errors.signInFailed"));
         return;
       }
       router.replace(returnTo as never);
     } catch (err: unknown) {
       const e = err as { code?: string };
-      if (e?.code === statusCodes.SIGN_IN_CANCELLED) {
+      const googleSigninModule = await cachedGoogleSigninModulePromise?.catch(() => null);
+      if (e?.code === googleSigninModule?.statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled — no error shown
-      } else if (e?.code === statusCodes.IN_PROGRESS) {
+      } else if (e?.code === googleSigninModule?.statusCodes.IN_PROGRESS) {
         // already in progress — ignore
+      } else if (err instanceof Error && err.message.includes("RNGoogleSignin")) {
+        setError("Google Sign-In requires a development build or production app.");
       } else {
-        setError("Google sign-in failed. Please try again.");
+        setError(t("auth.login.errors.googleFailed"));
       }
     } finally {
       setLoadingGoogle(false);
@@ -81,12 +173,12 @@ export default function LoginScreen() {
       });
       const identityToken = credential.identityToken;
       if (!identityToken) {
-        setError("Apple sign-in failed. Please try again.");
+        setError(t("auth.login.errors.appleFailed"));
         return;
       }
       const { error: authError } = await signInWithApple(identityToken);
       if (authError) {
-        setError("Sign-in failed. Please try again.");
+        setError(t("auth.login.errors.signInFailed"));
         return;
       }
       router.replace(returnTo as never);
@@ -95,7 +187,7 @@ export default function LoginScreen() {
       if (e?.code === "ERR_REQUEST_CANCELED") {
         // user cancelled — no error shown
       } else {
-        setError("Apple sign-in failed. Please try again.");
+        setError(t("auth.login.errors.appleFailed"));
       }
     } finally {
       setLoadingApple(false);
@@ -103,66 +195,144 @@ export default function LoginScreen() {
   };
 
   return (
-    <View
-      className="flex-1 bg-transparent px-6"
-      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
-      <View className="mt-4">
-        <Pressable
-          onPress={() => goBackOrReplace(router, returnTo as never)}
-          className="self-start"
-          disabled={isBusy}
-          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-          <Text className="text-base text-white/80">Back</Text>
-        </Pressable>
-      </View>
+    <ScrollView
+      className="flex-1 bg-transparent"
+      contentContainerStyle={{ flexGrow: 1 }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}>
+      <View
+        className="flex-1 px-5"
+        style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }}>
 
-      <View className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5">
-        <View className="h-28 bg-white/5" />
-        <View className="px-6 pb-6 pt-5">
-          <Text className="text-2xl font-semibold text-white">Welcome</Text>
-          <Text className="mt-2 text-sm text-white/60">
-            Get your daily personalized quotes.
-          </Text>
-
-          {Platform.OS === "ios" && (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
-              cornerRadius={16}
-              style={{ width: "100%", height: 50, marginTop: 20 }}
-              onPress={handleAppleSignIn}
-            />
-          )}
-
+        {/* Top bar */}
+        <View className="flex-row items-center justify-between mb-5">
           <Pressable
-            onPress={handleGoogleSignIn}
+            onPress={() => goBackOrReplace(router, returnTo as never)}
             disabled={isBusy}
-            className="mt-3 flex-row items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 py-3.5"
-            style={({ pressed }) => ({ opacity: isBusy ? 0.5 : pressed ? 0.8 : 1 })}>
-            {loadingGoogle ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-semibold text-white">
-                Sign in with Google
-              </Text>
-            )}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            className="flex-row items-center gap-1">
+            <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.7)" />
+            <Text className="text-white/70 text-base">{t("auth.login.back")}</Text>
           </Pressable>
+          <Text className="text-white/40 text-sm">v{appVersion}</Text>
+        </View>
 
-          {error ? (
-            <Text className="mt-4 text-center text-sm text-red-400">{error}</Text>
-          ) : null}
+        {/* Hero card */}
+        <View className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 mb-7">
+          {/* Card header row */}
+          <View className="flex-row items-center justify-between px-5 pt-4 pb-2">
+            <View className="flex-row items-center gap-2">
+              <AppIcon size={26} borderRadius={7} />
+              <Text className="text-white text-base font-semibold">{APP_BRAND_MARK}</Text>
+            </View>
+            <View className="w-10 h-5 rounded-full bg-white/20 border border-white/10" />
+          </View>
 
+          {/* App icon */}
+          <View className="items-center justify-center py-6">
+            <AppIcon
+              size={150}
+              borderRadius={34}
+              style={{
+                shadowColor: "#f97316",
+                shadowOffset: { width: 0, height: 12 },
+                shadowOpacity: 0.35,
+                shadowRadius: 32,
+              }}
+            />
+          </View>
+
+          {/* Vibe label */}
+          <View className="items-center pb-6">
+            <Text className="text-white/40 text-xs font-semibold tracking-widest uppercase mb-1">
+              {t("auth.login.todaysVibeLabel")}
+            </Text>
+            <Text className="text-white text-3xl font-bold">Midnight</Text>
+          </View>
+        </View>
+
+        {/* Headline */}
+        <Text className="text-white text-2xl font-bold mb-2">{t("auth.login.welcome")}</Text>
+        <Text className="text-white/50 text-sm mb-6 leading-5">
+          {t("auth.login.subtitle")}
+        </Text>
+
+        {/* Apple Sign-in */}
+        {Platform.OS === "ios" && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+            cornerRadius={16}
+            style={{ width: "100%", height: 52, marginBottom: 12 }}
+            onPress={handleAppleSignIn}
+          />
+        )}
+
+        {/* Google Sign-in */}
+        <Pressable
+          onPress={handleGoogleSignIn}
+          disabled={isBusy}
+          className="flex-row items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/5 py-3.5"
+          style={({ pressed }) => ({ opacity: isBusy ? 0.5 : pressed ? 0.75 : 1 })}>
+          {loadingGoogle ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={20} color="#EA4335" />
+              <Text className="text-base font-semibold text-white">{t("auth.login.continueWithGoogle")}</Text>
+            </>
+          )}
+        </Pressable>
+
+        {/* Error */}
+        {error ? (
+          <Text className="mt-4 text-center text-sm text-red-400">{error}</Text>
+        ) : null}
+
+        {/* Feature rows */}
+        <View className="mt-7 gap-5">
+          {featureRows.map((row) => (
+            <View key={row.title} className="flex-row items-start gap-3">
+              <View className="w-8 h-8 rounded-xl bg-white/8 items-center justify-center mt-0.5">
+                <Ionicons name={row.icon} size={17} color="rgba(255,255,255,0.55)" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white text-sm font-semibold mb-0.5">{row.title}</Text>
+                <Text className="text-white/45 text-xs leading-4">{row.description}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Footer */}
+        <View className="mt-8 items-center">
           <Pressable
             onPress={() => router.replace(returnTo as never)}
             disabled={isBusy}
-            className="mt-4"
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-            <Text className="text-center text-sm text-white/70">
-              Continue as guest
-            </Text>
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+            <Text className="text-white/60 text-sm">{t("auth.login.continueAsGuest")}</Text>
           </Pressable>
+
+          <Text className="text-white/25 text-xs text-center mt-4 leading-4">
+            {t("auth.login.termsPrefix")}{" "}
+            <Text
+              className="underline text-white/35"
+              onPress={() => Linking.openURL(termsUrl)}>
+              {t("auth.login.terms")}
+            </Text>
+            {privacyUrl ? (
+              <>
+                {" "}{t("auth.login.and")}{" "}
+                <Text
+                  className="underline text-white/35"
+                  onPress={() => Linking.openURL(privacyUrl)}>
+                  {t("auth.login.privacy")}
+                </Text>
+              </>
+            ) : null}
+          </Text>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }

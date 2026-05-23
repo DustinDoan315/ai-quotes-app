@@ -283,7 +283,32 @@
     "guestSignInHint": "Đăng nhập để lưu hồ sơ và mời bạn bè."
   },
   "auth": {
-    "phoneNumberPlaceholder": "Số điện thoại"
+    "phoneNumberPlaceholder": "Số điện thoại",
+    "login": {
+      "back": "Quay lại",
+      "todaysVibeLabel": "Vibe Hôm Nay",
+      "welcome": "Chào mừng đến với Inkly",
+      "subtitle": "Tiếp tục xác minh tài khoản và mở khóa vibe hằng ngày của bạn.",
+      "continueWithGoogle": "Tiếp tục với Google",
+      "continueAsGuest": "Tiếp tục với tư cách khách →",
+      "termsPrefix": "Bằng cách tiếp tục, bạn đồng ý với",
+      "terms": "Điều khoản",
+      "and": "và",
+      "privacy": "Chính sách Riêng tư",
+      "features": {
+        "verifiedTitle": "Được xác minh, không theo dõi",
+        "verifiedDesc": "Chúng tôi chỉ dùng tài khoản để đồng bộ vibe trên các thiết bị.",
+        "personaTitle": "Hiểu được phong cách của bạn",
+        "personaDesc": "Câu trích dẫn hôm nay được điều chỉnh theo đặc điểm và mục tiêu bạn đặt ra.",
+        "memoriesTitle": "Ký ức theo bạn mọi nơi",
+        "memoriesDesc": "Cài lại, đổi điện thoại — vibe đã lưu vẫn theo bạn."
+      },
+      "errors": {
+        "googleFailed": "Đăng nhập Google thất bại. Vui lòng thử lại.",
+        "appleFailed": "Đăng nhập Apple thất bại. Vui lòng thử lại.",
+        "signInFailed": "Đăng nhập thất bại. Vui lòng thử lại."
+      }
+    }
   },
   "friends": {
     "title": "Bạn bè",
@@ -320,12 +345,76 @@
   },
   "onboarding": {
     "welcome": {
-      "headline": "Câu trích dẫn thực sự là của bạn.",
-      "subheadline": "Cá nhân hóa theo cảm xúc của bạn.\nĐẹp đến mức muốn chia sẻ.",
-      "previewQuote": "\"Phiên bản mạnh mẽ nhất của bạn xuất hiện mỗi ngày.\"",
-      "previewAttribution": "— Inkly",
-      "cta": "Khám phá cảm xúc của tôi",
-      "disclaimer": "Miễn phí · Không cần tài khoản"
+      "headline": "Cảm xúc hàng ngày của bạn, tinh chất.",
+      "subheadline": "Một câu mỗi ngày, phù hợp với bạn và những gì hôm nay cần.",
+      "previewQuote": "\"Một điều nhỏ bé, thật— được mang nhẹ nhàng— là đủ.\"",
+      "previewAttribution": "CẢM XÚC HÔM QUA",
+      "cta": "Bắt đầu",
+      "alreadyHaveAccount": "Tôi đã có tài khoản"
+    },
+    "howItWorks": {
+      "tone": {
+        "sectionLabel": "CÁCH HOẠT ĐỘNG · 1/3",
+        "title": "Hãy cho chúng tôi biết tông cảm xúc của bạn",
+        "subtitle": "Vài cú nhấn về điều bình tĩnh, kích thích hay ổn định bạn. Không câu hỏi dài, không rào cản.",
+        "cta": "Tiếp theo"
+      },
+      "compose": {
+        "sectionLabel": "CÁCH HOẠT ĐỘNG · 2/3",
+        "title": "Inkly sáng tác cho bạn",
+        "subtitle": "Mỗi sáng, một câu — được viết từ tính cách, tâm trạng hôm nay và mùa hiện tại của bạn.",
+        "cta": "Tiếp theo",
+        "previewQuote": "\"Hôm nay nghiêng về sự bình tĩnh bạn mang theo.\"",
+        "previewTag": "ĐANG SOẠN · HÔM NAY",
+        "previewVibeKey": "BÌNH MINH"
+      },
+      "save": {
+        "sectionLabel": "CÁCH HOẠT ĐỘNG · 3/3",
+        "title": "Lưu những gì chạm đến bạn",
+        "subtitle": "Nhấn vào câu nào đó. Nó sẽ vào bộ sưu tập riêng để bạn xem lại bất cứ lúc nào.",
+        "cta": "Hiểu rồi — cài đặt nào",
+        "line1": "\"Bắt đầu lại, từ từ.\"",
+        "line2": "\"Mềm mỏng cũng là sức mạnh.\"",
+        "line3": "\"Giữ điều giữ bạn lại, một chút.\""
+      }
+    },
+    "persona": {
+      "sectionLabel": "VỀ BẠN · 1/2",
+      "title": "Gần đây bạn là ai?",
+      "subtitle": "Chọn những gì cảm thấy gần đúng. Bạn có thể thay đổi khi một mùa mới đến.",
+      "counter": "Đã chọn {{n}} · hãy chọn ít nhất 1",
+      "cta": "Tiếp tục",
+      "option_calm": "Bình tĩnh",
+      "option_calm_desc": "Ổn định, chậm rãi, thảnh thơi",
+      "option_focused": "Tập trung",
+      "option_focused_desc": "Được mài giũa bởi chủ đích",
+      "option_tender": "Nhạy cảm",
+      "option_tender_desc": "Mềm mỏng, tinh tế, cởi mở",
+      "option_bold": "Dũng cảm",
+      "option_bold_desc": "Hướng về phía trước, can đảm",
+      "option_curious": "Tò mò",
+      "option_curious_desc": "Câu hỏi trước câu trả lời",
+      "option_restless": "Bồn chồn",
+      "option_restless_desc": "Đang tìm kiếm, đang trưởng thành"
+    },
+    "goals": {
+      "sectionLabel": "VỀ BẠN · 2/2",
+      "title": "Bạn đang hướng đến điều gì?",
+      "subtitle": "Câu trích dẫn sẽ nghiêng về những gì bạn chọn — nhưng không bao giờ vội vàng.",
+      "counter": "Đã chọn {{n}}",
+      "cta": "Tiếp tục",
+      "option_present_label": "Hiện diện hơn",
+      "option_present_desc": "ngày như nó thực sự là",
+      "option_habit_label": "Xây thói quen nhỏ",
+      "option_habit_desc": "khoảnh khắc, được neo nhẹ nhàng",
+      "option_peace_label": "Tìm chút bình yên",
+      "option_peace_desc": "giảm tiếng ồn; lắng đọng tâm trí",
+      "option_push_label": "Thúc đẩy bản thân",
+      "option_push_desc": "phiên bản khó hơn của tôi",
+      "option_reconnect_label": "Kết nối lại",
+      "option_reconnect_desc": "với người, nơi, hoặc nhịp sống của tôi",
+      "option_rest_label": "Nghỉ ngơi, thật sự",
+      "option_rest_desc": "để mềm mỏng, không phải để biểu diễn"
     },
     "goal": {
       "title": "Bạn đến đây vì điều gì?",
@@ -353,17 +442,26 @@
       "cta": "Đây là nét tính cách của tôi"
     },
     "notification": {
-      "title": "Đừng bỏ lỡ cảm xúc hàng ngày.",
-      "subtitle": "Một thông báo. Câu trích dẫn của bạn, sẵn sàng khi bạn thức dậy.",
-      "bullet1": "Nhận câu trích dẫn cá nhân hóa ngay khi thức dậy",
-      "bullet2": "Đều đặn và yên tĩnh — xuất hiện cùng một khung giờ mỗi sáng",
-      "bullet3": "Không spam. Chỉ một khoảnh khắc hàng ngày của bạn.",
-      "ctaEnable": "Bật nhắc nhở hàng ngày",
+      "sectionLabel": "KHOẢNH KHẮC HÀNG NGÀY",
+      "title": "Cảm xúc hôm nay nên đến lúc nào?",
+      "subtitle": "Một thông báo nhẹ, mỗi ngày một lần. Thay đổi bất cứ lúc nào.",
+      "slot_predawn": "Rạng sáng",
+      "slot_predawn_time": "6:00",
+      "slot_predawn_desc": "Trước khi thế giới bắt đầu hỏi.",
+      "slot_morning": "Buổi sáng",
+      "slot_morning_time": "8:30",
+      "slot_morning_desc": "Đặt tông cho ly cà phê của bạn.",
+      "slot_midday": "Buổi trưa",
+      "slot_midday_time": "12:30",
+      "slot_midday_desc": "Nghỉ giữa các cuộc họp.",
+      "slot_evening": "Buổi tối",
+      "slot_evening_time": "20:00",
+      "slot_evening_desc": "Thư giãn, suy ngẫm, nhẹ lòng.",
+      "ctaEnable": "Bật thông báo",
       "ctaSkip": "Để sau",
       "previewAppName": "Inkly",
-      "previewTime": "vừa xong",
-      "previewTitle": "Cảm xúc hàng ngày của bạn đã sẵn sàng ✨",
-      "previewBody": "Mở Inkly để xem câu trích dẫn cá nhân hóa hôm nay.",
+      "previewTitle": "Cảm xúc hôm nay đã sẵn sàng.",
+      "previewBody": "\"Một điều nhỏ bé, thật— được mang nhẹ nhàng— là đủ.\"",
       "errorPermission": "Thông báo bị chặn. Bạn có thể bật trong Cài đặt bất cứ lúc nào.",
       "errorGeneric": "Đã xảy ra lỗi khi bật thông báo."
     },

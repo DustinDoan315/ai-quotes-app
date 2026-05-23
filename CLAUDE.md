@@ -129,6 +129,14 @@ Copy `.env.example` to `.env` and fill in:
 - Do not mock the Supabase client unless a unit test has no alternative — prefer testing domain logic in isolation.
 - Add regression tests whenever changing risky behavior (auth, AI, subscription, paywall).
 
+## Commit Messages
+
+- Follow Conventional Commits: `feat`, `fix`, `chore`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`.
+- Subject line ≤72 chars, imperative mood, lowercase after the type prefix (e.g. `feat: add quote sharing`).
+- No prose — keyword-driven only.
+- Body only when non-obvious: terse bullets, never re-describe what the diff already shows. Skip body for small changes.
+- Never include `Co-authored-by`, Claude attribution, or Anthropic attribution lines.
+
 ## What NOT to Do
 
 - Do not write secrets into `.env` or committed files.
