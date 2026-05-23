@@ -9,6 +9,7 @@ import {
   normalizeTraits,
   requireAuth,
 } from "../_shared/ai.ts";
+import { UsageLimitError, assertAndIncrementUsage, usageLimitResponse } from "../_shared/usage.ts";
 
 type RewriteTone = "funny" | "savage" | "calm";
 
@@ -99,6 +100,8 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
+    await assertAndIncrementUsage(authResult.userId);
+
     if (!OPENAI_API_KEY) {
       return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
@@ -183,6 +186,7 @@ Return only the rewritten quote.
       tone: body.tone,
     });
   } catch (error) {
+    if (error instanceof UsageLimitError) return usageLimitResponse();
     console.error("Unhandled error in quote-rewrite function:", error);
 
     return jsonResponse(

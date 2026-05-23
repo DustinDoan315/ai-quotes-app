@@ -1,34 +1,17 @@
+import { adminClient } from "./admin.ts";
+
 export const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 
-// The Supabase gateway validates the JWT signature before the function runs.
-// We only need to decode the payload to extract the user ID.
-export const requireAuth = (req: Request): { userId: string } | Response => {
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
-  }
+export const requireAuth = async (
+  req: Request,
+): Promise<{ userId: string } | Response> => {
+  const token = req.headers.get("Authorization")?.replace("Bearer ", "").trim();
+  if (!token) return jsonResponse({ error: "Unauthorized" }, 401);
 
-  const token = authHeader.slice(7).trim();
+  const { data, error } = await adminClient.auth.getUser(token);
+  if (error || !data.user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
-    }
-
-    const raw = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const padded = raw + "=".repeat((4 - (raw.length % 4)) % 4);
-    const payload = JSON.parse(atob(padded)) as { sub?: string; role?: string; exp?: number };
-
-    if (payload.role !== "authenticated" || !payload.sub) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
-    }
-
-    return { userId: payload.sub };
-  } catch (err) {
-    console.error("[requireAuth] exception:", err);
-    return jsonResponse({ error: "Unauthorized" }, 401);
-  }
+  return { userId: data.user.id };
 };
 
 export const JSON_HEADERS = {

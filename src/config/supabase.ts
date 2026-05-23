@@ -1,6 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import { Platform } from "react-native";
+import { ExpoSecureStorageAdapter } from "./secureStorage";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -24,13 +24,30 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: !isWebSsr,
     persistSession: !isWebSsr,
     detectSessionInUrl: false,
-    storage: isWebSsr ? ssrSafeStorage : AsyncStorage,
+    storage: isWebSsr ? ssrSafeStorage : ExpoSecureStorageAdapter,
   },
 });
 
 export type Database = {
   public: {
     Tables: {
+      ai_usage_daily: {
+        Row: {
+          user_id: string;
+          usage_date: string;
+          ai_count: number;
+        };
+        Insert: {
+          user_id: string;
+          usage_date?: string;
+          ai_count?: number;
+        };
+        Update: {
+          user_id?: string;
+          usage_date?: string;
+          ai_count?: number;
+        };
+      };
       home_backgrounds: {
         Row: {
           vibe_key: string;

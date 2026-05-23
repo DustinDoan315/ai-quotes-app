@@ -11,6 +11,7 @@ import {
   requireAuth,
   safeParseJson,
 } from "../_shared/ai.ts";
+import { UsageLimitError, assertAndIncrementUsage, usageLimitResponse } from "../_shared/usage.ts";
 
 if (!OPENAI_API_KEY) {
   console.error("Missing OPENAI_API_KEY in Supabase environment");
@@ -401,6 +402,8 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
+    await assertAndIncrementUsage(authResult.userId);
+
     if (!OPENAI_API_KEY) {
       return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
@@ -463,6 +466,7 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse(payload);
   } catch (err) {
+    if (err instanceof UsageLimitError) return usageLimitResponse();
     console.error("Unhandled error in quote function:", err);
 
     return jsonResponse(
