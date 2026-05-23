@@ -39,7 +39,10 @@
       "Bash(GEMINI_API_KEY=\"AIzaSyBukAn7-nxV4v9hMZeHaM6yk-8kskoB4xA\" /Users/dustin/.nvm/versions/node/v20.19.6/bin/gemini-mcp)",
       "Bash(open:*)",
       "Skill(update-config)",
-      "Bash(npx expo:*)"
+      "Bash(npx expo:*)",
+      "WebFetch(domain:ant.design)",
+      "Bash(bun add:*)",
+      "Bash(find *)"
     ]
   }
 }

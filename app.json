@@ -42,6 +42,7 @@
     "plugins": [
       "expo-router",
       "expo-dev-client",
+      "expo-apple-authentication",
       [
         "expo-camera",
         {
@@ -81,7 +82,8 @@
           "color": "#F59E0B"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
