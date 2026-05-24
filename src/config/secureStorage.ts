@@ -13,13 +13,18 @@ const OPTIONS: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
-async function readChunked(key: string, meta: string): Promise<string> {
+async function readChunked(key: string, meta: string): Promise<string | null> {
   const n = Number(meta);
   if (Number.isNaN(n)) return meta; // legacy single-value written before chunking
   const parts = await Promise.all(
     Array.from({ length: n }, (_, i) => SecureStore.getItemAsync(`${key}.${i}`, OPTIONS)),
   );
-  return parts.join("");
+  if (parts.some((p) => p === null)) {
+    // Partial/corrupt chunks — clear everything so next launch starts clean.
+    await deleteChunked(key).catch(() => undefined);
+    return null;
+  }
+  return (parts as string[]).join("");
 }
 
 async function writeChunked(key: string, value: string): Promise<void> {
@@ -50,8 +55,12 @@ export const ExpoSecureStorageAdapter = {
     // One-time migration: move existing AsyncStorage token to SecureStore.
     const legacy = await AsyncStorage.getItem(key);
     if (legacy !== null) {
-      await writeChunked(key, legacy);
-      await AsyncStorage.removeItem(key);
+      try {
+        await writeChunked(key, legacy);
+        await AsyncStorage.removeItem(key);
+      } catch {
+        // Migration failed — return legacy token; retry migration next launch.
+      }
       return legacy;
     }
     return null;
