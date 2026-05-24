@@ -14,6 +14,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dustindoan.inkly",
+      "buildNumber": "3",
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Inkly to access your camera for taking photos.",
         "NSUserNotificationsUsageDescription": "Inkly can send one daily reminder at the time you choose."
