@@ -42,7 +42,12 @@
       "Bash(npx expo:*)",
       "WebFetch(domain:ant.design)",
       "Bash(bun add:*)",
-      "Bash(find *)"
+      "Bash(find *)",
+      "Bash(git check-ignore:*)",
+      "Bash(git config:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(supabase --version)",
+      "Bash(supabase status:*)"
     ]
   }
 }

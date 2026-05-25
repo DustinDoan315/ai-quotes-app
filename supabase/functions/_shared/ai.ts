@@ -111,6 +111,15 @@ export const callOpenAI = async (body: unknown) => {
   });
 };
 
+export const callOpenAIText = async (body: unknown): Promise<string> => {
+  const res = await callOpenAI(body);
+  if (!res.ok) {
+    console.error("OpenAI error:", await res.text());
+    throw new Error("OpenAI request failed");
+  }
+  return extractOutputText(await res.json());
+};
+
 export const jsonResponse = (payload: unknown, status: number = 200) =>
   new Response(JSON.stringify(payload), {
     status,

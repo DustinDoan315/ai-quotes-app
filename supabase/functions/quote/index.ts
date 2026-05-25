@@ -2,6 +2,7 @@ import {
   MAX_BASE64_LENGTH,
   OPENAI_API_KEY,
   callOpenAI,
+  callOpenAIText,
   cleanBase64Image,
   cleanQuote,
   extractOutputText,
@@ -40,6 +41,10 @@ type ImageDetectionResult = {
   confidence_note: string;
 };
 
+const CREATIVE_MODEL = "gpt-4.1";
+const JUDGE_MODEL = "gpt-4.1-mini";
+const CANDIDATE_COUNT = 3;
+
 const GENERIC_QUOTE_PATTERNS = [
   /\bstay (strong|positive|focused)\b/i,
   /\bbelieve in yourself\b/i,
@@ -58,7 +63,6 @@ const GENERIC_QUOTE_PATTERNS = [
 ];
 const GENERIC_QUOTE_ERROR_MESSAGE =
   "Quote couldn't be generated. Tap Generate to try again.";
-const MAX_QUOTE_ATTEMPTS = 2;
 
 const isGenericQuote = (quote: string): boolean => {
   const normalized = quote.trim();
@@ -70,88 +74,77 @@ const isGenericQuote = (quote: string): boolean => {
   return GENERIC_QUOTE_PATTERNS.some((pattern) => pattern.test(normalized));
 };
 
-const validateGeneratedQuote = (value: string): string => {
-  const quote = cleanQuote(value);
-
-  if (isGenericQuote(quote)) {
-    throw new Error(GENERIC_QUOTE_ERROR_MESSAGE);
-  }
-
-  return quote;
-};
-
-const requestQuoteDraft = async (
+const generateCandidates = (
   systemPrompt: string,
   userPrompt: string,
-  errorLabel: string,
+): Promise<string[]> =>
+  Promise.all(
+    Array.from({ length: CANDIDATE_COUNT }, () =>
+      callOpenAIText({
+        model: CREATIVE_MODEL,
+        temperature: 0.9,
+        top_p: 0.95,
+        max_output_tokens: 120,
+        input: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      })
+        .then(cleanQuote)
+        .catch(() => ""),
+    ),
+  );
+
+const pickBestQuote = async (
+  candidates: string[],
+  context: string,
+  language: SupportedLanguage,
 ): Promise<string> => {
-  const response = await callOpenAI({
-    model: "gpt-4.1-mini",
-    temperature: 0.7,
-    max_output_tokens: 120,
+  const valid = candidates.filter((q) => q && !isGenericQuote(q));
+  if (valid.length === 0) throw new Error(GENERIC_QUOTE_ERROR_MESSAGE);
+  if (valid.length === 1) return valid[0];
+
+  const judged = await callOpenAIText({
+    model: JUDGE_MODEL,
+    temperature: 0,
+    max_output_tokens: 10,
     input: [
       {
         role: "system",
-        content: systemPrompt,
+        content:
+          `You pick the single best ${language === "vi" ? "Vietnamese" : "English"} quote. ` +
+          `Best = most specific to the moment, least like a generic poster, ` +
+          `emotionally precise, natural to say aloud. Reply with ONLY the index number.`,
       },
       {
         role: "user",
-        content: userPrompt,
+        content:
+          `Context: ${context}\n\n` +
+          valid.map((q, i) => `${i}. ${q}`).join("\n") +
+          `\n\nReturn only the best index.`,
       },
     ],
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`OpenAI ${errorLabel} error:`, errorText);
-    throw new Error("Failed to generate quote");
-  }
-
-  const data = await response.json();
-  const text = extractOutputText(data);
-
-  if (!text) {
-    console.error(`Empty ${errorLabel} response:`, JSON.stringify(data));
-    throw new Error("Empty quote generated");
-  }
-
-  return text;
+  const idx = parseInt(judged.replace(/\D/g, ""), 10);
+  return valid[Number.isInteger(idx) && valid[idx] ? idx : 0];
 };
 
-const generateQualityQuote = async (
-  systemPrompt: string,
-  baseUserPrompt: string,
-  errorLabel: string,
-): Promise<string> => {
-  let lastError: Error | null = null;
+const FEWSHOT_EN = `
+Examples of the bar (do not reuse these lines):
+- Late-night desk, half-finished work: "The mess on your desk is just proof you cared enough to start."
+- Morning coffee alone: "You made the quiet on purpose today — keep some of it for yourself."
+- Rain on a window: "Some days the plan is just to stay dry and warm, and that counts."
+- Gym mirror, tired eyes: "You showed up before you were ready — that's the whole thing."
+`.trim();
 
-  for (let attempt = 0; attempt < MAX_QUOTE_ATTEMPTS; attempt += 1) {
-    const userPrompt =
-      attempt === 0
-        ? baseUserPrompt
-        : `${baseUserPrompt}
-
-Previous draft was rejected because it sounded generic. Rewrite it with a more specific emotional detail and no cliché phrases.`;
-
-    const draft = await requestQuoteDraft(systemPrompt, userPrompt, errorLabel);
-
-    try {
-      return validateGeneratedQuote(draft);
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === GENERIC_QUOTE_ERROR_MESSAGE
-      ) {
-        lastError = error;
-        continue;
-      }
-
-      throw error;
-    }
-  }
-
-  throw lastError ?? new Error("Failed to generate quote");
-};
+const FEWSHOT_VI = `
+Ví dụ về mức cần đạt (không dùng lại những câu này):
+- Bàn làm việc khuya, còn dang dở: "Mớ hỗn độn trên bàn là bằng chứng bạn đã đủ can đảm để bắt đầu."
+- Sáng uống cà phê một mình: "Bạn tự chọn sự yên tĩnh hôm nay — hãy giữ lại một phần cho mình."
+- Mưa ngoài cửa sổ: "Đôi khi kế hoạch chỉ là ở ấm và khô ráo — thế cũng đủ rồi."
+- Gương phòng gym, ánh mắt mệt mỏi: "Bạn đến khi chưa sẵn sàng — đó mới là điều quan trọng nhất."
+`.trim();
 
 const buildQuoteSystemPrompt = (language: SupportedLanguage): string => {
   if (language === "en") {
@@ -171,6 +164,8 @@ const buildQuoteSystemPrompt = (language: SupportedLanguage): string => {
   - Do not use phrases like "stay strong", "keep going", "never give up", "believe in yourself", "embrace the journey", or "success is a journey"
   - Keep it natural, concise, concrete, and emotionally strong
   - If your first draft sounds like a generic motivational poster, rewrite it before returning
+
+  ${FEWSHOT_EN}
   `.trim();
   }
 
@@ -192,6 +187,8 @@ const buildQuoteSystemPrompt = (language: SupportedLanguage): string => {
   - Không dùng các ý như "hãy mạnh mẽ", "cố gắng lên", "đừng bao giờ bỏ cuộc", "tin vào bản thân", hoặc "mỗi ngày là một cơ hội"
   - Giữ câu tự nhiên, ngắn, cụ thể, và có lực cảm xúc
   - Nếu bản nháp đầu nghe như poster động lực chung chung, hãy viết lại trước khi trả về
+
+  ${FEWSHOT_VI}
   `.trim();
 };
 
@@ -232,7 +229,7 @@ const detectImage = async (
   language: SupportedLanguage,
 ): Promise<ImageDetectionResult> => {
   const response = await callOpenAI({
-    model: "gpt-4.1-mini",
+    model: JUDGE_MODEL,
     temperature: 0.2,
     max_output_tokens: 400,
     input: [
@@ -352,9 +349,8 @@ const generateQuoteFromVision = async (
   vision: ImageDetectionResult,
   language: SupportedLanguage,
 ): Promise<string> => {
-  return generateQualityQuote(
-    buildQuoteSystemPrompt(language),
-    `
+  const systemPrompt = buildQuoteSystemPrompt(language);
+  const userPrompt = `
   Persona traits: ${traitsDescription}
 
   Image understanding:
@@ -363,34 +359,36 @@ const generateQuoteFromVision = async (
   - People: ${vision.people.join(", ") || "none"}
   - Animals: ${vision.animals.join(", ") || "none"}
   - Objects: ${vision.objects.join(", ") || "none"}
+  - Text in image: ${vision.text_in_image.join(", ") || "none"}
   - Setting: ${vision.setting || "unknown"}
   - Colors: ${vision.colors.join(", ") || "unknown"}
   - Mood: ${vision.mood.join(", ") || "neutral"}
 
   Write one quote that captures the emotional meaning of this exact context.
-  Anchor it in one concrete detail from the context, but do not describe the image.
+  Anchor it in one concrete noun or detail from the context — especially any text visible or a specific object — but do not describe the image.
   Return only the quote.
-          `.trim(),
-    "quote-from-vision",
-  );
+  `.trim();
+
+  const candidates = await generateCandidates(systemPrompt, userPrompt);
+  return pickBestQuote(candidates, vision.scene_summary, language);
 };
 
 const generateQuoteWithoutImage = async (
   traitsDescription: string,
   language: SupportedLanguage,
 ): Promise<string> => {
-  return generateQualityQuote(
-    buildQuoteSystemPrompt(language),
-    `
+  const systemPrompt = buildQuoteSystemPrompt(language);
+  const userPrompt = `
   Persona traits: ${traitsDescription}
 
   Write one short quote that feels like it was written for this specific person today.
   Use the traits as emotional direction, not as labels.
   Avoid generic motivational language.
   Return only the quote.
-          `.trim(),
-    "no-image quote",
-  );
+  `.trim();
+
+  const candidates = await generateCandidates(systemPrompt, userPrompt);
+  return pickBestQuote(candidates, traitsDescription, language);
 };
 
 Deno.serve(async (req: Request) => {
