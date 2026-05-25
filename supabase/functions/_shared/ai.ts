@@ -58,7 +58,7 @@ export const safeParseJson = <T>(value: string): T | null => {
 export const extractOutputText = (data: unknown): string => {
   const payload = data as {
     output?: Array<{
-      content?: Array<{ text?: string }>;
+      content?: Array<{ type?: string; text?: string }>;
     }>;
   };
 
@@ -68,6 +68,7 @@ export const extractOutputText = (data: unknown): string => {
     if (!Array.isArray(item?.content)) continue;
 
     for (const part of item.content) {
+      if (part?.type === "refusal") continue;
       if (typeof part?.text === "string" && part.text.trim()) {
         return part.text.trim();
       }
@@ -100,7 +101,22 @@ export const cleanExplanation = (value: string): string => {
   return explanation;
 };
 
-export const callOpenAI = async (body: unknown) => {
+export type OpenAIRequestBody = {
+  model: string;
+  input: unknown;
+  temperature?: number;
+  top_p?: number;
+  max_output_tokens?: number;
+  text?: {
+    format?: {
+      type: string;
+      name?: string;
+      schema?: Record<string, unknown>;
+    };
+  };
+};
+
+export const callOpenAI = async (body: OpenAIRequestBody) => {
   return fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -111,7 +127,7 @@ export const callOpenAI = async (body: unknown) => {
   });
 };
 
-export const callOpenAIText = async (body: unknown): Promise<string> => {
+export const callOpenAIText = async (body: OpenAIRequestBody): Promise<string> => {
   const res = await callOpenAI(body);
   if (!res.ok) {
     console.error("OpenAI error:", await res.text());

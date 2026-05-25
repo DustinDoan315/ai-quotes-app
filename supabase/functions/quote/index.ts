@@ -83,7 +83,6 @@ const generateCandidates = (
       callOpenAIText({
         model: CREATIVE_MODEL,
         temperature: 0.9,
-        top_p: 0.95,
         max_output_tokens: 120,
         input: [
           { role: "system", content: systemPrompt },
@@ -127,7 +126,8 @@ const pickBestQuote = async (
   });
 
   const idx = parseInt(judged.replace(/\D/g, ""), 10);
-  return valid[Number.isInteger(idx) && valid[idx] ? idx : 0];
+  const chosen = Number.isInteger(idx) && idx >= 0 && idx < valid.length ? idx : 0;
+  return valid[chosen];
 };
 
 const FEWSHOT_EN = `
@@ -258,7 +258,7 @@ const detectImage = async (
           {
             type: "input_image",
             image_url: `data:image/jpeg;base64,${cleanedBase64}`,
-            detail: "high",
+            detail: "auto",
           },
         ],
       },
@@ -400,8 +400,6 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
-    await assertAndIncrementUsage(authResult.userId);
-
     if (!OPENAI_API_KEY) {
       return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
@@ -462,6 +460,7 @@ Deno.serve(async (req: Request) => {
           language: normalizedLanguage,
         };
 
+    await assertAndIncrementUsage(authResult.userId);
     return jsonResponse(payload);
   } catch (err) {
     if (err instanceof UsageLimitError) return usageLimitResponse();
