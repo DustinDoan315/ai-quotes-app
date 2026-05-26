@@ -12,6 +12,7 @@ export type EmojiBurst = {
   x: number;
   delay: number;
   scale: number;
+  driftDir: 1 | -1;
 };
 
 type FeedReactionType = "love" | "clap" | "fire";
@@ -98,6 +99,7 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
         x: 10 + Math.random() * 80,
         delay: i * delayStepMs,
         scale: 0.6 + Math.random() * 0.8,
+        driftDir: Math.random() > 0.5 ? 1 : -1,
       });
     }
 
