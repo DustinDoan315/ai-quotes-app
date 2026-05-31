@@ -17,6 +17,7 @@ import {
   initializeRevenueCat,
   isRevenueCatInitialized,
 } from "@/services/paywall/nativeRevenueCat";
+import { checkSupabaseReachable } from "@/config/supabase";
 import { useEffect } from "react";
 
 function syncUiLanguageOnBoot(): (() => void) | undefined {
@@ -98,6 +99,8 @@ export function useAppBootstrap(): void {
     const unsubscribeLanguageHydration = syncUiLanguageOnBoot();
     const unsubscribeReminderHydration = syncReminderOnBoot();
     bootstrapTelemetry();
+
+    checkSupabaseReachable();
 
     void useSubscriptionConfigStore
       .getState()

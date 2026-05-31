@@ -106,7 +106,7 @@ const pickBestQuote = async (
   const judged = await callOpenAIText({
     model: JUDGE_MODEL,
     temperature: 0,
-    max_output_tokens: 10,
+    max_output_tokens: 16,
     input: [
       {
         role: "system",
@@ -231,7 +231,7 @@ const detectImage = async (
   const response = await callOpenAI({
     model: JUDGE_MODEL,
     temperature: 0.2,
-    max_output_tokens: 400,
+    max_output_tokens: 1500,
     input: [
       {
         role: "system",
@@ -436,12 +436,17 @@ Deno.serve(async (req: Request) => {
     let quote = "";
 
     if (cleanedBase64) {
-      visionDebug = await detectImage(cleanedBase64, visionLang);
-      quote = await generateQuoteFromVision(
-        traitsDescription,
-        visionDebug,
-        normalizedLanguage,
-      );
+      try {
+        visionDebug = await detectImage(cleanedBase64, visionLang);
+        quote = await generateQuoteFromVision(
+          traitsDescription,
+          visionDebug,
+          normalizedLanguage,
+        );
+      } catch (err) {
+        console.error("Image analysis failed, falling back to no-image quote:", err);
+        quote = await generateQuoteWithoutImage(traitsDescription, normalizedLanguage);
+      }
     } else {
       quote = await generateQuoteWithoutImage(
         traitsDescription,

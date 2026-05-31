@@ -39,8 +39,12 @@ export async function signInAnonymously(): Promise<{
   session: Session | null;
   error: AuthError | null;
 }> {
-  const { data, error } = await supabase.auth.signInAnonymously();
-  return { user: data.user, session: data.session, error };
+  try {
+    const { data, error } = await supabase.auth.signInAnonymously();
+    return { user: data?.user ?? null, session: data?.session ?? null, error };
+  } catch (err) {
+    return { user: null, session: null, error: err as AuthError };
+  }
 }
 
 export async function signInWithGoogle(idToken: string, nonce?: string): Promise<{
@@ -81,24 +85,28 @@ export async function getSessionSafely(): Promise<{
   session: Session | null;
   error: AuthError | null;
 }> {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
+  try {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
-  if (error) {
-    const message = error.message.toLowerCase();
-    if (message.includes("refresh token")) {
-      try {
-        await clearStoredSession();
-      } catch {
-        // Best effort cleanup for corrupt local auth state.
+    if (error) {
+      const message = error.message.toLowerCase();
+      if (message.includes("refresh token")) {
+        try {
+          await clearStoredSession();
+        } catch {
+          // Best effort cleanup for corrupt local auth state.
+        }
       }
+      return { session: null, error };
     }
-    return { session: null, error };
-  }
 
-  return { session, error: null };
+    return { session, error: null };
+  } catch (err) {
+    return { session: null, error: err as AuthError };
+  }
 }
 
 export async function getSession(): Promise<Session | null> {

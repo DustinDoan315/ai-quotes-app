@@ -7,7 +7,8 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
-    "Missing Supabase environment variables. Ensure EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set.",
+    "[Supabase] MISSING ENV VARS — EXPO_PUBLIC_SUPABASE_URL and/or EXPO_PUBLIC_SUPABASE_ANON_KEY are not set. " +
+      "All Supabase requests will fail. For EAS builds, set these as EAS environment variables.",
   );
 }
 
@@ -27,6 +28,21 @@ export const supabase = createClient(supabaseUrl ?? "", supabaseAnonKey ?? "", {
     storage: isWebSsr ? ssrSafeStorage : ExpoSecureStorageAdapter,
   },
 });
+
+export function checkSupabaseReachable(): void {
+  if (!supabaseUrl) return;
+  fetch(`${supabaseUrl}/rest/v1/`, {
+    method: "HEAD",
+    headers: { apikey: supabaseAnonKey ?? "" },
+  }).catch(() => {
+    console.error(
+      "[Supabase] Project is unreachable. Common causes:\n" +
+        "  1. Free-tier project is paused — resume it at https://supabase.com/dashboard\n" +
+        "  2. EXPO_PUBLIC_SUPABASE_URL is wrong in your .env or EAS secrets\n" +
+        "  3. No internet access to the Supabase endpoint",
+    );
+  });
+}
 
 export type Database = {
   public: {
