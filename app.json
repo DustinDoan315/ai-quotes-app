@@ -3,9 +3,7 @@
     "name": "Inkly: Daily Vibes",
     "slug": "inkly-daily-vibes",
     "version": "1.0.0",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "inkly",
@@ -14,7 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dustindoan.inkly",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "config": {
         "usesNonExemptEncryption": false
       },
