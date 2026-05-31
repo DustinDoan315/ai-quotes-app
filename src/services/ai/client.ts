@@ -76,6 +76,9 @@ export const generateQuote = async (
     const { response, data } = await callEdgeFunction("quote", payload);
 
     if (!response.ok) {
+      if (response.status === 429 && data.reason === "ai_limit") {
+        return { quote: "", isValid: false, reason: "ai_limit" };
+      }
       const serverMessage = (data.error as string | undefined)?.trim();
       const reason =
         serverMessage ||
@@ -117,6 +120,9 @@ export const explainQuote = async (
     });
 
     if (!response.ok) {
+      if (response.status === 429 && data.reason === "ai_limit") {
+        return { explanation: "", isValid: false, reason: "ai_limit" };
+      }
       const serverMessage = (data.error as string | undefined)?.trim();
       return {
         explanation: "",
@@ -153,6 +159,9 @@ export const rewriteQuote = async (
     });
 
     if (!response.ok) {
+      if (response.status === 429 && data.reason === "ai_limit") {
+        return { quote: "", isValid: false, reason: "ai_limit" };
+      }
       const serverMessage = (data.error as string | undefined)?.trim();
       return {
         quote: "",
@@ -192,6 +201,9 @@ export const generateFutureQuote = async (
     });
 
     if (!response.ok) {
+      if (response.status === 429 && data.reason === "ai_limit") {
+        return { quote: "", isValid: false, reason: "ai_limit" };
+      }
       const serverMessage = (data.error as string | undefined)?.trim();
       return {
         quote: "",

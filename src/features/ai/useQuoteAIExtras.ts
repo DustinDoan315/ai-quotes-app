@@ -5,6 +5,8 @@ import type { RewriteTone } from "@/services/ai/types";
 import { useUserStore } from "@/appState/userStore";
 import { useQuoteStore } from "@/appState/quoteStore";
 import { useUIStore } from "@/appState/uiStore";
+import { openPaywall } from "@/features/paywall/openPaywall";
+import i18n from "@/i18n";
 
 export const useExplainQuote = (quoteText: string | null) => {
   const persona = useUserStore((s) => s.persona);
@@ -27,7 +29,13 @@ export const useExplainQuote = (quoteText: string | null) => {
         language: quoteLanguage,
       });
       if (!response.isValid) {
-        if (response.reason) {
+        if (response.reason === "ai_limit") {
+          showToast(
+            `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
+            "info",
+          );
+          openPaywall({ reason: "ai_limit", source: "ai_generate" });
+        } else if (response.reason) {
           showToast(response.reason, "error");
         }
         return null;
@@ -67,7 +75,13 @@ export const useRewriteQuote = () => {
           language: quoteLanguage,
         });
         if (!response.isValid) {
-          if (response.reason) {
+          if (response.reason === "ai_limit") {
+            showToast(
+              `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
+              "info",
+            );
+            openPaywall({ reason: "ai_limit", source: "ai_generate" });
+          } else if (response.reason) {
             showToast(response.reason, "error");
           }
           return null;
@@ -133,7 +147,13 @@ export const useFutureQuote = () => {
           language: quoteLanguage,
         });
         if (!response.isValid) {
-          if (response.reason) {
+          if (response.reason === "ai_limit") {
+            showToast(
+              `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
+              "info",
+            );
+            openPaywall({ reason: "ai_limit", source: "ai_generate" });
+          } else if (response.reason) {
             showToast(response.reason, "error");
           }
           return null;

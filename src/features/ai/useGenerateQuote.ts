@@ -109,7 +109,15 @@ export const useGenerateQuote = () => {
       });
 
       if (!response.isValid) {
-        showToast(response.reason || "Failed to generate quote", "error");
+        if (response.reason === "ai_limit") {
+          showToast(
+            `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
+            "info",
+          );
+          openPaywall({ reason: "ai_limit", source: "ai_generate" });
+        } else {
+          showToast(response.reason || "Failed to generate quote", "error");
+        }
         return null;
       }
 
