@@ -21,7 +21,13 @@ function getGoogleIosUrlScheme(): string | undefined {
 
 const googleIosUrlScheme = getGoogleIosUrlScheme();
 
-const plugins = [...(expo.plugins ?? [])];
+const plugins = [...(expo.plugins ?? []).filter(
+  (p: unknown) => p !== "expo-dev-client" && (p as unknown[])?.[0] !== "expo-dev-client"
+)];
+
+if (process.env.EXPO_PUBLIC_APP_ENV !== "production") {
+  plugins.unshift("expo-dev-client");
+}
 
 if (googleIosUrlScheme) {
   plugins.push([

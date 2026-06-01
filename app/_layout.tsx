@@ -40,11 +40,9 @@ const navTheme = {
 };
 
 
-export default function RootLayout() {
+function AppContent() {
   useAppBootstrap();
-
   return (
-    <RootErrorBoundary>
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <ThemeProvider value={navTheme}>
@@ -67,6 +65,13 @@ export default function RootLayout() {
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <RootErrorBoundary>
+      <AppContent />
     </RootErrorBoundary>
   );
 }
