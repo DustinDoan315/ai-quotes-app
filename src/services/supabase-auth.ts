@@ -60,7 +60,7 @@ export async function signInWithGoogle(idToken: string, nonce?: string): Promise
   return { user: data.user ?? null, session: data.session ?? null, error };
 }
 
-export async function signInWithApple(identityToken: string): Promise<{
+export async function signInWithApple(identityToken: string, nonce?: string): Promise<{
   user: User | null;
   session: Session | null;
   error: AuthError | null;
@@ -68,6 +68,7 @@ export async function signInWithApple(identityToken: string): Promise<{
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "apple",
     token: identityToken,
+    nonce,
   });
   return { user: data.user ?? null, session: data.session ?? null, error };
 }

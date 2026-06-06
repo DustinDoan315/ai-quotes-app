@@ -165,18 +165,24 @@ export default function LoginScreen() {
     setError(null);
     setLoadingApple(true);
     try {
+      const rawNonce = Crypto.randomUUID();
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce,
+      );
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+        nonce: hashedNonce,
       });
       const identityToken = credential.identityToken;
       if (!identityToken) {
         setError(t("auth.login.errors.appleFailed"));
         return;
       }
-      const { error: authError } = await signInWithApple(identityToken);
+      const { error: authError } = await signInWithApple(identityToken, rawNonce);
       if (authError) {
         setError(t("auth.login.errors.signInFailed"));
         return;

@@ -19,7 +19,7 @@ export interface UseAuthReturn {
   profile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: (idToken: string, nonce?: string) => Promise<{ error: unknown }>;
-  signInWithApple: (identityToken: string) => Promise<{ error: unknown }>;
+  signInWithApple: (identityToken: string, nonce?: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<{ error: unknown }>;
   updateProfile: (updates: {
     username?: string;
@@ -85,8 +85,8 @@ export function useAuth(): UseAuthReturn {
     return { error };
   };
 
-  const handleSignInWithApple = async (identityToken: string) => {
-    const { user: newUser, session: newSession, error } = await signInWithAppleApi(identityToken);
+  const handleSignInWithApple = async (identityToken: string, nonce?: string) => {
+    const { user: newUser, session: newSession, error } = await signInWithAppleApi(identityToken, nonce);
     if (!error && newSession && newUser) {
       await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
