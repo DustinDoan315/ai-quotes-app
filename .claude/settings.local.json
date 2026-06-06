@@ -43,17 +43,15 @@
       "WebFetch(domain:ant.design)",
       "Bash(bun add:*)",
       "Bash(find *)",
-<<<<<<< Updated upstream
-      "Bash(git check-ignore:*)",
-      "Bash(git config:*)",
-      "Bash(git ls-tree:*)",
-      "Bash(supabase --version)",
-      "Bash(supabase status:*)"
-=======
       "Bash(git branch *)",
       "Bash(git pull *)",
       "Bash(git push *)",
+      "Bash(git check-ignore:*)",
+      "Bash(git config:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git *)",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
       "Bash(supabase *)",
       "Bash(npx supabase *)",
       "Bash(./node_modules/.bin/supabase *)",
@@ -62,12 +60,9 @@
       "Bash(bun install *)",
       "Bash(awk '{print $6, $7, $8, $9}')",
       "Bash(pod install *)",
-      "Bash(git *)",
       "Bash(eas submit *)",
       "Bash(eas submission:view *)",
-      "Bash(eas build *)",
-      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")"
->>>>>>> Stashed changes
+      "Bash(eas build *)"
     ]
   }
 }
