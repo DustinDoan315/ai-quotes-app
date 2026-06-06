@@ -56,7 +56,10 @@ export async function initializeRevenueCat(): Promise<void> {
   initPromise = (async () => {
     try {
       installRevenueCatLogHandler();
-      Purchases.configure({ apiKey });
+      const alreadyConfigured = await Purchases.isConfigured();
+      if (!alreadyConfigured) {
+        Purchases.configure({ apiKey });
+      }
       isInitialized = true;
     } catch (error) {
       initPromise = null;
