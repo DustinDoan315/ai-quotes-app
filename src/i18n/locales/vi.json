@@ -465,6 +465,17 @@
       "errorPermission": "Thông báo bị chặn. Bạn có thể bật trong Cài đặt bất cứ lúc nào.",
       "errorGeneric": "Đã xảy ra lỗi khi bật thông báo."
     },
+    "camera": {
+      "sectionLabel": "QUYỀN CAMERA",
+      "title": "Mang thế giới của bạn vào Inkly",
+      "subtitle": "Chụp ảnh và chúng tôi sẽ viết câu trích dẫn xung quanh nó — chỉ dành cho bạn.",
+      "feature1": "Câu trích dẫn AI lấy cảm hứng từ không gian của bạn",
+      "feature2": "Lưu những khoảnh khắc ảnh vào ký ức",
+      "feature3": "Chia sẻ cảm xúc với bạn bè",
+      "ctaAllow": "Cho phép truy cập camera",
+      "ctaSkip": "Để sau",
+      "errorPermission": "Camera bị chặn. Bật trong Cài đặt bất cứ lúc nào."
+    },
     "proTeaser": {
       "header": "Bạn đã sẵn sàng!",
       "subtitle": "Gói miễn phí giúp bạn bắt đầu. Nâng cấp bất cứ lúc nào để mở khóa mọi thứ.",

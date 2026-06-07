@@ -1,5 +1,6 @@
 import { useUserStore } from "@/appState/userStore";
 import { OnboardingProgressBar } from "@/features/onboarding/OnboardingProgressBar";
+import { CameraStep } from "@/features/onboarding/steps/CameraStep";
 import { GoalsStep } from "@/features/onboarding/steps/GoalsStep";
 import { HowItWorksComposeStep } from "@/features/onboarding/steps/HowItWorksComposeStep";
 import { HowItWorksSaveStep } from "@/features/onboarding/steps/HowItWorksSaveStep";
@@ -23,17 +24,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 // 5 = Persona
 // 6 = Goals
 // 7 = Notifications
-// 8 = Paywall
+// 8 = Camera
+// 9 = Paywall
 
 // Steps that hide the entire header (progress bar + back arrow)
-const HIDE_HEADER_STEPS = new Set([1, 8]);
+const HIDE_HEADER_STEPS = new Set([1, 9]);
 
 // Steps where the back arrow is hidden (replaced with a spacer)
 const HIDE_BACK_STEPS = new Set([2]);
 
-// Progress bar covers steps 2–7 (6 segments).
-// segment index = step - 2, so currentStep passed to bar = step - 1, totalSteps = 6
-const PROGRESS_BAR_TOTAL = 6;
+// Progress bar covers steps 2–8 (7 segments).
+// segment index = step - 2, so currentStep passed to bar = step - 1, totalSteps = 7
+const PROGRESS_BAR_TOTAL = 7;
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -119,6 +121,9 @@ export default function OnboardingScreen() {
         return <NotificationStep onContinue={() => setStep(8)} />;
 
       case 8:
+        return <CameraStep onContinue={() => setStep(9)} />;
+
+      case 9:
         return (
           <PaywallScreen
             reason="generic"

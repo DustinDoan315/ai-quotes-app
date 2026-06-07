@@ -465,6 +465,17 @@
       "errorPermission": "Notifications blocked. You can enable them in Settings anytime.",
       "errorGeneric": "Something went wrong enabling notifications."
     },
+    "camera": {
+      "sectionLabel": "CAMERA ACCESS",
+      "title": "Bring your world into Inkly",
+      "subtitle": "Take a photo and we'll write a quote around it — just for you.",
+      "feature1": "AI quotes inspired by your surroundings",
+      "feature2": "Save your photo moments to memories",
+      "feature3": "Share your vibe with friends",
+      "ctaAllow": "Allow camera access",
+      "ctaSkip": "Maybe later",
+      "errorPermission": "Camera blocked. Enable it in Settings anytime."
+    },
     "proTeaser": {
       "header": "You're all set!",
       "subtitle": "Free plan gets you started. Upgrade anytime to unlock everything.",
