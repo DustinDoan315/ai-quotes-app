@@ -50,6 +50,10 @@ export async function initializeRevenueCat(): Promise<void> {
 
   const apiKey = RevenueCatConfig.apiKey?.trim() || "";
   if (!apiKey) {
+    console.error(
+      "RevenueCat init skipped:",
+      RevenueCatConfig.configurationError ?? "No API key was configured.",
+    );
     return;
   }
 
@@ -78,7 +82,9 @@ async function ensureInit(): Promise<void> {
     await initPromise;
   }
   if (!isInitialized) {
-    throw new Error("RevenueCat not initialized");
+    throw new Error(
+      RevenueCatConfig.configurationError ?? "RevenueCat not initialized",
+    );
   }
 }
 
@@ -105,7 +111,23 @@ export async function getCustomerInfo(): Promise<CustomerInfo> {
 export async function getOfferings(): Promise<PurchasesOffering | null> {
   await ensureInit();
   const offerings = await Purchases.getOfferings();
-  return offerings.current ?? null;
+  const current = offerings.current ?? null;
+
+  if (!current) {
+    console.error(
+      "[RevenueCat] No current offering was returned. In RevenueCat, make an offering current and attach an Apple/Google product to one of its packages.",
+      { availableOfferingIds: Object.keys(offerings.all) },
+    );
+    return null;
+  }
+
+  if (!current.availablePackages.length) {
+    console.error(
+      "[RevenueCat] The current offering has no available packages. Check that each package uses a product from this store app and that the product is active in App Store Connect or Google Play.",
+      { offeringId: current.identifier },
+    );
+  }
+  return current;
 }
 
 export async function purchasePackage(pkg: PurchasesPackage): Promise<CustomerInfo> {

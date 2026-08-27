@@ -21,9 +21,14 @@ function getGoogleIosUrlScheme(): string | undefined {
 
 const googleIosUrlScheme = getGoogleIosUrlScheme();
 
-const plugins = [...(expo.plugins ?? []).filter(
-  (p: unknown) => p !== "expo-dev-client" && (p as unknown[])?.[0] !== "expo-dev-client"
-)];
+const googleSigninPlugin = "@react-native-google-signin/google-signin";
+const plugins = [...(expo.plugins ?? []).filter((p: unknown) => {
+  if (p === "expo-dev-client" || (p as unknown[])?.[0] === "expo-dev-client") {
+    return false;
+  }
+
+  return p !== googleSigninPlugin && (p as unknown[])?.[0] !== googleSigninPlugin;
+})];
 
 if (process.env.EXPO_PUBLIC_APP_ENV !== "production") {
   plugins.unshift("expo-dev-client");
@@ -31,11 +36,13 @@ if (process.env.EXPO_PUBLIC_APP_ENV !== "production") {
 
 if (googleIosUrlScheme) {
   plugins.push([
-    "@react-native-google-signin/google-signin",
+    googleSigninPlugin,
     {
       iosUrlScheme: googleIosUrlScheme,
     },
   ]);
+} else {
+  plugins.push(googleSigninPlugin);
 }
 
 module.exports = {

@@ -70,7 +70,10 @@ export function RevenueCatTestScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.title}>RevenueCat</Text>
-        <Text style={styles.hint}>Set EXPO_PUBLIC_REVENUECAT_API_KEY in .env</Text>
+        <Text style={styles.hint}>
+          {RevenueCatConfig.configurationError ??
+            "Set the matching platform RevenueCat API key in .env."}
+        </Text>
       </View>
     );
   }

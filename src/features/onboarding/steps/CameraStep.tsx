@@ -1,6 +1,7 @@
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { Ionicons } from "@expo/vector-icons";
 import { useCameraPermissions } from "expo-camera";
+import * as Device from "expo-device";
 import * as Haptics from "expo-haptics";
 import { MotiView } from "moti";
 import { useState } from "react";
@@ -12,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const CAMERA_PERMISSION_TIMEOUT_MS = 8_000;
 
 type Feature = {
   icon: "sparkles" | "heart" | "people";
@@ -31,15 +34,46 @@ type Props = {
 export function CameraStep({ onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const [, requestPermission] = useCameraPermissions();
+  const [permission, requestPermission] = useCameraPermissions();
   const [isRequesting, setIsRequesting] = useState(false);
 
   async function handleAllow() {
+    if (!Device.isDevice) {
+      console.info("Camera permission skipped on a simulator");
+      onContinue();
+      return;
+    }
+
     setIsRequesting(true);
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
-      await requestPermission();
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
+        () => undefined,
+      );
+
+      if (!permission?.granted && permission?.canAskAgain !== false) {
+        const result = await Promise.race([
+          requestPermission(),
+          new Promise<null>((resolve) => {
+            timeoutId = setTimeout(
+              () => resolve(null),
+              CAMERA_PERMISSION_TIMEOUT_MS,
+            );
+          }),
+        ]);
+
+        if (result === null) {
+          console.warn(
+            "Camera permission request timed out; continuing without camera access",
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to request camera permission", error);
     } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       setIsRequesting(false);
       onContinue();
     }

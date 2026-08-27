@@ -10,7 +10,6 @@ export function usePaywallOfferings(
   const offeringsFetchStatus = useSubscriptionStore(
     (s) => s.offeringsFetchStatus,
   );
-  const offerings = useSubscriptionStore((s) => s.offerings);
   const loadOfferings = useSubscriptionStore((s) => s.loadOfferings);
   const refreshCustomerInfo = useSubscriptionStore((s) => s.refreshCustomerInfo);
 
@@ -20,14 +19,10 @@ export function usePaywallOfferings(
   }, [reason, source, refreshCustomerInfo]);
 
   useEffect(() => {
-    if (
-      offeringsFetchStatus === "idle" ||
-      offeringsFetchStatus === "error" ||
-      !offerings?.availablePackages?.length
-    ) {
+    if (offeringsFetchStatus === "idle") {
       loadOfferings().catch(() => undefined);
     }
-  }, [offerings?.availablePackages?.length, offeringsFetchStatus, loadOfferings]);
+  }, [offeringsFetchStatus, loadOfferings]);
 
   return {
     offeringsFetchStatus,
