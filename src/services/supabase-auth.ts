@@ -1,5 +1,61 @@
 import { supabase } from "@/config/supabase";
 import type { AuthError, Session, User } from "@supabase/supabase-js";
+import type { SignInWithIdTokenCredentials } from "@supabase/auth-js";
+
+export type IdentityLinkingErrorCode =
+  | "manual_identity_linking_disabled"
+  | "identity_already_linked";
+
+/**
+ * An actionable authentication error returned when an anonymous account cannot
+ * be upgraded without changing its Inkly user ID. The caller can present the
+ * message directly without trying an unsafe account merge or fallback login.
+ */
+export class IdentityLinkingError extends Error {
+  readonly code: IdentityLinkingErrorCode;
+
+  constructor(code: IdentityLinkingErrorCode) {
+    super(
+      code === "manual_identity_linking_disabled"
+        ? "Sign-in could not preserve your guest content because identity linking is unavailable. Please try again later or contact Inkly support."
+        : "This Apple or Google account is already linked to another Inkly account. Sign in to that account instead.",
+    );
+    this.name = "IdentityLinkingError";
+    this.code = code;
+  }
+}
+
+export type SocialSignInError = AuthError | IdentityLinkingError;
+
+export type DeleteAccountErrorCode =
+  | "no_authenticated_session"
+  | "anonymous_session"
+  | "request_failed"
+  | "invalid_response";
+
+export class DeleteAccountError extends Error {
+  readonly code: DeleteAccountErrorCode;
+
+  constructor(code: DeleteAccountErrorCode, message?: string) {
+    super(
+      message ??
+        (code === "no_authenticated_session"
+          ? "Sign in to delete your account."
+          : code === "anonymous_session"
+            ? "Guest accounts do not have an Inkly account to delete."
+            : code === "invalid_response"
+              ? "Inkly could not confirm that your account was deleted. Please contact support."
+              : "Inkly could not delete your account. Please try again."),
+    );
+    this.name = "DeleteAccountError";
+    this.code = code;
+  }
+}
+
+export type DeleteCurrentAccountResult = {
+  deleted: boolean;
+  error: DeleteAccountError | null;
+};
 
 export type UserProfile = {
   id: string;
@@ -47,30 +103,62 @@ export async function signInAnonymously(): Promise<{
   }
 }
 
-export async function signInWithGoogle(idToken: string, nonce?: string): Promise<{
+export async function signInWithGoogle(
+  idToken: string,
+  nonce?: string,
+  accessToken?: string,
+): Promise<{
   user: User | null;
   session: Session | null;
-  error: AuthError | null;
+  error: SocialSignInError | null;
+  upgradedAnonymousUser: boolean;
 }> {
-  const { data, error } = await supabase.auth.signInWithIdToken({
+  return signInOrLinkIdentity({
     provider: "google",
     token: idToken,
     nonce,
+    access_token: accessToken,
   });
-  return { user: data.user ?? null, session: data.session ?? null, error };
 }
 
 export async function signInWithApple(identityToken: string, nonce?: string): Promise<{
   user: User | null;
   session: Session | null;
-  error: AuthError | null;
+  error: SocialSignInError | null;
+  upgradedAnonymousUser: boolean;
 }> {
-  const { data, error } = await supabase.auth.signInWithIdToken({
-    provider: "apple",
-    token: identityToken,
-    nonce,
-  });
-  return { user: data.user ?? null, session: data.session ?? null, error };
+  return signInOrLinkIdentity({ provider: "apple", token: identityToken, nonce });
+}
+
+async function signInOrLinkIdentity(
+  credentials: SignInWithIdTokenCredentials,
+): Promise<{
+  user: User | null;
+  session: Session | null;
+  error: SocialSignInError | null;
+  upgradedAnonymousUser: boolean;
+}> {
+  const {
+    data: { session: currentSession },
+  } = await supabase.auth.getSession();
+
+  if (currentSession?.user.is_anonymous) {
+    const { data, error } = await supabase.auth.linkIdentity(credentials);
+    return {
+      user: data.user ?? null,
+      session: data.session ?? null,
+      error: error ? classifyIdentityLinkingError(error) : null,
+      upgradedAnonymousUser: !error && data.user?.id === currentSession.user.id,
+    };
+  }
+
+  const { data, error } = await supabase.auth.signInWithIdToken(credentials);
+  return {
+    user: data.user ?? null,
+    session: data.session ?? null,
+    error,
+    upgradedAnonymousUser: false,
+  };
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {
@@ -78,8 +166,91 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
   return { error };
 }
 
+/** Removes only the device's Supabase session after the server has deleted it. */
+export async function signOutLocally(): Promise<{ error: AuthError | null }> {
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  return { error };
+}
+
+/**
+ * Calls the authenticated deletion function. It deliberately does not sign out
+ * or change local state: callers must only clear data after `deleted` is true.
+ */
+export async function deleteCurrentAccount(): Promise<DeleteCurrentAccountResult> {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      return {
+        deleted: false,
+        error: new DeleteAccountError("no_authenticated_session"),
+      };
+    }
+
+    if (session.user.is_anonymous) {
+      return {
+        deleted: false,
+        error: new DeleteAccountError("anonymous_session"),
+      };
+    }
+
+    const { data, error } = await supabase.functions.invoke<{ deleted?: boolean }>(
+      "delete-account",
+      { body: { confirmation: "DELETE" } },
+    );
+
+    if (error) {
+      return {
+        deleted: false,
+        error: new DeleteAccountError("request_failed", error.message),
+      };
+    }
+
+    if (!data?.deleted) {
+      return {
+        deleted: false,
+        error: new DeleteAccountError("invalid_response"),
+      };
+    }
+
+    return { deleted: true, error: null };
+  } catch (error) {
+    return {
+      deleted: false,
+      error: new DeleteAccountError(
+        "request_failed",
+        error instanceof Error ? error.message : undefined,
+      ),
+    };
+  }
+}
+
 async function clearStoredSession(): Promise<void> {
-  await supabase.auth.signOut({ scope: "local" });
+  await signOutLocally();
+}
+
+function classifyIdentityLinkingError(error: AuthError): SocialSignInError {
+  const message = error.message.toLowerCase();
+  if (
+    (message.includes("manual") && message.includes("link") && message.includes("disabled")) ||
+    (message.includes("identity linking") && message.includes("disabled"))
+  ) {
+    return new IdentityLinkingError("manual_identity_linking_disabled");
+  }
+
+  if (
+    message.includes("identity") &&
+    (message.includes("already linked") ||
+      message.includes("already associated") ||
+      message.includes("already exists"))
+  ) {
+    return new IdentityLinkingError("identity_already_linked");
+  }
+
+  return error;
 }
 
 export async function getSessionSafely(): Promise<{

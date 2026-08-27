@@ -2,16 +2,22 @@ import { QUOTE_ASPECT } from "@/constants/quoteImageSize";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, Text, View } from "react-native";
+import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
+import { Ionicons } from "@expo/vector-icons";
 
-import type { QuoteImageOrientation } from "@/types/memory";
+import type { QuoteImageOrientation, QuoteVisibility } from "@/types/memory";
 
 type Props = {
   quote: string;
   author: string | null;
   photoBackgroundUri: string | null;
+  photoStoragePath?: string | null;
   photoOrientation?: QuoteImageOrientation;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  visibility?: QuoteVisibility;
+  onChangeVisibility?: () => void;
+  isVisibilityUpdating?: boolean;
   createdAt: string;
   styleFontId?: "small" | "medium" | "large";
   styleColorSchemeId?: "light" | "amber" | "pink";
@@ -28,14 +34,23 @@ export function MemoryCard({
   quote,
   author,
   photoBackgroundUri,
+  photoStoragePath,
   photoOrientation = "portrait",
   isFavorite = false,
   onToggleFavorite,
+  visibility = "private",
+  onChangeVisibility,
+  isVisibilityUpdating = false,
   createdAt,
   styleFontId = "medium",
   styleColorSchemeId = "light",
 }: Props) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const resolvedPhotoUri = useSignedStorageUrl(
+    "user-photos",
+    photoStoragePath,
+    photoBackgroundUri,
+  );
   const aspect = getCardAspect(photoOrientation);
   const cardWidth = MAX_WIDTH;
   const cardHeight = cardWidth / aspect;
@@ -61,9 +76,9 @@ export function MemoryCard({
     <View
       className="mb-4 overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50"
       style={{ width: cardWidth, height: cardHeight }}>
-      {photoBackgroundUri ? (
+      {resolvedPhotoUri ? (
         <Image
-          source={{ uri: photoBackgroundUri }}
+          source={{ uri: resolvedPhotoUri }}
           style={{
             position: "absolute",
             width: cardWidth,
@@ -91,6 +106,31 @@ export function MemoryCard({
         <View className="absolute right-2 top-2 z-[20] rounded-full bg-amber-400/95 px-1.5 py-0.5">
           <Text className="text-[10px]">⭐</Text>
         </View>
+      ) : null}
+
+      {onChangeVisibility ? (
+        <Pressable
+          onPress={onChangeVisibility}
+          disabled={isVisibilityUpdating}
+          accessibilityRole="button"
+          accessibilityLabel={
+            visibility === "private"
+              ? t("memories.shareWithFriends")
+              : t("memories.makePrivate")
+          }
+          className="absolute left-2 top-2 z-[20] flex-row items-center rounded-full bg-black/65 px-2.5 py-1.5"
+          style={{ opacity: isVisibilityUpdating ? 0.5 : 1 }}>
+          <Ionicons
+            name={visibility === "private" ? "lock-closed-outline" : "people-outline"}
+            size={12}
+            color="#ffffff"
+          />
+          <Text className="ml-1 text-[10px] font-semibold text-white">
+            {visibility === "private"
+              ? t("memories.shareWithFriends")
+              : t("memories.makePrivate")}
+          </Text>
+        </Pressable>
       ) : null}
 
       <View className="absolute inset-x-0 bottom-0 z-10 rounded-t-2xl bg-black/60 px-5 pb-4 pt-3">

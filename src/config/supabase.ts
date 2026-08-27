@@ -146,7 +146,13 @@ export type Database = {
           guest_id: string | null;
           image_url: string;
           storage_path: string;
+          quote: string | null;
+          style_font_id: string | null;
+          style_color_scheme_id: string | null;
+          visibility: "private" | "friends" | "public";
+          is_favorite: boolean;
           home_vibe_key: string | null;
+          photo_stack_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -155,7 +161,13 @@ export type Database = {
           guest_id?: string | null;
           image_url: string;
           storage_path: string;
+          quote?: string | null;
+          style_font_id?: string | null;
+          style_color_scheme_id?: string | null;
+          visibility?: "private" | "friends" | "public";
+          is_favorite?: boolean;
           home_vibe_key?: string | null;
+          photo_stack_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -164,7 +176,13 @@ export type Database = {
           guest_id?: string | null;
           image_url?: string;
           storage_path?: string;
+          quote?: string | null;
+          style_font_id?: string | null;
+          style_color_scheme_id?: string | null;
+          visibility?: "private" | "friends" | "public";
+          is_favorite?: boolean;
           home_vibe_key?: string | null;
+          photo_stack_id?: string | null;
           created_at?: string;
         };
       };

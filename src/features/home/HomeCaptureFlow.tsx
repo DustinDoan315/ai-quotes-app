@@ -9,14 +9,11 @@ type Props = {
   topInset: number;
   displayStreak: number;
   pastMemory: QuoteMemory | null;
-  showInviteNudge: boolean;
   onPressProfile: () => void;
   onPressFriends: () => void;
   onPressSignIn: () => void;
   onPressStreak: () => void;
   onPressPastMemory: (date: string) => void;
-  onDismissInviteNudge: () => void;
-  onPressInviteNudge: () => void;
   cameraSectionProps: HomeCameraSectionProps;
 };
 
@@ -25,14 +22,11 @@ export function HomeCaptureFlow({
   topInset,
   displayStreak,
   pastMemory,
-  showInviteNudge,
   onPressProfile,
   onPressFriends,
   onPressSignIn,
   onPressStreak,
   onPressPastMemory,
-  onDismissInviteNudge,
-  onPressInviteNudge,
   cameraSectionProps,
 }: Props) {
   const { t } = useTranslation();
@@ -67,31 +61,6 @@ export function HomeCaptureFlow({
             {pastMemory.quoteText}
           </Text>
         </Pressable>
-      ) : null}
-      {showInviteNudge ? (
-        <View className="mx-4 mb-2 flex-row items-center justify-between rounded-xl border border-white/20 bg-white/10 px-4 py-3">
-          <Text className="flex-1 text-sm text-white" numberOfLines={2}>
-            {t("home.inviteFriendsTitle")}
-          </Text>
-          <View className="ml-2 flex-row gap-2">
-            <Pressable
-              onPress={onDismissInviteNudge}
-              className="rounded-lg bg-white/20 px-3 py-2"
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-              <Text className="text-xs font-medium text-white">
-                {t("home.inviteSkip")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={onPressInviteNudge}
-              className="rounded-lg bg-amber-400 px-3 py-2"
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
-              <Text className="text-xs font-semibold text-black">
-                {t("home.inviteCta")}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
       ) : null}
       <View className="w-full flex-1">
         <HomeCameraSection {...cameraSectionProps} />

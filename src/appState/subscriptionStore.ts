@@ -42,6 +42,7 @@ type SubscriptionState = {
   ) => Promise<SubscriptionActionResult>;
   restorePurchases: () => Promise<SubscriptionActionResult>;
   refreshCustomerInfo: () => Promise<SubscriptionActionResult>;
+  clearSubscription: () => void;
 };
 
 const createSnapshotFromCustomerInfo = (
@@ -230,6 +231,21 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ isLoading: false });
         }
       },
+      clearSubscription: () =>
+        set({
+          customerInfo: null,
+          isPro: false,
+          activeEntitlementId: null,
+          offeringsFetchStatus: "idle",
+          offerings: null,
+          selectedPackageId: null,
+          lastSyncedAt: null,
+          isLoading: false,
+          isPurchasing: false,
+          isRestoring: false,
+          errorMessage: null,
+          plan: "free",
+        }),
     }),
     {
       name: "subscription-storage",

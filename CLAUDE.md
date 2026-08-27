@@ -4,7 +4,7 @@ This file tells Claude Code how to work in this repository.
 
 ## Project Overview
 
-**Inkly Daily Vibes** — an Expo / React Native app (iOS + Android) that generates AI-powered daily motivational quotes personalized to the user's persona. Users can also explain, rewrite, or extend a quote via AI tools. Social features include friends, shared photo moments, and memories.
+**Inkly** — an Expo / React Native app (iOS + Android) that generates AI-powered daily motivational quotes personalized to the user's persona. Users can also explain, rewrite, or extend a quote via AI tools. Social features include friends, shared photo moments, and memories.
 
 ## Stack
 
@@ -61,7 +61,9 @@ Copy `.env.example` to `.env` and fill in:
 |---|---|
 | `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
-| `EXPO_PUBLIC_REVENUECAT_API_KEY` | RevenueCat SDK key |
+| `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` | RevenueCat Apple app SDK key; required for iOS production builds |
+| `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` | RevenueCat Google app SDK key; required for Android production builds |
+| `EXPO_PUBLIC_REVENUECAT_API_KEY` | Legacy local/Test Store fallback only; never use for a store release |
 | `EXPO_PUBLIC_GPT_API_URL` | OpenAI API base URL |
 | `EXPO_PUBLIC_GPT_MODEL` | OpenAI model (e.g. `gpt-4o-mini`) |
 | `EXPO_PUBLIC_POSTHOG_API_KEY` | PostHog analytics |

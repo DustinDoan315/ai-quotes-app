@@ -50,6 +50,8 @@ export type HomeCameraSectionProps = {
   isCameraActive: boolean;
   selectedImageUri: string | null;
   canDeleteImage: boolean;
+  canCreatePhotoStack: boolean;
+  photoStackCount: number;
   facing: "back" | "front";
   zoom: number;
   zoomFactor: number;
@@ -71,6 +73,7 @@ export type HomeCameraSectionProps = {
   onZoomPresetPress: (preset: 0.5 | 1 | 2) => void;
   onToggleFacing: () => void;
   onClearImage: () => void;
+  onFinishPhotoStack: () => void;
   onRewriteQuote: (tone: RewriteTone) => void;
   onFutureQuotePress: () => void;
   selectedAiTool: HomeAiTool | null;
@@ -94,6 +97,8 @@ export const HomeCameraSection = ({
   isCameraActive,
   selectedImageUri,
   canDeleteImage,
+  canCreatePhotoStack,
+  photoStackCount,
   facing,
   zoom,
   zoomFactor,
@@ -115,6 +120,7 @@ export const HomeCameraSection = ({
   onZoomPresetPress,
   onToggleFacing,
   onClearImage,
+  onFinishPhotoStack,
   onRewriteQuote,
   onFutureQuotePress,
   selectedAiTool,
@@ -622,6 +628,22 @@ export const HomeCameraSection = ({
       </View>
 
       <View className="items-center">
+        {canCreatePhotoStack && photoStackCount > 0 && !selectedImageUri ? (
+          <View className="mb-3 flex-row items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-2">
+            <Ionicons name="images-outline" size={16} color="#FCD34D" />
+            <Text className="ml-2 text-xs font-semibold text-amber-100">
+              {t("camera.photoStack.count", { count: photoStackCount })}
+            </Text>
+            <Pressable
+              onPress={onFinishPhotoStack}
+              className="ml-3 rounded-full bg-white/15 px-3 py-1"
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+              <Text className="text-[11px] font-bold text-white">
+                {t("camera.photoStack.finish")}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
         {dailyQuoteText && !hideQuote && selectedImageUri ? (
           <View className="my-3 w-full max-w-md self-center">
             <QuoteStyleControls

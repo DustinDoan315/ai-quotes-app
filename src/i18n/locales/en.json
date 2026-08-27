@@ -2,6 +2,7 @@
   "camera": {
     "errors": {
       "noPhotoToSave": "No photo to save",
+      "quoteRequiredToSave": "Generate a quote before saving this reflection.",
       "failedToSavePhoto": "Failed to save photo",
       "galleryPermissionRequired": "We need gallery access to pick photos.",
       "failedToStartPreview": "Camera preview couldn't start. Close and reopen the screen."
@@ -14,6 +15,11 @@
     "success": {
       "quoteGenerated": "Quote generated",
       "photoSaved": "Photo saved"
+    },
+    "photoStack": {
+      "count_one": "{{count}} photo in this Pro stack",
+      "count_other": "{{count}} photos in this Pro stack",
+      "finish": "Done"
     },
     "saveButton": "Save",
     "savingButton": "Saving"
@@ -44,6 +50,10 @@
     "daySavedCount_one": "{{count}} memory saved",
     "daySavedCount_other": "{{count}} memories saved",
     "meAuthor": "Me",
+    "shareWithFriends": "Share with friends",
+    "makePrivate": "Make private",
+    "favoriteSaveError": "Couldn't update this favorite. Try again.",
+    "visibilitySaveError": "Couldn't update sharing. Try again.",
     "pastYearsTitle": "On This Day in Past Years",
     "networkError": "No internet connection. Check your connection and try again.",
     "friendsLoadError": "Couldn't load friends' memories",
@@ -254,6 +264,18 @@
     "failedToUploadAvatar": "Failed to upload avatar.",
     "avatarUpdated": "Avatar updated",
     "failedToSignOut": "Failed to sign out",
+    "deleteAccountTitle": "Delete account",
+    "deleteAccountDescription": "Permanently remove your Inkly account, saved data, and photos you shared with friends. This cannot be undone.",
+    "deleteAccountSubscriptionNotice": "Deleting your Inkly account does not cancel an App Store subscription.",
+    "manageAppleSubscriptions": "Manage Apple subscriptions",
+    "deleteAccountButton": "Delete account",
+    "deleteAccountAccessibilityHint": "Opens a final confirmation before permanently deleting your Inkly account.",
+    "deleteAccountConfirmTitle": "Delete your Inkly account?",
+    "deleteAccountConfirmBody": "Your Inkly data and photos shared with friends will be permanently removed. This action cannot be undone. App Store subscriptions must be cancelled separately.",
+    "deleteAccountConfirmButton": "Delete permanently",
+    "deleteAccountCancel": "Keep account",
+    "deletingAccount": "Deleting your account…",
+    "failedToDeleteAccount": "We couldn't delete your account. Your account is still active. Please try again.",
     "personalizedQuotes": "Personalized quotes",
     "addAName": "Add a name",
     "phoneLabel": "Account",
@@ -306,7 +328,9 @@
       "errors": {
         "googleFailed": "Google sign-in failed. Please try again.",
         "appleFailed": "Apple sign-in failed. Please try again.",
-        "signInFailed": "Sign-in failed. Please try again."
+        "signInFailed": "Sign-in failed. Please try again.",
+        "identityLinkingUnavailable": "This sign-in can't be connected to your guest account right now. Please try again later or contact support.",
+        "identityAlreadyLinked": "This Apple or Google account is already connected to another Inkly account. Sign in to that account instead."
       }
     }
   },

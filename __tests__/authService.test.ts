@@ -10,6 +10,7 @@ const mockUpdateUserProfile = jest.fn();
 const mockSetProfile = jest.fn();
 const mockSetAuthState = jest.fn();
 const mockSetGuestDisplayName = jest.fn();
+const mockSetState = jest.fn();
 
 jest.mock("@/services/paywall/nativeRevenueCat", () => ({
   isRevenueCatInitialized: () => mockIsRevenueCatInitialized(),
@@ -36,7 +37,7 @@ jest.mock("@/appState/userStore", () => ({
       setGuestDisplayName: mockSetGuestDisplayName,
       guestDisplayName: null,
     }),
-    setState: jest.fn(),
+    setState: (...args: unknown[]) => mockSetState(...args),
   },
 }));
 
@@ -76,5 +77,29 @@ describe("syncUserProfile", () => {
     expect(mockLogOut).not.toHaveBeenCalled();
     expect(mockSetProfile).toHaveBeenCalledWith(null);
     expect(mockSetAuthState).toHaveBeenCalledWith("guest");
+  });
+
+  it("fills an empty profile name from Google metadata without using email", async () => {
+    const profile = { user_id: "user-123", display_name: null };
+    const updatedProfile = { ...profile, display_name: "Ada Lovelace" };
+    mockGetCurrentUserProfile.mockResolvedValue(profile);
+    mockUpdateUserProfile.mockResolvedValue({ data: updatedProfile });
+
+    await syncUserProfile({
+      id: "user-123",
+      is_anonymous: false,
+      user_metadata: {
+        full_name: "Ada Lovelace",
+        email: "ada@example.com",
+      },
+    } as never);
+
+    expect(mockUpdateUserProfile).toHaveBeenCalledWith("user-123", {
+      display_name: "Ada Lovelace",
+    });
+    expect(mockSetState).toHaveBeenCalledWith({
+      profile: updatedProfile,
+      authState: "authenticated",
+    });
   });
 });

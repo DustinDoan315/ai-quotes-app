@@ -13,6 +13,24 @@ import type {
   FutureQuoteResponse,
 } from "./types";
 
+const BACKEND_UNAVAILABLE_MESSAGE =
+  "Inkly can't reach its service right now. Check your connection and try again in a moment.";
+
+function getRequestFailureReason(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) return fallback;
+
+  const message = error.message.trim();
+  if (
+    /network request failed|failed to fetch|networkerror|load failed/i.test(
+      message,
+    )
+  ) {
+    return BACKEND_UNAVAILABLE_MESSAGE;
+  }
+
+  return message || fallback;
+}
+
 function cleanBase64(value: string | undefined): string {
   if (typeof value !== "string" || !value.trim()) return "";
   return value
@@ -104,7 +122,7 @@ export const generateQuote = async (
     return {
       quote: "",
       isValid: false,
-      reason: error instanceof Error ? error.message : "Failed to generate quote",
+      reason: getRequestFailureReason(error, "Failed to generate quote"),
     };
   }
 };
@@ -142,7 +160,7 @@ export const explainQuote = async (
     return {
       explanation: "",
       isValid: false,
-      reason: error instanceof Error ? error.message : "Failed to explain quote",
+      reason: getRequestFailureReason(error, "Failed to explain quote"),
     };
   }
 };
@@ -185,7 +203,7 @@ export const rewriteQuote = async (
     return {
       quote: "",
       isValid: false,
-      reason: error instanceof Error ? error.message : "Failed to rewrite quote",
+      reason: getRequestFailureReason(error, "Failed to rewrite quote"),
     };
   }
 };
@@ -228,7 +246,7 @@ export const generateFutureQuote = async (
     return {
       quote: "",
       isValid: false,
-      reason: error instanceof Error ? error.message : "Failed to generate future quote",
+      reason: getRequestFailureReason(error, "Failed to generate future quote"),
     };
   }
 };

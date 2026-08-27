@@ -6,6 +6,10 @@ PLAY="$ROOT/store-assets/playstore.png"
 MONO="$ROOT/store-assets/android-icon-monochrome.png"
 DEST="$ROOT/assets/images"
 STORE="$ROOT/store-assets"
+IOS_ICONSETS=(
+  "$ROOT/ios/InklyDailyVibes/Images.xcassets/AppIcon.appiconset"
+  "$ROOT/ios/Assets.xcassets/AppIcon.appiconset"
+)
 
 if [[ ! -f "$SRC" ]]; then
   echo "Missing $SRC — add assets/images/icon.png (1024×1024 PNG recommended)."
@@ -22,6 +26,18 @@ mkdir -p "$DEST"
 cp "$SRC" "$DEST/android-icon-foreground.png"
 cp "$SRC" "$DEST/splash-icon.png"
 sips -z 48 48 "$SRC" --out "$DEST/favicon.png" >/dev/null
+
+for iconset in "${IOS_ICONSETS[@]}"; do
+  [[ -d "$iconset" ]] || continue
+
+  while IFS= read -r icon; do
+    filename="$(basename "$icon")"
+    size="${filename%.png}"
+    [[ "$size" =~ ^[0-9]+$ ]] || continue
+    sips -z "$size" "$size" "$SRC" --out "$icon" >/dev/null
+  done < <(find "$iconset" -maxdepth 1 -type f -name '*.png')
+done
+
 if [[ -f "$MONO" ]]; then
   cp "$MONO" "$DEST/android-icon-monochrome.png"
 else
@@ -41,4 +57,4 @@ else
   echo "Note: Optional $PLAY not found — left store-assets/google-play-icon-512.png unchanged (if present)."
 fi
 
-echo "Synced icons into $DEST and $STORE. Rebuild native apps (EAS or expo run) to see launcher changes."
+echo "Synced icons into $DEST, iOS asset catalogs, and $STORE. Rebuild native apps (EAS or expo run) to see launcher changes."

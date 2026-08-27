@@ -1,4 +1,5 @@
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { supabase } from "@/config/supabase";
 
 type SaveUserAvatarParams = {
   localUri: string;
@@ -40,6 +41,19 @@ export async function saveUserAvatar(
     return null;
   }
 
+  let accessToken: string;
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session?.access_token || data.session.user.id !== userId) {
+      console.error("An authenticated session for this user is required to upload an avatar");
+      return null;
+    }
+    accessToken = data.session.access_token;
+  } catch (error) {
+    console.error("Failed to read the session before avatar upload", error);
+    return null;
+  }
+
   const uploadUrl = `${supabaseUrl}/storage/v1/object/user-avatars/${encodeURIComponent(
     storagePath,
   )}`;
@@ -51,14 +65,20 @@ export async function saveUserAvatar(
     type: "image/jpeg",
   } as unknown as Blob);
 
-  const uploadResponse = await fetch(uploadUrl, {
-    method: "POST",
-    headers: {
-      apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
-    },
-    body: formData,
-  });
+  let uploadResponse: Response;
+  try {
+    uploadResponse = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+  } catch (error) {
+    console.error("Failed to upload avatar to Supabase storage", error);
+    return null;
+  }
 
   if (!uploadResponse.ok) {
     return null;

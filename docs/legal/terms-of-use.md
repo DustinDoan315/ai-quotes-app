@@ -1,8 +1,8 @@
-# Inkly: Daily Vibes Terms of Use
+# Inkly Terms of Use
 
 Effective date: May 11, 2026
 
-These Terms of Use ("Terms") govern your use of Inkly: Daily Vibes ("Inkly", "we", "our", or "us"). By using the app, you agree to these Terms. If you do not agree, do not use the app.
+These Terms of Use ("Terms") govern your use of Inkly ("we", "our", or "us"). By using the app, you agree to these Terms. If you do not agree, do not use the app.
 
 ## The App
 

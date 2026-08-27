@@ -8,6 +8,7 @@ import { resolvePlanFromSnapshot, type SubscriptionSnapshot } from "./subscripti
 type GuardReason =
   | "ai_limit"
   | "export_limit"
+  | "photo_stack_locked"
   | "premium_theme"
   | "persona_locked";
 
@@ -37,6 +38,13 @@ export const createSubscriptionGuards = (
     return { allowed: true };
   };
 
+  const canCreatePhotoStack = (): GuardResult => {
+    if (!capabilities.canCreatePhotoStacks) {
+      return { allowed: false, reason: "photo_stack_locked" };
+    }
+    return { allowed: true };
+  };
+
   const canUseTheme = (isPremiumTheme: boolean): GuardResult => {
     if (isPremiumTheme && !capabilities.canUsePremiumThemes) {
       return { allowed: false, reason: "premium_theme" };
@@ -56,6 +64,7 @@ export const createSubscriptionGuards = (
     capabilities,
     canGenerateQuote,
     canExportQuote,
+    canCreatePhotoStack,
     canUseTheme,
     canUsePersonaLevel,
   };

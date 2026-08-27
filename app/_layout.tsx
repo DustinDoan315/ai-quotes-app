@@ -2,6 +2,7 @@ import '@/i18n';
 import { useAppBootstrap } from "@/bootstrap/useAppBootstrap";
 import { ToastHost } from '@/components/ToastHost';
 import { GlobalHomeBackground } from '@/features/home/GlobalHomeBackground';
+import { captureException } from "@/services/analytics/sentry";
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -16,6 +17,9 @@ class RootErrorBoundary extends React.Component<
 > {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    captureException(error, { componentStack: errorInfo.componentStack });
+  }
   render() {
     if (this.state.hasError) {
       return (

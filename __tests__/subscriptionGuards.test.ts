@@ -34,6 +34,16 @@ describe("createSubscriptionGuards", () => {
     expect(g.canUseTheme(true).allowed).toBe(true);
   });
 
+  it("reserves photo stacks for pro", () => {
+    expect(createSubscriptionGuards(freeSnapshot).canCreatePhotoStack()).toEqual({
+      allowed: false,
+      reason: "photo_stack_locked",
+    });
+    expect(createSubscriptionGuards(proSnapshot).canCreatePhotoStack()).toEqual({
+      allowed: true,
+    });
+  });
+
   it("blocks advanced persona for free", () => {
     const g = createSubscriptionGuards(freeSnapshot);
     expect(g.canUsePersonaLevel(true).allowed).toBe(false);

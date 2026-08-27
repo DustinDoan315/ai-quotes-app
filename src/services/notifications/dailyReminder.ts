@@ -5,8 +5,21 @@ import {
   REMINDER_NOTIFICATION_SUBTITLE,
   REMINDER_NOTIFICATION_TITLE,
 } from "@/services/notifications/constants";
-import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 import { Platform } from "react-native";
+
+type NotificationsModule = typeof import("expo-notifications");
+
+let notificationsModulePromise: Promise<NotificationsModule> | null = null;
+
+function canUseNotifications(): boolean {
+  return Platform.OS !== "web" && Device.isDevice;
+}
+
+function loadNotifications(): Promise<NotificationsModule> {
+  notificationsModulePromise ??= import("expo-notifications");
+  return notificationsModulePromise;
+}
 
 export type ReminderSyncState = {
   reminderEnabled: boolean;
@@ -25,18 +38,26 @@ export type ReminderSyncPatch = {
  * On iOS this also controls whether the banner/sound appear while the app is open.
  */
 export function configureNotificationHandler(): void {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      // iOS: show alert, play sound, and show the notification in Notification Center
-      ...(Platform.OS === "ios"
-        ? { presentationOptions: ["banner", "sound", "list"] as const }
-        : {}),
-    }),
-  });
+  if (!canUseNotifications()) return;
+
+  void loadNotifications()
+    .then((Notifications) => {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+          // iOS: show alert, play sound, and show the notification in Notification Center
+          ...(Platform.OS === "ios"
+            ? { presentationOptions: ["banner", "sound", "list"] as const }
+            : {}),
+        }),
+      });
+    })
+    .catch((error: unknown) => {
+      console.warn("Failed to configure notifications:", error);
+    });
 }
 
 /**
@@ -44,7 +65,8 @@ export function configureNotificationHandler(): void {
  * button directly on the lock-screen / notification banner.
  */
 export async function setupNotificationCategories(): Promise<void> {
-  if (Platform.OS !== "ios") return;
+  if (Platform.OS !== "ios" || !Device.isDevice) return;
+  const Notifications = await loadNotifications();
   await Notifications.setNotificationCategoryAsync(REMINDER_CATEGORY_ID, [
     {
       identifier: "open",
@@ -58,7 +80,8 @@ export async function setupNotificationCategories(): Promise<void> {
  * Android only: creates / updates the notification channel used for reminders.
  */
 export async function ensureReminderNotificationChannel(): Promise<void> {
-  if (Platform.OS === "web" || Platform.OS !== "android") return;
+  if (Platform.OS !== "android" || !Device.isDevice) return;
+  const Notifications = await loadNotifications();
   await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
     name: "Daily reminder",
     description: "Your personalized daily quote reminder from Inkly.",
@@ -70,7 +93,8 @@ export async function ensureReminderNotificationChannel(): Promise<void> {
 }
 
 export async function requestPermissionsForReminder(): Promise<boolean> {
-  if (Platform.OS === "web") return false;
+  if (!canUseNotifications()) return false;
+  const Notifications = await loadNotifications();
   const existing = await Notifications.getPermissionsAsync();
   if (existing.granted) return true;
   const requested = await Notifications.requestPermissionsAsync({
@@ -86,9 +110,11 @@ export async function requestPermissionsForReminder(): Promise<boolean> {
 export async function syncDailyReminderSchedule(
   state: ReminderSyncState,
 ): Promise<ReminderSyncPatch> {
-  if (Platform.OS === "web") {
+  if (!canUseNotifications()) {
     return { scheduledNotificationId: null };
   }
+
+  const Notifications = await loadNotifications();
 
   if (state.scheduledNotificationId) {
     await Notifications.cancelScheduledNotificationAsync(

@@ -1,8 +1,6 @@
 import { adminClient } from "./admin.ts";
 import { jsonResponse } from "./ai.ts";
 
-const FREE_DAILY_AI_LIMIT = 2;
-
 export class UsageLimitError extends Error {
   readonly status = 429;
   readonly reason = "ai_limit";
@@ -23,15 +21,16 @@ async function getIsPro(userId: string): Promise<boolean> {
   return new Date(data.expires_at) > new Date();
 }
 
-// Checks server-authoritative Pro status, then atomically increments the
-// daily AI usage counter and throws UsageLimitError if the free cap is hit.
+// Checks server-authoritative Pro status, then atomically reserves one usage
+// unit before any paid model call. The free-plan limit comes from the
+// subscription_plan_settings table, not a duplicated Edge Function constant.
 export async function assertAndIncrementUsage(userId: string): Promise<void> {
   const isPro = await getIsPro(userId);
   if (isPro) return;
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const { data, error } = await adminClient.rpc("increment_ai_usage", {
+  const { data, error } = await adminClient.rpc("reserve_ai_usage", {
     p_user_id: userId,
     p_date: today,
   });
@@ -41,7 +40,8 @@ export async function assertAndIncrementUsage(userId: string): Promise<void> {
     throw new Error("Usage check failed");
   }
 
-  if ((data as number) > FREE_DAILY_AI_LIMIT) {
+  const reservation = data as { allowed?: boolean } | null;
+  if (!reservation?.allowed) {
     throw new UsageLimitError();
   }
 }

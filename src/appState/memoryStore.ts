@@ -13,6 +13,7 @@ export type MemoryState = {
     ownerUserId: string | null;
     ownerGuestId: string | null;
     photoBackgroundUri: string | null;
+    photoStoragePath?: string | null;
     photoOrientation?: QuoteImageOrientation;
     styleFontId: "small" | "medium" | "large";
     styleColorSchemeId: "light" | "amber" | "pink";
@@ -20,6 +21,9 @@ export type MemoryState = {
   addMemory: (memory: QuoteMemory) => void;
   toggleFavorite: (id: string) => void;
   setVisibility: (id: string, visibility: QuoteVisibility) => void;
+  replaceMemories: (memories: QuoteMemory[]) => void;
+  migrateGuestMemoriesToUser: (guestId: string | null, userId: string) => void;
+  removeMemoriesForUser: (userId: string) => void;
   getMemoriesForDate: (date: string) => QuoteMemory[];
   getCalendarSummaryForMonth: (monthKey: string) => Record<string, { hasMine: boolean; hasFavorite: boolean }>;
   getMemoriesOnSameDayPastYears: (date: string) => QuoteMemory[];
@@ -41,6 +45,7 @@ export const useMemoryStore = create<MemoryState>()(
         ownerUserId,
         ownerGuestId,
         photoBackgroundUri,
+        photoStoragePath,
         photoOrientation,
         styleFontId,
         styleColorSchemeId,
@@ -49,6 +54,7 @@ export const useMemoryStore = create<MemoryState>()(
         const createdAtIso = new Date(quote.createdAt).toISOString();
         return {
           id: `${today}-${quote.id}`,
+          photoId: null,
           ownerUserId,
           ownerGuestId,
           date: today,
@@ -56,6 +62,7 @@ export const useMemoryStore = create<MemoryState>()(
           author: null,
           personaId: quote.personaId ?? null,
           photoBackgroundUri,
+          photoStoragePath,
           photoOrientation,
           styleFontId,
           styleColorSchemeId,
@@ -66,8 +73,10 @@ export const useMemoryStore = create<MemoryState>()(
       },
       addMemory: (memory) =>
         set((state) => ({
-          memories: [memory, ...state.memories].sort(byCreatedAtDesc).slice(0, 365 * 3),
+          memories: [memory, ...state.memories].sort(byCreatedAtDesc),
         })),
+      replaceMemories: (memories) =>
+        set({ memories: [...memories].sort(byCreatedAtDesc) }),
       toggleFavorite: (id) =>
         set((state) => ({
           memories: state.memories.map((m) =>
@@ -89,6 +98,20 @@ export const useMemoryStore = create<MemoryState>()(
                 }
               : m,
           ),
+        })),
+      migrateGuestMemoriesToUser: (guestId, userId) => {
+        if (!guestId) return;
+        set((state) => ({
+          memories: state.memories.map((memory) =>
+            memory.ownerGuestId === guestId && memory.ownerUserId == null
+              ? { ...memory, ownerUserId: userId, ownerGuestId: null }
+              : memory,
+          ),
+        }));
+      },
+      removeMemoriesForUser: (userId) =>
+        set((state) => ({
+          memories: state.memories.filter((memory) => memory.ownerUserId !== userId),
         })),
       getMemoriesForDate: (date) => {
         return get().memories.filter((m) => m.date === date);

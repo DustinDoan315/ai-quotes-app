@@ -2,6 +2,7 @@
   "camera": {
     "errors": {
       "noPhotoToSave": "Không có ảnh để lưu",
+      "quoteRequiredToSave": "Hãy tạo một câu trích dẫn trước khi lưu kỷ niệm này.",
       "failedToSavePhoto": "Không thể lưu ảnh",
       "galleryPermissionRequired": "Chúng tôi cần quyền truy cập thư viện ảnh.",
       "failedToStartPreview": "Không thể khởi động xem trước camera. Hãy đóng và mở lại màn hình."
@@ -14,6 +15,10 @@
     "success": {
       "quoteGenerated": "Đã tạo câu trích dẫn",
       "photoSaved": "Đã lưu ảnh"
+    },
+    "photoStack": {
+      "count": "{{count}} ảnh trong nhóm Pro này",
+      "finish": "Xong"
     },
     "saveButton": "Lưu",
     "savingButton": "Đang lưu"
@@ -44,6 +49,10 @@
     "daySavedCount_one": "{{count}} kỷ niệm đã lưu",
     "daySavedCount_other": "{{count}} kỷ niệm đã lưu",
     "meAuthor": "Tôi",
+    "shareWithFriends": "Chia sẻ với bạn bè",
+    "makePrivate": "Đặt riêng tư",
+    "favoriteSaveError": "Không thể cập nhật mục yêu thích. Vui lòng thử lại.",
+    "visibilitySaveError": "Không thể cập nhật chia sẻ. Vui lòng thử lại.",
     "pastYearsTitle": "Ngày này trong các năm trước",
     "networkError": "Không có kết nối internet. Kiểm tra kết nối và thử lại.",
     "friendsLoadError": "Không thể tải kỷ niệm của bạn bè",
@@ -254,6 +263,18 @@
     "failedToUploadAvatar": "Không thể tải lên ảnh đại diện.",
     "avatarUpdated": "Đã cập nhật ảnh đại diện",
     "failedToSignOut": "Không thể đăng xuất",
+    "deleteAccountTitle": "Xóa tài khoản",
+    "deleteAccountDescription": "Xóa vĩnh viễn tài khoản Inkly, dữ liệu đã lưu và ảnh bạn đã chia sẻ với bạn bè. Không thể hoàn tác.",
+    "deleteAccountSubscriptionNotice": "Việc xóa tài khoản Inkly không hủy gói đăng ký trên App Store.",
+    "manageAppleSubscriptions": "Quản lý gói đăng ký Apple",
+    "deleteAccountButton": "Xóa tài khoản",
+    "deleteAccountAccessibilityHint": "Mở xác nhận cuối cùng trước khi xóa vĩnh viễn tài khoản Inkly của bạn.",
+    "deleteAccountConfirmTitle": "Xóa tài khoản Inkly?",
+    "deleteAccountConfirmBody": "Dữ liệu Inkly và ảnh bạn đã chia sẻ với bạn bè sẽ bị xóa vĩnh viễn. Không thể hoàn tác. Bạn cần hủy gói đăng ký App Store riêng.",
+    "deleteAccountConfirmButton": "Xóa vĩnh viễn",
+    "deleteAccountCancel": "Giữ tài khoản",
+    "deletingAccount": "Đang xóa tài khoản…",
+    "failedToDeleteAccount": "Không thể xóa tài khoản. Tài khoản của bạn vẫn đang hoạt động. Vui lòng thử lại.",
     "personalizedQuotes": "Câu trích dẫn cá nhân hóa",
     "addAName": "Thêm tên",
     "phoneLabel": "Tài khoản",
@@ -306,7 +327,9 @@
       "errors": {
         "googleFailed": "Đăng nhập Google thất bại. Vui lòng thử lại.",
         "appleFailed": "Đăng nhập Apple thất bại. Vui lòng thử lại.",
-        "signInFailed": "Đăng nhập thất bại. Vui lòng thử lại."
+        "signInFailed": "Đăng nhập thất bại. Vui lòng thử lại.",
+        "identityLinkingUnavailable": "Hiện chưa thể kết nối lần đăng nhập này với tài khoản khách của bạn. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
+        "identityAlreadyLinked": "Tài khoản Apple hoặc Google này đã được kết nối với một tài khoản Inkly khác. Hãy đăng nhập vào tài khoản đó."
       }
     }
   },

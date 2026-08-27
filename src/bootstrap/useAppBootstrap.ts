@@ -1,4 +1,5 @@
 import { useSubscriptionConfigStore } from "@/appState/subscriptionConfigStore";
+import { useBootstrapStore } from "@/appState/bootstrapStore";
 import { useReminderStore } from "@/appState/reminderStore";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useUserStore } from "@/appState/userStore";
@@ -17,6 +18,7 @@ import {
   initializeRevenueCat,
   isRevenueCatInitialized,
 } from "@/services/paywall/nativeRevenueCat";
+import { revenuecatClient } from "@/services/paywall/revenuecatClient";
 import { checkSupabaseReachable } from "@/config/supabase";
 import { useEffect } from "react";
 
@@ -63,11 +65,26 @@ function syncReminderOnBoot(): (() => void) | undefined {
 async function bootstrapRevenueCat(): Promise<void> {
   await initializeRevenueCat();
   if (isRevenueCatInitialized()) {
+    const { session } = await getSessionSafely();
+    if (session?.user && !session.user.is_anonymous) {
+      await revenuecatClient.logIn(session.user.id);
+    }
     await useSubscriptionStore.getState().initSubscription();
   }
 }
 
+async function waitForUserStoreHydration(): Promise<void> {
+  if (useUserStore.persist.hasHydrated()) return;
+  await new Promise<void>((resolve) => {
+    const unsubscribe = useUserStore.persist.onFinishHydration(() => {
+      unsubscribe();
+      resolve();
+    });
+  });
+}
+
 async function bootstrapAuth(): Promise<void> {
+  await waitForUserStoreHydration();
   const { session } = await getSessionSafely();
   if (session) {
     await syncUserProfile(session.user);
@@ -96,6 +113,7 @@ function bootstrapTelemetry(): void {
 
 export function useAppBootstrap(): void {
   useEffect(() => {
+    const { setAuthReady, setConfigReady } = useBootstrapStore.getState();
     const unsubscribeLanguageHydration = syncUiLanguageOnBoot();
     const unsubscribeReminderHydration = syncReminderOnBoot();
     bootstrapTelemetry();
@@ -107,16 +125,25 @@ export function useAppBootstrap(): void {
       .loadPlanLimits()
       .catch((error: unknown) => {
         console.error("Failed to load subscription plan settings:", error);
+      })
+      .finally(() => {
+        setConfigReady(true);
       });
 
-    void bootstrapRevenueCat()
-      .catch((error: unknown) => {
-        console.error("Failed to initialize RevenueCat:", error);
-      })
-      .then(() => bootstrapAuth())
+    // Auth and RevenueCat are independent startup tasks. Auth must not wait
+    // on the store SDK, otherwise the first route can render without a
+    // Supabase session while RevenueCat is still contacting Apple.
+    void bootstrapAuth()
       .catch((error: unknown) => {
         console.error("Failed to bootstrap auth:", error);
+      })
+      .finally(() => {
+        setAuthReady(true);
       });
+
+    void bootstrapRevenueCat().catch((error: unknown) => {
+      console.error("Failed to initialize RevenueCat:", error);
+    });
 
     return () => {
       unsubscribeLanguageHydration?.();

@@ -1,6 +1,6 @@
 import { useMemoryStore } from "@/appState";
+import { selectBootstrapReady, useBootstrapStore } from "@/appState/bootstrapStore";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
-import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { HomeActionBar } from "@/features/home/HomeActionBar";
@@ -15,10 +15,14 @@ import { useHomeFeedState } from "@/features/home/useHomeFeedState";
 import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/groupQuotePhotoCardsIntoStacks";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
-import { useTranslation } from "react-i18next";
+import {
+  listQuotePhotoCards,
+  quotePhotoCardToMemory,
+} from "@/services/media/userPhotosApi";
 import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -34,21 +38,16 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [milestone, setMilestone] = useState<number | null>(null);
   const [streakModalVisible, setStreakModalVisible] = useState(false);
-  const { t } = useTranslation();
-  const showToast = useUIStore((s) => s.showToast);
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
-  const persona = useUserStore((s) => s.persona);
+  const bootstrapReady = useBootstrapStore(selectBootstrapReady);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
   const guestId = useUserStore((s) => s.guestId);
-  const inviteNudgeDismissed = useUserStore((s) => s.inviteNudgeDismissed);
-  const setInviteNudgeDismissed = useUserStore(
-    (s) => s.setInviteNudgeDismissed,
-  );
-  const showInviteNudge = Boolean(profile && persona && !inviteNudgeDismissed);
+  const ensureGuestId = useUserStore((s) => s.ensureGuestId);
   const {
     items: feedItems,
     isLoading: isFeedLoading,
@@ -74,6 +73,8 @@ export default function HomeScreen() {
     selectedImageUri,
     hideQuote,
     hasSavedCurrentPhoto,
+    canCreatePhotoStack,
+    photoStackCount,
     facing,
     zoom,
     zoomFactor,
@@ -85,6 +86,7 @@ export default function HomeScreen() {
     handleSavePhoto,
     handleOpenGallery,
     clearSelectedImage,
+    finishPhotoStack,
     isGenerating,
     generationProgress,
     dailyQuoteText,
@@ -97,7 +99,6 @@ export default function HomeScreen() {
   } = useHomeCamera({
     onPhotoSaved: () => {
       refreshSilently();
-      showToast(t("home.savedToMemories"), "success", 3000);
     },
     onMilestoneReached: setMilestone,
     homeVibeKey: palette.vibeKey,
@@ -105,6 +106,38 @@ export default function HomeScreen() {
   const listRef = useRef<FlatList<QuoteStack>>(null);
   const today = getTodayLocalDateKey();
   const memories = useMemoryStore((s: MemoryState) => s.memories);
+  const replaceMemories = useMemoryStore(
+    (s: MemoryState) => s.replaceMemories,
+  );
+
+  useEffect(() => {
+    const ownerUserId = profile?.user_id ?? null;
+    const ownerGuestId = ownerUserId ? null : guestId ?? ensureGuestId();
+    let cancelled = false;
+
+    void listQuotePhotoCards({
+      userId: ownerUserId,
+      guestId: ownerGuestId,
+      limit: 500,
+    })
+      .then((cards) => {
+        if (cancelled) return;
+        replaceMemories(
+          cards
+            .filter((card) => card.quote.trim().length > 0)
+            .map(quotePhotoCardToMemory),
+        );
+      })
+      .catch((error) => {
+        // Keep the last local cache visible while offline; a failed cloud
+        // refresh must never erase memories from the screen.
+        console.error("Failed to sync cloud memories", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ensureGuestId, guestId, profile?.user_id, replaceMemories]);
   const pastMemories = useMemo(() => {
     const target = new Date(today);
     const day = target.getDate();
@@ -208,7 +241,7 @@ export default function HomeScreen() {
     clearSelectedImage();
   }
 
-  if (isLoading) {
+  if (!bootstrapReady || isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-transparent">
         <ActivityIndicator size="large" color="#fff" />
@@ -247,7 +280,6 @@ export default function HomeScreen() {
             topInset={insets.top}
             displayStreak={displayStreak}
             pastMemory={pastMemories[0] ?? null}
-            showInviteNudge={showInviteNudge}
             onPressProfile={() => router.push("/(tabs)/profile" as never)}
             onPressFriends={() => router.push("/(tabs)/friends" as never)}
             onPressSignIn={() =>
@@ -263,11 +295,6 @@ export default function HomeScreen() {
                 params: { date },
               } as never)
             }
-            onDismissInviteNudge={() => setInviteNudgeDismissed(true)}
-            onPressInviteNudge={() => {
-              setInviteNudgeDismissed(true);
-              router.push("/(tabs)/friends" as never);
-            }}
             cameraSectionProps={{
               cameraRef,
               pinchGesture,
@@ -275,6 +302,8 @@ export default function HomeScreen() {
               isCameraActive,
               selectedImageUri,
               canDeleteImage: !hasSavedCurrentPhoto,
+              canCreatePhotoStack,
+              photoStackCount,
               facing,
               zoom,
               zoomFactor,
@@ -296,6 +325,7 @@ export default function HomeScreen() {
               onZoomPresetPress: handleZoomPreset,
               onToggleFacing: handleToggleFacing,
               onClearImage: handleClearCurrentImage,
+              onFinishPhotoStack: finishPhotoStack,
               onRewriteQuote: handleRewriteQuote,
               onFutureQuotePress: handleFutureQuotePress,
               selectedAiTool,
@@ -341,7 +371,7 @@ export default function HomeScreen() {
         isCapturing={isCapturing}
         cameraReady={cameraReady}
         hasImage={!!selectedImageUri}
-        canSave={!hasSavedCurrentPhoto}
+        canSave={Boolean(dailyQuoteText && !hasSavedCurrentPhoto)}
         isSaving={isSavingPhoto}
       />
       <HomeEmojiOverlay bursts={emojiBursts} screenHeight={SCREEN_HEIGHT} />

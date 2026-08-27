@@ -58,13 +58,16 @@ export const QuoteMomentCardMedia = ({
           height={bgLayout.height}
         />
       ) : null}
-      <Image
-        source={{ uri: item.imageUrl }}
-        recyclingKey={item.id}
-        style={{ width: "100%", height: "100%" }}
-        contentFit="cover"
-        transition={0}
-      />
+      {item.imageUrl ? (
+        <Image
+          source={{ uri: item.imageUrl }}
+          recyclingKey={item.id}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={0}
+        />
+      ) : null}
       {chrome ? <View pointerEvents="none" style={chrome.imageWash} /> : null}
       <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
       {chrome ? (

@@ -8,13 +8,12 @@ import { HowItWorksToneStep } from "@/features/onboarding/steps/HowItWorksToneSt
 import { NotificationStep } from "@/features/onboarding/steps/NotificationStep";
 import { PersonaStep } from "@/features/onboarding/steps/PersonaStep";
 import { WelcomeStep } from "@/features/onboarding/steps/WelcomeStep";
-import { PaywallScreen } from "@/features/paywall/PaywallScreen";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { AnimatePresence } from "moti";
+import { Redirect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { BackHandler, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useUserStoreHydrated } from "@/utils/useUserStoreHydrated";
 
 // Steps:
 // 1 = Welcome (cold open)
@@ -25,10 +24,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 // 6 = Goals
 // 7 = Notifications
 // 8 = Camera
-// 9 = Paywall
 
 // Steps that hide the entire header (progress bar + back arrow)
-const HIDE_HEADER_STEPS = new Set([1, 9]);
+const HIDE_HEADER_STEPS = new Set([1]);
 
 // Steps where the back arrow is hidden (replaced with a spacer)
 const HIDE_BACK_STEPS = new Set([2]);
@@ -41,6 +39,8 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const setPersona = useUserStore((s) => s.setPersona);
+  const persona = useUserStore((s) => s.persona);
+  const hydrated = useUserStoreHydrated();
 
   const [step, setStep] = useState(1);
   const [personas, setPersonas] = useState<string[]>([]);
@@ -76,6 +76,14 @@ export default function OnboardingScreen() {
 
     router.replace("/(tabs)" as never);
   }, [personas, goals, setPersona, router]);
+
+  if (!hydrated) {
+    return null;
+  }
+
+  if (persona) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const showHeader = !HIDE_HEADER_STEPS.has(step);
   const showBack = showHeader && !HIDE_BACK_STEPS.has(step);
@@ -121,16 +129,7 @@ export default function OnboardingScreen() {
         return <NotificationStep onContinue={() => setStep(8)} />;
 
       case 8:
-        return <CameraStep onContinue={() => setStep(9)} />;
-
-      case 9:
-        return (
-          <PaywallScreen
-            reason="generic"
-            source="onboarding"
-            onClose={handleComplete}
-          />
-        );
+        return <CameraStep onContinue={handleComplete} />;
 
       default:
         return null;
@@ -161,11 +160,7 @@ export default function OnboardingScreen() {
         </View>
       )}
 
-      <AnimatePresence>
-        <View key={step} style={{ flex: 1 }}>
-          {renderStep()}
-        </View>
-      </AnimatePresence>
+      <View style={{ flex: 1 }}>{renderStep()}</View>
     </View>
   );
 }

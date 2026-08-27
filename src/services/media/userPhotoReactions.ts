@@ -19,20 +19,26 @@ export const sendUserPhotoReaction = async (
     return false;
   }
 
-  const { error } = await supabase
-    .from("user_photo_reactions")
-    .upsert(
-      {
-        photo_id: photoId,
-        reactor_user_id: userId,
-        reactor_guest_id: guestId,
-        type,
-        comment: comment ?? null,
-      },
-      {
-        onConflict: "photo_id,reactor_user_id,reactor_guest_id,type",
-      },
-    );
+  let error;
+  try {
+    ({ error } = await supabase
+      .from("user_photo_reactions")
+      .upsert(
+        {
+          photo_id: photoId,
+          reactor_user_id: userId,
+          reactor_guest_id: guestId,
+          type,
+          comment: comment ?? null,
+        },
+        {
+          onConflict: "photo_id,reactor_user_id,reactor_guest_id,type",
+        },
+      ));
+  } catch (caughtError) {
+    console.error("Failed to send photo reaction", caughtError);
+    return false;
+  }
 
   if (error) {
     console.error("Failed to send photo reaction", { error });
@@ -41,4 +47,3 @@ export const sendUserPhotoReaction = async (
 
   return true;
 };
-

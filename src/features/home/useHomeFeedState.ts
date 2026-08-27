@@ -33,6 +33,9 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
+  // Reactions and replies are intentionally deferred from V1 until their
+  // tables and RLS policies are shipped with the production schema.
+  const socialInteractionsEnabled = false;
 
   useEffect(() => {
     if (!isOnFeed) {
@@ -159,6 +162,6 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
     handleSendMessage,
     viewabilityConfig,
     onViewableItemsChanged,
-    shouldShowMessageBar: Boolean(isOnFeed && activeQuoteId),
+    shouldShowMessageBar: socialInteractionsEnabled && Boolean(isOnFeed && activeQuoteId),
   };
 }

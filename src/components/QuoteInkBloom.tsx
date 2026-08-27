@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  AccessibilityInfo,
+  Dimensions,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -86,11 +92,37 @@ export function QuoteInkBloom({
   const backdropOpacity = useSharedValue(1);
 
   const [cycleKey, setCycleKey] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
   const isCompleteRef = useRef(isComplete);
   isCompleteRef.current = isComplete;
 
+  useEffect(() => {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) {
+        setReduceMotion(enabled);
+      }
+    });
+    const subscription = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged",
+      setReduceMotion,
+    );
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
+
   // Glow pulse — both opacity and scale breathe together
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(glowOpacity);
+      cancelAnimation(glowScale);
+      glowOpacity.value = 0.65;
+      glowScale.value = 1;
+      return;
+    }
+
     glowOpacity.value = withRepeat(
       withSequence(
         withTiming(0.9, { duration: 850, easing: Easing.inOut(Easing.sin) }),
@@ -112,11 +144,37 @@ export function QuoteInkBloom({
       cancelAnimation(glowScale);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [reduceMotion]);
 
   // Drop cycle — one iteration; restarts via cycleKey
   useEffect(() => {
-    if (isCompleteRef.current) return;
+    if (isCompleteRef.current || reduceMotion) {
+      dropY.value = 0;
+      dropOpacity.value = 0;
+      dropScaleX.value = 1;
+      dropScaleY.value = 1;
+      ring1Scale.value = 0;
+      ring1Opacity.value = 0;
+      ring2Scale.value = 0;
+      ring2Opacity.value = 0;
+      ring3Scale.value = 0;
+      ring3Opacity.value = 0;
+      ring4Scale.value = 0;
+      ring4Opacity.value = 0;
+      p1x.value = 0;
+      p1y.value = 0;
+      p1op.value = 0;
+      p2x.value = 0;
+      p2y.value = 0;
+      p2op.value = 0;
+      p3x.value = 0;
+      p3y.value = 0;
+      p3op.value = 0;
+      p4x.value = 0;
+      p4y.value = 0;
+      p4op.value = 0;
+      return;
+    }
 
     // Reset all values for a clean cycle
     dropY.value = -80;
@@ -265,13 +323,15 @@ export function QuoteInkBloom({
       cancelAnimation(p4op);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cycleKey]);
+  }, [cycleKey, reduceMotion]);
 
   // Progress bar — updates whenever progress prop changes
   useEffect(() => {
-    barWidth.value = withTiming(progress, { duration: 350 });
+    barWidth.value = reduceMotion
+      ? progress
+      : withTiming(progress, { duration: 350 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress]);
+  }, [progress, reduceMotion]);
 
   // Phase 4: settle when isComplete flips true
   useEffect(() => {
@@ -289,6 +349,26 @@ export function QuoteInkBloom({
     cancelAnimation(ring3Opacity);
     cancelAnimation(ring4Scale);
     cancelAnimation(ring4Opacity);
+
+    if (reduceMotion) {
+      dropY.value = 0;
+      dropOpacity.value = 0;
+      dropScaleX.value = 1;
+      dropScaleY.value = 1;
+      ring1Scale.value = 0;
+      ring1Opacity.value = 0;
+      ring2Scale.value = 0;
+      ring2Opacity.value = 0;
+      ring3Scale.value = 0;
+      ring3Opacity.value = 0;
+      ring4Scale.value = 0;
+      ring4Opacity.value = 0;
+      quoteOpacity.value = 1;
+      quoteTranslateY.value = 0;
+      quoteScale.value = 1;
+      backdropOpacity.value = 0;
+      return;
+    }
 
     // Final big bloom — expo easing = explosive fast start that gracefully decelerates
     ring1Scale.value = 0;
@@ -327,7 +407,7 @@ export function QuoteInkBloom({
     // Backdrop fades last
     backdropOpacity.value = withDelay(440, withTiming(0, { duration: 680 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isComplete]);
+  }, [isComplete, reduceMotion]);
 
   // ── Animated styles ────────────────────────────────────────────────────────
   const dropStyle = useAnimatedStyle(() => ({

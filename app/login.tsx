@@ -33,7 +33,7 @@ type GoogleSigninModule = {
     }) => void;
     hasPlayServices: () => Promise<boolean>;
     signIn: (options?: { nonce?: string }) => Promise<unknown>;
-    getTokens: () => Promise<{ idToken: string | null }>;
+    getTokens: () => Promise<{ idToken: string | null; accessToken: string | null }>;
   };
   statusCodes: {
     SIGN_IN_CANCELLED: string;
@@ -82,6 +82,29 @@ const FEATURE_ROW_ICONS = [
   "settings-outline",
   "cloud-outline",
 ] as const;
+
+function getSafeAuthErrorMessage(error: unknown, fallback: string, t: (key: string) => string): string {
+  const message = error instanceof Error ? error.message.trim() : "";
+  const normalized = message.toLowerCase();
+
+  if (
+    (normalized.includes("manual") && normalized.includes("link")) ||
+    (normalized.includes("identity linking") && normalized.includes("unavailable"))
+  ) {
+    return t("auth.login.errors.identityLinkingUnavailable");
+  }
+
+  if (
+    normalized.includes("already linked") ||
+    normalized.includes("already exists") ||
+    normalized.includes("belongs to another")
+  ) {
+    return t("auth.login.errors.identityAlreadyLinked");
+  }
+
+  const containsCredential = /access[_ -]?token|authorization|bearer|api[_ -]?key|jwt/i.test(message);
+  return message && message.length <= 240 && !containsCredential ? message : fallback;
+}
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -138,9 +161,13 @@ export default function LoginScreen() {
         setError(t("auth.login.errors.googleFailed"));
         return;
       }
-      const { error: authError } = await signInWithGoogle(idToken, rawNonce);
+      const { error: authError } = await signInWithGoogle(
+        idToken,
+        rawNonce,
+        tokens.accessToken ?? undefined,
+      );
       if (authError) {
-        setError(t("auth.login.errors.signInFailed"));
+        setError(getSafeAuthErrorMessage(authError, t("auth.login.errors.signInFailed"), t));
         return;
       }
       router.replace(returnTo as never);
@@ -184,7 +211,7 @@ export default function LoginScreen() {
       }
       const { error: authError } = await signInWithApple(identityToken, rawNonce);
       if (authError) {
-        setError(t("auth.login.errors.signInFailed"));
+        setError(getSafeAuthErrorMessage(authError, t("auth.login.errors.signInFailed"), t));
         return;
       }
       router.replace(returnTo as never);

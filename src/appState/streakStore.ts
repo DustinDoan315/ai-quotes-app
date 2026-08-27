@@ -10,6 +10,7 @@ type StreakState = {
   lastQuoteDate: string | null;
   incrementStreak: () => boolean;
   resetStreak: () => void;
+  clearStreak: () => void;
   updateLastQuoteDate: (date: string) => void;
 };
 
@@ -62,6 +63,12 @@ export const useStreakStore = create<StreakState>()(
       resetStreak: () =>
         set({
           currentStreak: 0,
+          lastQuoteDate: null,
+        }),
+      clearStreak: () =>
+        set({
+          currentStreak: 0,
+          longestStreak: 0,
           lastQuoteDate: null,
         }),
       updateLastQuoteDate: (date) => set({ lastQuoteDate: date }),

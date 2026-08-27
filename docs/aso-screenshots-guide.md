@@ -1,4 +1,4 @@
-# App Store Screenshots Guide — Inkly: Daily Vibes
+# App Store Screenshots Guide — Inkly
 
 ## Status
 - [x] Benefits confirmed (5 screenshots)

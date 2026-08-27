@@ -1,8 +1,8 @@
-# Inkly: Daily Vibes Privacy Policy
+# Inkly Privacy Policy
 
 Effective date: May 11, 2026
 
-Inkly: Daily Vibes ("Inkly", "we", "our", or "us") helps users create personal quote moments from photos, profile preferences, and daily app activity. This Privacy Policy explains what information the app collects, how it is used, and the choices available to users.
+Inkly ("we", "our", or "us") helps users create personal quote moments from photos, profile preferences, and daily app activity. This Privacy Policy explains what information the app collects, how it is used, and the choices available to users.
 
 ## Information We Collect
 

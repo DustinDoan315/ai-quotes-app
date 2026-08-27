@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import * as Crypto from "expo-crypto";
 import { CameraView, type CameraMountError } from "expo-camera";
 import { useFocusEffect } from "@react-navigation/native";
 import { Gesture } from "react-native-gesture-handler";
@@ -14,6 +15,8 @@ import { useUIStore } from "@/appState/uiStore";
 import { analyticsEvents } from "@/services/analytics/events";
 import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
+import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { compressImageForUpload } from "@/utils/imageProcessor";
 import { formatLocalDateKey } from "@/utils/dateKey";
@@ -27,6 +30,7 @@ const ZOOM_SENSITIVITY = 0.25;
 type ZoomPreset = 0.5 | 1 | 2;
 const DISPLAY_FACTOR_MIN = 0.5;
 const DISPLAY_FACTOR_MAX = 2;
+const INK_BLOOM_SETTLE_MS = 650;
 
 function zoomToFactor(expoZoom: number): number {
   const t = (expoZoom - EXPO_ZOOM_MIN) / (EXPO_ZOOM_MAX - EXPO_ZOOM_MIN);
@@ -74,6 +78,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   );
   const [hideQuote, setHideQuote] = useState(false);
   const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
+  const [photoStackCount, setPhotoStackCount] = useState(0);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   const [facing, setFacing] = useState<CameraFacing>("back");
   const [zoom, setZoom] = useState(() => factorToZoom(1));
@@ -81,6 +86,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [quoteFontSize, setQuoteFontSize] = useState<"small" | "medium" | "large">("medium");
   const [quoteColorScheme, setQuoteColorScheme] = useState<"light" | "amber" | "pink">("light");
   const cameraRef = useRef<CameraView | null>(null);
+  const isCapturingRef = useRef(false);
+  const isSavingPhotoRef = useRef(false);
+  const photoStackIdRef = useRef<string | null>(null);
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
   const generationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
@@ -92,6 +100,13 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
   const addMemory = useMemoryStore((state) => state.addMemory);
+  const customerInfo = useSubscriptionStore((state) => state.customerInfo);
+  const canCreatePhotoStack = useMemo(() => {
+    const snapshot = customerInfo
+      ? { activeEntitlementIds: customerInfo.activeEntitlementIds }
+      : null;
+    return createSubscriptionGuards(snapshot).canCreatePhotoStack().allowed;
+  }, [customerInfo]);
 
   zoomRef.current = zoom;
 
@@ -103,6 +118,13 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!canCreatePhotoStack) {
+      photoStackIdRef.current = null;
+      setPhotoStackCount(0);
+    }
+  }, [canCreatePhotoStack]);
 
   useFocusEffect(
     useCallback(() => {
@@ -176,6 +198,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     clearDailyQuote();
   }
 
+  function finishPhotoStack() {
+    photoStackIdRef.current = null;
+    setPhotoStackCount(0);
+  }
+
   async function generateForImage(
     sourceUri: string | null,
     enforceCooldown: boolean,
@@ -221,14 +248,19 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       return;
     }
     setHideQuote(false);
+    setGenerationProgress(1);
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, INK_BLOOM_SETTLE_MS);
+    });
     setGenerationProgress(0);
     showToast("Quote generated", "success");
   }
 
   async function handleCapture() {
-    if (!cameraRef.current || !cameraReady || isCapturing) {
+    if (!cameraRef.current || !cameraReady || isCapturingRef.current) {
       return;
     }
+    isCapturingRef.current = true;
     setIsCapturing(true);
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -244,11 +276,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHideQuote(true);
       await generateForImage(photo.uri, false);
       setHasSavedCurrentPhoto(false);
-      showToast(i18n.t("camera.info.photoCaptured"), "success");
     } catch (error) {
       console.error("Failed to capture image", error);
       showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
     } finally {
+      isCapturingRef.current = false;
       setIsCapturing(false);
     }
   }
@@ -273,19 +305,27 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       showToast(i18n.t("camera.errors.noPhotoToSave"), "error");
       return;
     }
-    if (isSavingPhoto) {
+    if (isSavingPhotoRef.current) {
       return;
     }
     if (hasSavedCurrentPhoto) {
       showToast(i18n.t("camera.info.photoAlreadySaved"), "info");
       return;
     }
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const quoteText = dailyQuote?.text?.trim() ?? "";
+    if (!quoteText) {
+      showToast(i18n.t("camera.errors.quoteRequiredToSave"), "info");
+      return;
+    }
+    isSavingPhotoRef.current = true;
     setIsSavingPhoto(true);
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
-      const quoteText = dailyQuote?.text ?? null;
+      const photoStackId = canCreatePhotoStack
+        ? photoStackIdRef.current ?? Crypto.randomUUID()
+        : null;
       const result = await saveUserPhoto({
         localUri: selectedImageUri,
         userId,
@@ -295,6 +335,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         styleFontId: quoteFontSize,
         styleColorSchemeId: quoteColorScheme,
         homeVibeKey: homeVibeKey ?? null,
+        photoStackId,
       });
       if (!result) {
         showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
@@ -307,6 +348,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       if (quoteText) {
         addMemory({
           id: `${today}-${Date.now().toString(36)}`,
+          photoId: result.photoId,
           ownerUserId: userId,
           ownerGuestId: guestId,
           date: today,
@@ -314,6 +356,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           author: profile?.display_name ?? profile?.username ?? null,
           personaId: persona?.id ?? null,
           photoBackgroundUri: result.publicUrl,
+          photoStoragePath: result.storagePath,
           photoOrientation: result.orientation,
           styleFontId: quoteFontSize,
           styleColorSchemeId: quoteColorScheme,
@@ -330,6 +373,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       if (streakIncremented && isStreakMilestone(newStreak)) {
         onMilestoneReached?.(newStreak);
       }
+      if (photoStackId) {
+        photoStackIdRef.current = photoStackId;
+        setPhotoStackCount((count) => count + 1);
+      }
       setSelectedImageUri(null);
       setSelectedImageBase64(null);
       setHideQuote(true);
@@ -337,30 +384,38 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setGenerationProgress(0);
       showToast(i18n.t("camera.success.photoSaved"), "success");
       onPhotoSaved?.();
+    } catch (error) {
+      console.error("Failed to save photo", error);
+      showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
     } finally {
+      isSavingPhotoRef.current = false;
       setIsSavingPhoto(false);
     }
   }
 
   async function handleOpenGallery() {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      showToast(i18n.t("camera.errors.galleryPermissionRequired"), "error");
-      return;
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        showToast(i18n.t("camera.errors.galleryPermissionRequired"), "error");
+        return;
+      }
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const picked = await pickPhotoForQuote();
+      if (!picked) {
+        return;
+      }
+      setSelectedImageUri(picked.uri);
+      const pickedBase64 = picked.base64 || null;
+      setSelectedImageBase64(pickedBase64);
+      setHideQuote(true);
+      setHasSavedCurrentPhoto(false);
+      await generateForImage(picked.uri, false, pickedBase64);
+    } catch (error) {
+      console.error("Failed to pick image from gallery", error);
+      showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
     }
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const picked = await pickPhotoForQuote();
-    if (!picked) {
-      return;
-    }
-    setSelectedImageUri(picked.uri);
-    const pickedBase64 = picked.base64 || null;
-    setSelectedImageBase64(pickedBase64);
-    setHideQuote(true);
-    setHasSavedCurrentPhoto(false);
-    await generateForImage(picked.uri, false, pickedBase64);
-    showToast(i18n.t("camera.info.photoSelected"), "success");
   }
 
   function handleSubmitQuoteEdit(text: string) {
@@ -394,7 +449,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     cameraRef,
     cameraReady,
     cameraError,
-    isCameraActive,
+    isCameraActive: isCameraActive && isGranted,
     handleCameraReady,
     handleCameraMountError,
     isCapturing,
@@ -402,6 +457,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     selectedImageUri,
     hideQuote,
     hasSavedCurrentPhoto,
+    canCreatePhotoStack,
+    photoStackCount,
     zoom,
     zoomFactor,
     activePreset,
@@ -414,6 +471,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     handleSavePhoto,
     handleOpenGallery,
     clearSelectedImage,
+    finishPhotoStack,
     isGenerating,
     generationProgress,
     quoteFontSize,

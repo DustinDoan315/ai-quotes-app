@@ -16,9 +16,12 @@ type SaveUserPhotoParams = {
   styleFontId?: "small" | "medium" | "large";
   styleColorSchemeId?: "light" | "amber" | "pink";
   homeVibeKey?: string | null;
+  photoStackId?: string | null;
+  visibility?: "private" | "friends" | "public";
 };
 
 type SaveUserPhotoResult = {
+  photoId: string;
   storagePath: string;
   publicUrl: string;
   orientation: QuoteOrientation;
@@ -34,10 +37,9 @@ const createOwnerFolder = (userId: string | null, guestId: string | null) => {
   return `anonymous-${Date.now().toString(36)}`;
 };
 
-
-export const saveUserPhoto = async (
+async function saveUserPhotoInternal(
   params: SaveUserPhotoParams,
-): Promise<SaveUserPhotoResult | null> => {
+): Promise<SaveUserPhotoResult | null> {
   const {
     localUri,
     userId,
@@ -47,6 +49,8 @@ export const saveUserPhoto = async (
     styleFontId = "medium",
     styleColorSchemeId = "light",
     homeVibeKey = null,
+    photoStackId = null,
+    visibility = "private",
   } = params;
 
   if (!localUri) {
@@ -63,6 +67,10 @@ export const saveUserPhoto = async (
     activeSession = (await supabase.auth.getSession()).data.session;
   }
   const effectiveUserId = userId ?? activeSession?.user?.id ?? null;
+  if (!activeSession?.access_token || !effectiveUserId) {
+    console.error("An authenticated Supabase session is required to save a photo");
+    return null;
+  }
 
   const output = QUOTE_OUTPUT_SIZE[orientation];
 
@@ -112,7 +120,7 @@ export const saveUserPhoto = async (
     method: "POST",
     headers: {
       apikey: supabaseAnonKey,
-      Authorization: `Bearer ${supabaseAnonKey}`,
+      Authorization: `Bearer ${activeSession.access_token}`,
     },
     body: formData,
   });
@@ -125,27 +133,56 @@ export const saveUserPhoto = async (
     return null;
   }
 
-  const publicUrl = `${supabaseUrl}/storage/v1/object/public/user-photos/${encodeURIComponent(path)}`;
+  const storageObjectUrl = `${supabaseUrl}/storage/v1/object/user-photos/${encodeURIComponent(path)}`;
 
-  const { error: insertError } = await supabase.from("user_photos").insert({
-    user_id: effectiveUserId,
-    guest_id: guestId,
-    image_url: publicUrl,
-    storage_path: path,
-    quote: quote ?? "",
-    style_font_id: styleFontId,
-    style_color_scheme_id: styleColorSchemeId,
-    home_vibe_key: homeVibeKey,
-  });
+  const { data: insertedPhoto, error: insertError } = await supabase
+    .from("user_photos")
+    .insert({
+      user_id: effectiveUserId,
+      guest_id: guestId,
+      image_url: storageObjectUrl,
+      storage_path: path,
+      quote: quote ?? "",
+      style_font_id: styleFontId,
+      style_color_scheme_id: styleColorSchemeId,
+      home_vibe_key: homeVibeKey,
+      photo_stack_id: photoStackId,
+      visibility,
+      is_favorite: false,
+    })
+    .select("id")
+    .single<{ id: string }>();
 
-  if (insertError) {
+  if (insertError || !insertedPhoto) {
     console.error("Failed to insert user_photos row", insertError);
     return null;
   }
 
+  const { data: signedImage, error: signedImageError } = await supabase.storage
+    .from("user-photos")
+    .createSignedUrl(path, 60 * 60);
+  if (signedImageError || !signedImage?.signedUrl) {
+    console.error("Failed to create a private image URL", signedImageError);
+    await supabase.from("user_photos").delete().eq("id", insertedPhoto.id);
+    await supabase.storage.from("user-photos").remove([path]);
+    return null;
+  }
+
   return {
+    photoId: insertedPhoto.id,
     storagePath: path,
-    publicUrl,
+    publicUrl: signedImage.signedUrl,
     orientation,
   };
+}
+
+export const saveUserPhoto = async (
+  params: SaveUserPhotoParams,
+): Promise<SaveUserPhotoResult | null> => {
+  try {
+    return await saveUserPhotoInternal(params);
+  } catch (error) {
+    console.error("Failed to save user photo", error);
+    return null;
+  }
 };

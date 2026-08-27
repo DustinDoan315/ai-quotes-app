@@ -18,6 +18,11 @@ import { useTranslation } from "react-i18next";
 import { formatLocalDateKey, getTodayLocalDateKey } from "@/utils/dateKey";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemoriesForDay";
+import {
+  updateUserPhotoFavorite,
+  updateUserPhotoVisibility,
+} from "@/services/media/userPhotosApi";
+import { useUIStore } from "@/appState/uiStore";
 
 type Layer = "mine" | "friends";
 
@@ -34,8 +39,11 @@ export default function MemoriesDayScreen() {
   const hasHydrated = useMemoryStore((s: MemoryState) => s._hasHydrated);
   const memories = useMemoryStore((s: MemoryState) => s.memories);
   const toggleFavorite = useMemoryStore((s: MemoryState) => s.toggleFavorite);
+  const setVisibility = useMemoryStore((s: MemoryState) => s.setVisibility);
   const profile = useUserStore((s) => s.profile);
   const guestId = useUserStore((s) => s.guestId);
+  const showToast = useUIStore((s) => s.showToast);
+  const [updatingVisibilityId, setUpdatingVisibilityId] = useState<string | null>(null);
 
   const todayKey = getTodayLocalDateKey();
   const isToday = dateKey === todayKey;
@@ -121,6 +129,33 @@ export default function MemoriesDayScreen() {
   const memoryCountLabel = t("memories.daySavedCount", {
     count: activeCount,
   });
+
+  function handleToggleFavorite(memory: QuoteMemory) {
+    const nextValue = !memory.isFavorite;
+    toggleFavorite(memory.id);
+    if (!memory.photoId) return;
+
+    void updateUserPhotoFavorite(memory.photoId, nextValue).then((ok) => {
+      if (ok) return;
+      toggleFavorite(memory.id);
+      showToast(t("memories.favoriteSaveError"), "error");
+    });
+  }
+
+  function handleChangeVisibility(memory: QuoteMemory) {
+    if (!memory.photoId || updatingVisibilityId) return;
+    const nextVisibility = memory.visibility === "private" ? "friends" : "private";
+    setVisibility(memory.id, nextVisibility);
+    setUpdatingVisibilityId(memory.id);
+    void updateUserPhotoVisibility(memory.photoId, nextVisibility).then((ok) => {
+      setUpdatingVisibilityId((current) =>
+        current === memory.id ? null : current,
+      );
+      if (ok) return;
+      setVisibility(memory.id, memory.visibility);
+      showToast(t("memories.visibilitySaveError"), "error");
+    });
+  }
 
   if (!hasHydrated) {
     return (
@@ -231,9 +266,13 @@ export default function MemoriesDayScreen() {
                 quote={memory.quoteText}
                 author={t("memories.meAuthor")}
                 photoBackgroundUri={memory.photoBackgroundUri}
+                photoStoragePath={memory.photoStoragePath}
                 photoOrientation={memory.photoOrientation}
                 isFavorite={memory.isFavorite}
-                onToggleFavorite={() => toggleFavorite(memory.id)}
+                onToggleFavorite={() => handleToggleFavorite(memory)}
+                visibility={memory.visibility}
+                onChangeVisibility={() => handleChangeVisibility(memory)}
+                isVisibilityUpdating={updatingVisibilityId === memory.id}
                 createdAt={memory.createdAt}
                 styleFontId={memory.styleFontId as "small" | "medium" | "large"}
                 styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
@@ -258,7 +297,8 @@ export default function MemoriesDayScreen() {
                 <MemoryCard
                   quote={memory.quoteText}
                   author={t("memories.meAuthor")}
-                  photoBackgroundUri={memory.photoBackgroundUri}
+                photoBackgroundUri={memory.photoBackgroundUri}
+                photoStoragePath={memory.photoStoragePath}
                   photoOrientation={memory.photoOrientation}
                   isFavorite={memory.isFavorite}
                   createdAt={memory.createdAt}

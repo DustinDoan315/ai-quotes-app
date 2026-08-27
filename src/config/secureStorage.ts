@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Device from "expo-device";
 import * as SecureStore from "expo-secure-store";
 
 // SecureStore has a 2048-byte per-key limit; Supabase sessions exceed it, so
@@ -12,6 +13,7 @@ const CHUNK_SIZE = 2000;
 const OPTIONS: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
+const USE_ASYNC_STORAGE_FALLBACK = !Device.isDevice;
 
 async function readChunked(key: string, meta: string): Promise<string | null> {
   const n = Number(meta);
@@ -48,9 +50,22 @@ async function deleteChunked(key: string): Promise<void> {
 
 export const ExpoSecureStorageAdapter = {
   getItem: async (key: string): Promise<string | null> => {
-    const meta = await SecureStore.getItemAsync(key, OPTIONS);
+    let meta: string | null;
+    try {
+      meta = await SecureStore.getItemAsync(key, OPTIONS);
+    } catch (error) {
+      if (!USE_ASYNC_STORAGE_FALLBACK) throw error;
+      console.info("[SecureStorage] Using AsyncStorage fallback on a simulator", error);
+      return AsyncStorage.getItem(key);
+    }
     if (meta !== null) {
-      return readChunked(key, meta);
+      try {
+        return await readChunked(key, meta);
+      } catch (error) {
+        if (!USE_ASYNC_STORAGE_FALLBACK) throw error;
+        console.info("[SecureStorage] Falling back to AsyncStorage read on a simulator", error);
+        return AsyncStorage.getItem(key);
+      }
     }
     // One-time migration: move existing AsyncStorage token to SecureStore.
     const legacy = await AsyncStorage.getItem(key);
@@ -67,11 +82,22 @@ export const ExpoSecureStorageAdapter = {
   },
 
   setItem: async (key: string, value: string): Promise<void> => {
-    await writeChunked(key, value);
+    try {
+      await writeChunked(key, value);
+    } catch (error) {
+      if (!USE_ASYNC_STORAGE_FALLBACK) throw error;
+      console.info("[SecureStorage] Using AsyncStorage fallback on a simulator", error);
+      await AsyncStorage.setItem(key, value);
+    }
   },
 
   removeItem: async (key: string): Promise<void> => {
-    await deleteChunked(key);
+    try {
+      await deleteChunked(key);
+    } catch (error) {
+      if (!USE_ASYNC_STORAGE_FALLBACK) throw error;
+      console.info("[SecureStorage] Falling back to AsyncStorage delete on a simulator", error);
+    }
     await AsyncStorage.removeItem(key); // clean up any leftover legacy value
   },
 };

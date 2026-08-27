@@ -1,6 +1,8 @@
 import { Image, type ImageStyle, type StyleProp } from "react-native";
 
-const appIconSource = require("../../assets/images/icon.png");
+// Keep the in-app mark on a separate asset path from the native launcher icon.
+// This also prevents development clients from retaining a stale `icon.png` asset.
+const appIconSource = require("../../assets/images/splash-icon.png");
 
 type AppIconProps = {
   size?: number;

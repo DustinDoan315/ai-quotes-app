@@ -43,7 +43,6 @@ type ImageDetectionResult = {
 
 const CREATIVE_MODEL = "gpt-4.1";
 const JUDGE_MODEL = "gpt-4.1-mini";
-const CANDIDATE_COUNT = 3;
 
 const GENERIC_QUOTE_PATTERNS = [
   /\bstay (strong|positive|focused)\b/i,
@@ -74,25 +73,33 @@ const isGenericQuote = (quote: string): boolean => {
   return GENERIC_QUOTE_PATTERNS.some((pattern) => pattern.test(normalized));
 };
 
-const generateCandidates = (
+const generateCandidate = (
   systemPrompt: string,
   userPrompt: string,
-): Promise<string[]> =>
-  Promise.all(
-    Array.from({ length: CANDIDATE_COUNT }, () =>
-      callOpenAIText({
-        model: CREATIVE_MODEL,
-        temperature: 0.9,
-        max_output_tokens: 120,
-        input: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      })
-        .then(cleanQuote)
-        .catch(() => ""),
-    ),
-  );
+): Promise<string> =>
+  callOpenAIText({
+    model: CREATIVE_MODEL,
+    temperature: 0.9,
+    max_output_tokens: 120,
+    input: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+  })
+    .then(cleanQuote)
+    .catch(() => "");
+
+const generateCandidates = async (
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<string[]> => {
+  const first = await generateCandidate(systemPrompt, userPrompt);
+  if (!isGenericQuote(first)) return [first];
+
+  // Only spend a retry when the first answer fails the local quality bar.
+  const retry = await generateCandidate(systemPrompt, userPrompt);
+  return [first, retry];
+};
 
 const pickBestQuote = async (
   candidates: string[],
@@ -400,10 +407,6 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
-    if (!OPENAI_API_KEY) {
-      return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
-    }
-
     const body = (await req.json()) as QuoteRequestBody;
     const {
       personaTraits,
@@ -431,6 +434,15 @@ Deno.serve(async (req: Request) => {
     if (cleanedBase64 && cleanedBase64.length > MAX_BASE64_LENGTH) {
       return jsonResponse({ error: "Image too large" }, 400);
     }
+
+    if (!OPENAI_API_KEY) {
+      return jsonResponse({ error: "Missing OPENAI_API_KEY in Supabase environment" }, 500);
+    }
+
+    // Reserve before vision or creative generation so blocked requests never
+    // reach OpenAI. The reservation is performed once for the whole flow,
+    // including the image-analysis fallback path.
+    await assertAndIncrementUsage(authResult.userId);
 
     let visionDebug: ImageDetectionResult | null = null;
     let quote = "";
@@ -465,7 +477,6 @@ Deno.serve(async (req: Request) => {
           language: normalizedLanguage,
         };
 
-    await assertAndIncrementUsage(authResult.userId);
     return jsonResponse(payload);
   } catch (err) {
     if (err instanceof UsageLimitError) return usageLimitResponse();

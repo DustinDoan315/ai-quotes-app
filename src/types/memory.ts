@@ -4,6 +4,7 @@ export type QuoteImageOrientation = "portrait" | "landscape";
 
 export type QuoteMemory = {
   id: string;
+  photoId?: string | null;
   ownerUserId: string | null;
   ownerGuestId: string | null;
   date: string;
@@ -11,6 +12,7 @@ export type QuoteMemory = {
   author: string | null;
   personaId: string | null;
   photoBackgroundUri: string | null;
+  photoStoragePath?: string | null;
   photoOrientation?: QuoteImageOrientation;
   styleFontId: string;
   styleColorSchemeId: string;
@@ -18,4 +20,3 @@ export type QuoteMemory = {
   visibility: QuoteVisibility;
   isFavorite: boolean;
 };
-

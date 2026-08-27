@@ -15,6 +15,7 @@ type UsageState = {
   resetIfNewDay: () => void;
   incrementAiUsage: () => void;
   incrementExportUsage: () => void;
+  clearUsage: () => void;
 };
 
 export const useUsageStore = create<UsageState>()(
@@ -32,6 +33,12 @@ export const useUsageStore = create<UsageState>()(
       incrementExportUsage: () => {
         set(incrementUsageCounter(get(), getTodayLocalDateKey(), "dailyExportCount"));
       },
+      clearUsage: () =>
+        set({
+          dailyAiCount: 0,
+          dailyExportCount: 0,
+          lastResetDate: null,
+        }),
     }),
     {
       name: "usage-storage",

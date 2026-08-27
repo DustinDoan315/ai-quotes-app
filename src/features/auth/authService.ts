@@ -4,6 +4,19 @@ import { revenuecatClient } from "@/services/paywall/revenuecatClient";
 import { useUserStore } from '@/appState/userStore';
 import type { User } from "@supabase/supabase-js";
 
+function getProfileDisplayName(user: User): string | null {
+  const metadata = user.user_metadata as Record<string, unknown> | undefined;
+  const candidates = [metadata?.full_name, metadata?.name, metadata?.given_name];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+    const value = candidate.trim();
+    if (value.length > 0 && value.length <= 40) return value;
+  }
+
+  return null;
+}
+
 export const syncUserProfile = async (user: User | null) => {
   const store = useUserStore.getState();
   const { setProfile, setAuthState, setGuestDisplayName } = store;
@@ -36,8 +49,11 @@ export const syncUserProfile = async (user: User | null) => {
   profile ??= await ensureUserProfile(user.id);
   if (profile) {
     const guestDisplayName = useUserStore.getState().guestDisplayName?.trim();
-    if (guestDisplayName && !profile.display_name?.trim()) {
-      const { data: updated } = await updateUserProfile(user.id, { display_name: guestDisplayName });
+    const preferredDisplayName = guestDisplayName || getProfileDisplayName(user);
+    if (preferredDisplayName && !profile.display_name?.trim()) {
+      const { data: updated } = await updateUserProfile(user.id, {
+        display_name: preferredDisplayName,
+      });
       if (updated) {
         profile = updated;
         setGuestDisplayName(null);

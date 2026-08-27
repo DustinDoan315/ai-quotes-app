@@ -1,11 +1,17 @@
 import { useUserStore } from "@/appState/userStore";
+import { useMemoryStore } from "@/appState/memoryStore";
+import { useStreakStore } from "@/appState/streakStore";
+import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import { useUsageStore } from "@/appState/usageStore";
 import { syncUserProfile } from "@/features/auth/authService";
 import {
   getCurrentUserProfile,
   getSessionSafely,
   signInWithGoogle as signInWithGoogleApi,
   signInWithApple as signInWithAppleApi,
+  deleteCurrentAccount,
   onAuthStateChange,
+  signOutLocally,
   signOut,
   updateUserProfile,
   type UserProfile,
@@ -18,9 +24,14 @@ export interface UseAuthReturn {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signInWithGoogle: (idToken: string, nonce?: string) => Promise<{ error: unknown }>;
+  signInWithGoogle: (
+    idToken: string,
+    nonce?: string,
+    accessToken?: string,
+  ) => Promise<{ error: unknown }>;
   signInWithApple: (identityToken: string, nonce?: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<{ error: unknown }>;
+  deleteAccount: () => Promise<{ error: Error | null }>;
   updateProfile: (updates: {
     username?: string;
     display_name?: string;
@@ -72,9 +83,19 @@ export function useAuth(): UseAuthReturn {
     }
   }, [user, profile]);
 
-  const handleSignInWithGoogle = async (idToken: string, nonce?: string) => {
-    const { user: newUser, session: newSession, error } = await signInWithGoogleApi(idToken, nonce);
+  const handleSignInWithGoogle = async (
+    idToken: string,
+    nonce?: string,
+    accessToken?: string,
+  ) => {
+    const { user: newUser, session: newSession, error, upgradedAnonymousUser } =
+      await signInWithGoogleApi(idToken, nonce, accessToken);
     if (!error && newSession && newUser) {
+      if (upgradedAnonymousUser) {
+        useMemoryStore
+          .getState()
+          .migrateGuestMemoriesToUser(useUserStore.getState().guestId, newUser.id);
+      }
       await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
@@ -86,8 +107,13 @@ export function useAuth(): UseAuthReturn {
   };
 
   const handleSignInWithApple = async (identityToken: string, nonce?: string) => {
-    const { user: newUser, session: newSession, error } = await signInWithAppleApi(identityToken, nonce);
+    const { user: newUser, session: newSession, error, upgradedAnonymousUser } = await signInWithAppleApi(identityToken, nonce);
     if (!error && newSession && newUser) {
+      if (upgradedAnonymousUser) {
+        useMemoryStore
+          .getState()
+          .migrateGuestMemoriesToUser(useUserStore.getState().guestId, newUser.id);
+      }
       await syncUserProfile(newUser);
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
@@ -105,6 +131,32 @@ export function useAuth(): UseAuthReturn {
       await syncUserProfile(null);
     }
     return { error };
+  };
+
+  const handleDeleteAccount = async (): Promise<{ error: Error | null }> => {
+    const deletedUserId = user?.id ?? session?.user.id;
+    const result = await deleteCurrentAccount();
+    if (!result.deleted) {
+      return { error: result.error };
+    }
+
+    // The server deletion succeeded. From this point forward, local cleanup is
+    // best effort so a failed local logout cannot leave deleted account data in UI.
+    await signOutLocally().catch(() => undefined);
+    await syncUserProfile(null);
+
+    if (deletedUserId) {
+      useMemoryStore.getState().removeMemoriesForUser(deletedUserId);
+    }
+    useStreakStore.getState().clearStreak();
+    useUsageStore.getState().clearUsage();
+    useSubscriptionStore.getState().clearSubscription();
+    useUserStore.getState().clearUser();
+
+    setProfile(null);
+    setSession(null);
+    setUser(null);
+    return { error: null };
   };
 
   const handleUpdateProfile = async (updates: {
@@ -141,6 +193,7 @@ export function useAuth(): UseAuthReturn {
     signInWithGoogle: handleSignInWithGoogle,
     signInWithApple: handleSignInWithApple,
     signOut: handleSignOut,
+    deleteAccount: handleDeleteAccount,
     updateProfile: handleUpdateProfile,
     refreshProfile,
   };

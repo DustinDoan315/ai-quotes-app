@@ -7,6 +7,7 @@ import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
 import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
 import { ProfilePhoneCard } from "@/features/profile/ProfilePhoneCard";
 import { ProfileAuthedSettingsSections } from "@/features/profile/ProfileAuthedSettingsSections";
+import { ProfileDeleteAccountSection } from "@/features/profile/ProfileDeleteAccountSection";
 import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
@@ -17,6 +18,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -35,7 +37,7 @@ export function ProfileAuthedView({
   const { t } = useTranslation();
   const showToast = useUIStore((s) => s.showToast);
   const profile = useUserStore((s) => s.profile);
-  const { updateProfile, signOut, refreshProfile } = useAuth();
+  const { updateProfile, signOut, refreshProfile, deleteAccount } = useAuth();
   const { phoneDisplay, phoneVerified } = useProfileAuthedPhone();
 
   const [editing, setEditing] = useState(false);
@@ -43,6 +45,7 @@ export function ProfileAuthedView({
   const [bio, setBio] = useState(profile?.bio ?? "");
   const [saving, setSaving] = useState(false);
   const [avatarSaving, setAvatarSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [avatarUrlLocal, setAvatarUrlLocal] = useState<string | null>(
     profile?.avatar_url ?? null,
   );
@@ -100,6 +103,9 @@ export function ProfileAuthedView({
       await refreshProfile();
       setEditing(false);
       showToast(t("profile.profileUpdated"), "success");
+    } catch (error) {
+      console.error("Failed to save profile", error);
+      showToast(t("profile.failedToSave"), "error");
     } finally {
       setSaving(false);
     }
@@ -108,28 +114,28 @@ export function ProfileAuthedView({
   const handlePickAvatar = async () => {
     if (!profile?.user_id || avatarSaving) return;
 
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      showToast(t("profile.photoAccessRequired"), "info");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.9,
-      selectionLimit: 1,
-    });
-    if (result.canceled || result.assets.length === 0) return;
-
-    const asset = result.assets[0];
-    if (!asset.uri) return;
-
-    setAvatarUrlLocal(asset.uri);
     setAvatarSaving(true);
     try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        showToast(t("profile.photoAccessRequired"), "info");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9,
+        selectionLimit: 1,
+      });
+      if (result.canceled || result.assets.length === 0) return;
+
+      const asset = result.assets[0];
+      if (!asset.uri) return;
+
+      setAvatarUrlLocal(asset.uri);
       const saved = await saveUserAvatar({
         localUri: asset.uri,
         userId: profile.user_id,
@@ -150,21 +156,72 @@ export function ProfileAuthedView({
       }
       await refreshProfile();
       showToast(t("profile.avatarUpdated"), "success");
+    } catch (error) {
+      console.error("Failed to update avatar", error);
+      setAvatarUrlLocal(profile.avatar_url ?? null);
+      showToast(t("profile.failedToUploadAvatar"), "error");
     } finally {
       setAvatarSaving(false);
     }
   };
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error && typeof error === "object" && error && "message" in error) {
-      showToast(
-        String((error as { message?: string }).message ?? t("profile.failedToSignOut")),
-        "error",
-      );
-      return;
+    if (deleting) return;
+    try {
+      const { error } = await signOut();
+      if (error && typeof error === "object" && error && "message" in error) {
+        showToast(
+          String((error as { message?: string }).message ?? t("profile.failedToSignOut")),
+          "error",
+        );
+        return;
+      }
+      onSignedOut();
+    } catch (error) {
+      console.error("Failed to sign out", error);
+      showToast(t("profile.failedToSignOut"), "error");
     }
-    onSignedOut();
+  };
+
+  const handleDeleteAccount = () => {
+    if (deleting) return;
+
+    Alert.alert(
+      t("profile.deleteAccountConfirmTitle"),
+      t("profile.deleteAccountConfirmBody"),
+      [
+        {
+          text: t("profile.deleteAccountCancel"),
+          style: "cancel",
+        },
+        {
+          text: t("profile.deleteAccountConfirmButton"),
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              setDeleting(true);
+              try {
+                const { error } = await deleteAccount();
+                if (error) {
+                  const message =
+                    error instanceof Error
+                      ? error.message
+                      : t("profile.failedToDeleteAccount");
+                  showToast(message || t("profile.failedToDeleteAccount"), "error");
+                  return;
+                }
+                onSignedOut();
+              } catch (error) {
+                console.error("Failed to delete account", error);
+                showToast(t("profile.failedToDeleteAccount"), "error");
+              } finally {
+                setDeleting(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
   };
 
   const avatarUrl = avatarUrlLocal ?? profile?.avatar_url ?? null;
@@ -172,9 +229,14 @@ export function ProfileAuthedView({
 
   return (
     <View className="flex-1 bg-transparent">
-      {(saving || avatarSaving) && (
+      {(saving || avatarSaving || deleting) && (
         <View className="absolute inset-0 z-10 items-center justify-center bg-black/30">
           <ActivityIndicator size="large" color="#fff" />
+          {deleting ? (
+            <Text className="mt-3 text-center text-sm text-white">
+              {t("profile.deletingAccount")}
+            </Text>
+          ) : null}
         </View>
       )}
       <ProfileAuthedHeader
@@ -252,6 +314,10 @@ export function ProfileAuthedView({
         <ProfileAuthedSettingsSections />
 
         <ProfileSignOutButton onPress={handleSignOut} />
+        <ProfileDeleteAccountSection
+          deleting={deleting}
+          onDeleteAccount={handleDeleteAccount}
+        />
         {__DEV__ && <ScreenshotSeeder />}
       </ScrollView>
     </View>
