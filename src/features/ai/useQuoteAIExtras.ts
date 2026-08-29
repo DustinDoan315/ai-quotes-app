@@ -10,7 +10,7 @@ import i18n from "@/i18n";
 
 export const useExplainQuote = (quoteText: string | null) => {
   const persona = useUserStore((s) => s.persona);
-  const quoteLanguage = useUserStore((s) => s.quoteLanguage);
+  const quoteLanguage = useUserStore((s) => s.quoteLanguage ?? "en");
   const showToast = useUIStore((s) => s.showToast);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,7 +52,7 @@ export const useExplainQuote = (quoteText: string | null) => {
 
 export const useRewriteQuote = () => {
   const persona = useUserStore((s) => s.persona);
-  const quoteLanguage = useUserStore((s) => s.quoteLanguage);
+  const quoteLanguage = useUserStore((s) => s.quoteLanguage ?? "en");
   const { dailyQuote, setDailyQuote, addToHistory } = useQuoteStore();
   const showToast = useUIStore((s) => s.showToast);
   const [loading, setLoading] = useState(false);
@@ -129,7 +129,7 @@ export const useRewriteQuote = () => {
 
 export const useFutureQuote = () => {
   const persona = useUserStore((s) => s.persona);
-  const quoteLanguage = useUserStore((s) => s.quoteLanguage);
+  const quoteLanguage = useUserStore((s) => s.quoteLanguage ?? "en");
   const showToast = useUIStore((s) => s.showToast);
   const [loading, setLoading] = useState(false);
 

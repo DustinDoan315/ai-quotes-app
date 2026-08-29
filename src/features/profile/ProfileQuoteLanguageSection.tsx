@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 export function ProfileQuoteLanguageSection() {
   const { t } = useTranslation();
-  const quoteLanguage = useUserStore((s) => s.quoteLanguage) ?? "vi";
+  const quoteLanguage = useUserStore((s) => s.quoteLanguage) ?? "en";
   const setQuoteLanguage = useUserStore((s) => s.setQuoteLanguage);
 
   return (

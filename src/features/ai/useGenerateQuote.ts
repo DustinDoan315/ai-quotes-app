@@ -106,7 +106,7 @@ export const useGenerateQuote = () => {
         personaTraits: effectiveTraits,
         base64Image: base64Image ?? undefined,
         momentContext,
-        language: quoteLanguage ?? "vi",
+        language: quoteLanguage ?? "en",
         visionLanguage: "en",
       });
 
@@ -127,7 +127,7 @@ export const useGenerateQuote = () => {
         id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
         text: response.quote,
         personaId: effectivePersonaId,
-        language: (quoteLanguage ?? "vi") as "vi" | "en",
+        language: (quoteLanguage ?? "en") as "vi" | "en",
         createdAt: Date.now(),
       };
 

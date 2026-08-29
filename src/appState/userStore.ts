@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getLocales } from 'expo-localization';
 import i18n from '@/i18n';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -47,9 +46,6 @@ type UserState = {
   ensureGuestId: () => string;
 };
 
-const deviceLanguage = getLocales()[0]?.languageCode;
-const defaultUiLanguage: UiLanguagePreference = deviceLanguage === 'vi' ? 'vi' : 'en';
-
 const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "setUiLanguage" | "clearUser" | "ensureGuestId"> =
   {
     persona: null,
@@ -58,8 +54,8 @@ const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState"
     guestId: null,
     guestDisplayName: null,
     inviteNudgeDismissed: false,
-    quoteLanguage: "vi",
-    uiLanguage: defaultUiLanguage,
+    quoteLanguage: "en",
+    uiLanguage: "en",
   };
 
 const createGuestId = () =>
@@ -92,8 +88,17 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: "user-storage",
+      // Reset the old device/Vietnamese defaults once so existing installs
+      // also open in English. Future explicit language changes remain persisted
+      // and can still switch both UI and quote output.
+      version: 1,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ profile: state.profile, persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, quoteLanguage: state.quoteLanguage, uiLanguage: state.uiLanguage }),
+      migrate: (persistedState) => ({
+        ...(persistedState as Partial<UserState>),
+        quoteLanguage: "en",
+        uiLanguage: "en",
+      }),
     },
   ),
 );
