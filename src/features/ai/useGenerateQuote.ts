@@ -44,6 +44,7 @@ export const useGenerateQuote = () => {
   const generate = async (
     base64Image?: string,
     enforceCooldown: boolean = true,
+    momentContext?: string,
   ) => {
     resetIfNewDay();
     const freshAiCount = useUsageStore.getState().dailyAiCount;
@@ -104,6 +105,7 @@ export const useGenerateQuote = () => {
         personaId: effectivePersonaId,
         personaTraits: effectiveTraits,
         base64Image: base64Image ?? undefined,
+        momentContext,
         language: quoteLanguage ?? "vi",
         visionLanguage: "en",
       });

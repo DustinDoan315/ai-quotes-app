@@ -24,12 +24,14 @@ type Props = {
   onCameraPress: () => void;
   onOpenGallery: () => void;
   onSavePhoto: () => void;
+  onShareImage: () => void;
   onReact: (type: "love" | "fire" | "clap") => void;
   isGenerating: boolean;
   isCapturing: boolean;
   cameraReady: boolean;
   hasImage: boolean;
   canSave: boolean;
+  canShare: boolean;
   isSaving: boolean;
 };
 
@@ -49,12 +51,14 @@ export function HomeActionBar({
   onCameraPress,
   onOpenGallery,
   onSavePhoto,
+  onShareImage,
   onReact,
   isGenerating,
   isCapturing,
   cameraReady,
   hasImage,
   canSave,
+  canShare,
   isSaving,
 }: Props) {
   const { t } = useTranslation();
@@ -64,7 +68,8 @@ export function HomeActionBar({
         <View
           className="border-t border-white/10 bg-black/20 px-4 pt-2"
           style={{ paddingBottom: bottomInset }}
-          pointerEvents="box-none">
+          pointerEvents="box-none"
+        >
           {shouldShowMessageBar ? (
             <View className="mb-2 flex-row items-center justify-between rounded-full bg-white/10 px-3 py-2">
               <Pressable onPress={onOpenComposer} className="flex-1">
@@ -75,17 +80,20 @@ export function HomeActionBar({
               <View className="ml-2 flex-row items-center gap-2">
                 <Pressable
                   onPress={() => onReact("love")}
-                  className="rounded-full bg-white/15 px-3 py-1">
+                  className="rounded-full bg-white/15 px-3 py-1"
+                >
                   <Text className="text-base">❤️</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => onReact("fire")}
-                  className="rounded-full bg-white/15 px-3 py-1">
+                  className="rounded-full bg-white/15 px-3 py-1"
+                >
                   <Text className="text-base">🔥</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => onReact("clap")}
-                  className="rounded-full bg-white/15 px-3 py-1">
+                  className="rounded-full bg-white/15 px-3 py-1"
+                >
                   <Text className="text-base">👏</Text>
                 </Pressable>
               </View>
@@ -96,11 +104,13 @@ export function HomeActionBar({
             onCapture={onCameraPress}
             onOpenGallery={onOpenGallery}
             onSave={onSavePhoto}
+            onShare={onShareImage}
             isGenerating={isGenerating}
             isCapturing={isCapturing}
             cameraReady={cameraReady}
             hasImage={hasImage}
             canSave={canSave}
+            canShare={canShare}
             isSaving={isSaving}
           />
         </View>
@@ -119,11 +129,13 @@ export function HomeActionBar({
               left: 0,
               right: 0,
               bottom: 0,
-            }}>
+            }}
+          >
             <View
               className="px-4 pt-2"
               style={{ paddingBottom: bottomInset }}
-              pointerEvents="box-none">
+              pointerEvents="box-none"
+            >
               {canSendMessage ? (
                 <View className="flex-row items-center justify-between rounded-full bg-gray-500/90 px-3 py-2">
                   <TextInput
@@ -141,9 +153,12 @@ export function HomeActionBar({
                     onPress={onSendMessage}
                     disabled={isSendingMessage}
                     className="ml-2 rounded-full bg-white px-3 py-1"
-                    style={{ opacity: isSendingMessage ? 0.6 : 1 }}>
+                    style={{ opacity: isSendingMessage ? 0.6 : 1 }}
+                  >
                     <Text className="text-xs font-semibold text-black">
-                      {isSendingMessage ? t("home.sendingButton") : t("home.sendButton")}
+                      {isSendingMessage
+                        ? t("home.sendingButton")
+                        : t("home.sendButton")}
                     </Text>
                   </Pressable>
                 </View>

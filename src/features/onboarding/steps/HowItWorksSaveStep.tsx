@@ -7,7 +7,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function HowItWorksDots({ active }: { active: 1 | 2 | 3 }) {
   return (
-    <View style={{ flexDirection: "row", gap: 6, justifyContent: "center", marginVertical: 16 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        gap: 6,
+        justifyContent: "center",
+        marginVertical: 16,
+      }}
+    >
       {[1, 2, 3].map((i) => (
         <View
           key={i}
@@ -41,13 +48,14 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
     <OnboardingStepShell>
       <View
         className="flex-1 px-6"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
-
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         {/* Section label */}
         <MotiView
           from={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ type: "timing", duration: 300, delay: 60 }}>
+          transition={{ type: "timing", duration: 300, delay: 60 }}
+        >
           <Text
             style={{
               fontSize: 11,
@@ -55,7 +63,8 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
               letterSpacing: 1.2,
               color: "#c2410c",
               marginBottom: 20,
-            }}>
+            }}
+          >
             {t("onboarding.howItWorks.save.sectionLabel")}
           </Text>
         </MotiView>
@@ -67,7 +76,13 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
               key={key}
               from={{ opacity: 0, translateY: 12 }}
               animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "spring", delay: 80 + i * 80, damping: 20, stiffness: 180 }}>
+              transition={{
+                type: "spring",
+                delay: 80 + i * 80,
+                damping: 20,
+                stiffness: 180,
+              }}
+            >
               <View
                 style={{
                   flexDirection: "row",
@@ -79,7 +94,8 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
                   paddingVertical: 16,
                   paddingHorizontal: 18,
                   gap: 12,
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     flex: 1,
@@ -88,7 +104,8 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
                     fontStyle: "italic",
                     lineHeight: 22,
                     color: "#fff",
-                  }}>
+                  }}
+                >
                   {t(`onboarding.howItWorks.save.${key}`)}
                 </Text>
                 <Ionicons
@@ -105,7 +122,8 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
         <MotiView
           from={{ opacity: 0, translateY: 12 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 360, delay: 320 }}>
+          transition={{ type: "timing", duration: 360, delay: 320 }}
+        >
           <Text
             style={{
               fontSize: 28,
@@ -113,7 +131,8 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
               lineHeight: 34,
               color: "#fff",
               marginBottom: 10,
-            }}>
+            }}
+          >
             {t("onboarding.howItWorks.save.title")}
           </Text>
           <Text
@@ -121,7 +140,8 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
               fontSize: 15,
               lineHeight: 22,
               color: "rgba(255,255,255,0.5)",
-            }}>
+            }}
+          >
             {t("onboarding.howItWorks.save.subtitle")}
           </Text>
         </MotiView>
@@ -135,11 +155,13 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
         <MotiView
           from={{ opacity: 0, translateY: 16 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 340, delay: 440 }}>
+          transition={{ type: "timing", duration: 340, delay: 440 }}
+        >
           <Pressable
             onPress={onContinue}
             className="rounded-2xl bg-white py-4"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          >
             <Text className="text-center text-base font-bold text-black">
               {t("onboarding.howItWorks.save.cta")} →
             </Text>

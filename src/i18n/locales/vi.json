@@ -20,8 +20,16 @@
       "count": "{{count}} ảnh trong nhóm Pro này",
       "finish": "Xong"
     },
-    "saveButton": "Lưu",
-    "savingButton": "Đang lưu"
+    "saveButton": "Lưu kỷ niệm",
+    "savingButton": "Đang lưu kỷ niệm…",
+    "shareImageButton": "Chia sẻ ảnh",
+    "firstSaveReminder": {
+      "title": "Giữ cảm xúc này thật gần?",
+      "body": "Bật lời nhắc nhẹ nhàng mỗi ngày sau khi bạn lưu kỷ niệm đầu tiên.",
+      "notNow": "Để sau",
+      "enable": "Bật lời nhắc",
+      "permissionDenied": "Thông báo đang tắt. Bạn có thể bật lại sau trong Hồ sơ."
+    }
   },
   "memories": {
     "title": "Kỷ niệm",
@@ -70,6 +78,20 @@
     "generating": {
       "label": "Đang tạo câu trích dẫn...",
       "takePhotoPrompt": "Chụp ảnh để nhận câu trích dẫn của bạn"
+    },
+    "captureFlow": {
+      "contextTitle": "Khoảnh khắc này khiến bạn thấy thế nào?",
+      "contextSubtitle": "Tùy chọn — vài từ sẽ giúp câu phản chiếu trở nên riêng hơn.",
+      "contextPlaceholder": "Bình yên, vui, tự hào…",
+      "moods": {
+        "peaceful": "Bình yên",
+        "joyful": "Vui vẻ",
+        "proud": "Tự hào",
+        "tender": "Dịu dàng"
+      },
+      "generate": "Tạo câu phản chiếu",
+      "editAndStyle": "Chỉnh sửa & phong cách",
+      "hideEditing": "Xong"
     },
     "aiTools": {
       "title": "Công cụ AI",
@@ -368,19 +390,27 @@
   },
   "onboarding": {
     "welcome": {
-      "headline": "Cảm xúc hàng ngày của bạn, tinh chất.",
-      "subheadline": "Một câu mỗi ngày, phù hợp với bạn và những gì hôm nay cần.",
+      "headline": "Biến một bức ảnh thành kỷ niệm.",
+      "subheadline": "Lưu một khoảnh khắc, thêm cảm xúc nếu muốn và giữ lại câu phản chiếu chạm đến bạn.",
       "previewQuote": "\"Một điều nhỏ bé, thật— được mang nhẹ nhàng— là đủ.\"",
-      "previewAttribution": "CẢM XÚC HÔM QUA",
-      "cta": "Bắt đầu",
+      "previewAttribution": "MỘT KHOẢNH KHẮC ĐƯỢC GIỮ LẠI",
+      "progress": "1/3",
+      "cta": "Xem cách hoạt động",
       "alreadyHaveAccount": "Tôi đã có tài khoản"
     },
     "howItWorks": {
       "tone": {
-        "sectionLabel": "CÁCH HOẠT ĐỘNG · 1/3",
-        "title": "Hãy cho chúng tôi biết tông cảm xúc của bạn",
-        "subtitle": "Vài cú nhấn về điều bình tĩnh, kích thích hay ổn định bạn. Không câu hỏi dài, không rào cản.",
-        "cta": "Tiếp theo"
+        "sectionLabel": "BƯỚC 2/3",
+        "title": "Bắt đầu bằng một khoảnh khắc",
+        "subtitle": "Chụp ảnh hoặc chọn một ảnh trong thư viện. Chúng tôi chỉ xin quyền khi bạn chọn.",
+        "cta": "Tiếp theo",
+        "preview": {
+          "camera": "Camera",
+          "library": "Thư viện ảnh",
+          "pause": "Cứ từ từ",
+          "notice": "Cảm nhận khoảnh khắc",
+          "yours": "Tạo dấu ấn riêng"
+        }
       },
       "compose": {
         "sectionLabel": "CÁCH HOẠT ĐỘNG · 2/3",
@@ -392,13 +422,13 @@
         "previewVibeKey": "BÌNH MINH"
       },
       "save": {
-        "sectionLabel": "CÁCH HOẠT ĐỘNG · 3/3",
-        "title": "Lưu những gì chạm đến bạn",
-        "subtitle": "Nhấn vào câu nào đó. Nó sẽ vào bộ sưu tập riêng để bạn xem lại bất cứ lúc nào.",
-        "cta": "Hiểu rồi — cài đặt nào",
-        "line1": "\"Bắt đầu lại, từ từ.\"",
-        "line2": "\"Mềm mỏng cũng là sức mạnh.\"",
-        "line3": "\"Giữ điều giữ bạn lại, một chút.\""
+        "sectionLabel": "BƯỚC 3/3",
+        "title": "Tạo dấu ấn của riêng bạn",
+        "subtitle": "Thêm cảm xúc nếu muốn, chỉnh câu phản chiếu rồi lưu kỷ niệm hoặc chia sẻ hình ảnh.",
+        "cta": "Bắt đầu tạo",
+        "line1": "Thêm cảm xúc, nếu bạn muốn.",
+        "line2": "Chỉnh câu phản chiếu cho đúng với bạn.",
+        "line3": "Lưu kỷ niệm hoặc chia sẻ hình ảnh."
       }
     },
     "persona": {

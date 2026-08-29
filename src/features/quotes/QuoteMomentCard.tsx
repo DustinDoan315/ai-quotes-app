@@ -1,4 +1,3 @@
-import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { QuoteMomentCardMedia } from "@/features/quotes/QuoteMomentCardMedia";
 import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
@@ -8,7 +7,6 @@ import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useUserStore } from "@/appState";
 
@@ -36,14 +34,6 @@ export const QuoteMomentCard = ({
   const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =
     useQuoteMomentShare();
-  const [bgLayout, setBgLayout] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
-  const [shellSize, setShellSize] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
   const bgPalette = item.homeVibeKey
     ? getHomeBackgroundPaletteByKey(item.homeVibeKey)
     : null;
@@ -79,11 +69,8 @@ export const QuoteMomentCard = ({
   const mediaBlock = (
     <QuoteMomentCardMedia
       item={item}
-      bgPalette={bgPalette}
       chrome={chrome}
       aspectRatio={PORTRAIT_CARD_ASPECT}
-      bgLayout={bgLayout}
-      onBgLayout={(width, height) => setBgLayout({ width, height })}
       watermarkForExport={watermarkForExport}
       displayName={displayName}
       avatarFallbackName={baseDisplayName}
@@ -100,20 +87,8 @@ export const QuoteMomentCard = ({
       <View
         className="w-full max-w-md overflow-hidden rounded-[28px]"
         style={chrome.outerShell}
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          if (width > 0 && height > 0) {
-            setShellSize({ width, height });
-          }
-        }}>
-        {shellSize ? (
-          <FeedCardVibeGradientShell
-            palette={bgPalette}
-            width={shellSize.width}
-            height={shellSize.height}
-          />
-        ) : null}
-        <View className="relative z-[1] m-[3px] overflow-hidden rounded-[25px] bg-black">
+      >
+        <View className="relative overflow-hidden rounded-[28px] bg-black">
           <View pointerEvents="none" style={chrome.hairline} />
           {mediaBlock}
         </View>
@@ -127,7 +102,8 @@ export const QuoteMomentCard = ({
   return (
     <View
       style={{ height: screenHeight }}
-      className="items-center justify-center py-6">
+      className="items-center justify-center py-6"
+    >
       <View className="relative w-full max-w-md items-center">
         <View ref={captureRefView} collapsable={false} className="w-full">
           {cardInner}
@@ -148,12 +124,16 @@ export const QuoteMomentCard = ({
               void shareMoment(item.id);
             }}
             className="absolute right-2 top-2 z-50 rounded-full bg-black/55 p-2.5"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          >
             <Ionicons name="share-outline" size={22} color="#ffffff" />
           </Pressable>
         )}
         {dotsContent ? (
-          <View pointerEvents="none" className="absolute bottom-3 self-center z-50">
+          <View
+            pointerEvents="none"
+            className="absolute bottom-3 self-center z-50"
+          >
             {dotsContent}
           </View>
         ) : null}

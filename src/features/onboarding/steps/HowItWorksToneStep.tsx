@@ -8,22 +8,26 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const DAWN_PALETTE = HOME_BACKGROUNDS[0]; // dawn — purple/orange
 
-// Tags shown in the preview card. Two are "selected" (focused, bold) to demonstrate the concept.
+// Two primary entry points, with the rest reinforcing the low-pressure flow.
 const PREVIEW_TAGS = [
-  { label: "calm", selected: false },
-  { label: "focused", selected: true },
-  { label: "tender", selected: false },
-  { label: "restless", selected: false },
-  { label: "bold", selected: true },
-  { label: "curious", selected: false },
-  { label: "steady", selected: false },
-  { label: "searching", selected: false },
+  { key: "camera", selected: true },
+  { key: "library", selected: true },
+  { key: "pause", selected: false },
+  { key: "notice", selected: false },
+  { key: "yours", selected: false },
 ];
 
 // Mini 3-dot progress indicator for the How It Works sub-flow
 function HowItWorksDots({ active }: { active: 1 | 2 | 3 }) {
   return (
-    <View style={{ flexDirection: "row", gap: 6, justifyContent: "center", marginVertical: 16 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        gap: 6,
+        justifyContent: "center",
+        marginVertical: 16,
+      }}
+    >
       {[1, 2, 3].map((i) => (
         <View
           key={i}
@@ -51,13 +55,14 @@ export function HowItWorksToneStep({ onContinue }: Props) {
     <OnboardingStepShell>
       <View
         className="flex-1 px-6"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
-
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
         {/* Section label */}
         <MotiView
           from={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ type: "timing", duration: 300, delay: 60 }}>
+          transition={{ type: "timing", duration: 300, delay: 60 }}
+        >
           <Text
             style={{
               fontSize: 11,
@@ -65,7 +70,8 @@ export function HowItWorksToneStep({ onContinue }: Props) {
               letterSpacing: 1.2,
               color: "#c2410c",
               marginBottom: 20,
-            }}>
+            }}
+          >
             {t("onboarding.howItWorks.tone.sectionLabel")}
           </Text>
         </MotiView>
@@ -74,7 +80,13 @@ export function HowItWorksToneStep({ onContinue }: Props) {
         <MotiView
           from={{ opacity: 0, translateY: 16 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "spring", delay: 100, damping: 20, stiffness: 160 }}>
+          transition={{
+            type: "spring",
+            delay: 100,
+            damping: 20,
+            stiffness: 160,
+          }}
+        >
           <View
             style={{
               backgroundColor: "rgba(255,255,255,0.04)",
@@ -85,7 +97,8 @@ export function HowItWorksToneStep({ onContinue }: Props) {
               marginBottom: 28,
               minHeight: 200,
               justifyContent: "center",
-            }}>
+            }}
+          >
             {/* Ambient orb */}
             <View
               style={{
@@ -100,9 +113,9 @@ export function HowItWorksToneStep({ onContinue }: Props) {
               pointerEvents="none"
             />
             <View className="flex-row flex-wrap gap-2">
-              {PREVIEW_TAGS.map(({ label, selected }, i) => (
+              {PREVIEW_TAGS.map(({ key, selected }, i) => (
                 <MotiView
-                  key={label}
+                  key={key}
                   from={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{
@@ -110,7 +123,8 @@ export function HowItWorksToneStep({ onContinue }: Props) {
                     delay: 120 + i * 45,
                     damping: 18,
                     stiffness: 180,
-                  }}>
+                  }}
+                >
                   <View
                     style={{
                       overflow: "hidden",
@@ -119,7 +133,8 @@ export function HowItWorksToneStep({ onContinue }: Props) {
                       borderColor: selected
                         ? "rgba(255,255,255,0.45)"
                         : "rgba(255,255,255,0.25)",
-                    }}>
+                    }}
+                  >
                     {selected && <HomeBackground palette={DAWN_PALETTE} />}
                     {selected && (
                       <View
@@ -134,16 +149,20 @@ export function HowItWorksToneStep({ onContinue }: Props) {
                       style={{
                         paddingHorizontal: 18,
                         paddingVertical: 9,
-                        backgroundColor: selected ? "transparent" : "rgba(255,255,255,0.05)",
-                      }}>
+                        backgroundColor: selected
+                          ? "transparent"
+                          : "rgba(255,255,255,0.05)",
+                      }}
+                    >
                       <Text
                         style={{
                           fontSize: 14,
                           fontWeight: "500",
                           color: "#fff",
                           textTransform: "capitalize",
-                        }}>
-                        {label}
+                        }}
+                      >
+                        {t(`onboarding.howItWorks.tone.preview.${key}`)}
                       </Text>
                     </View>
                   </View>
@@ -157,7 +176,8 @@ export function HowItWorksToneStep({ onContinue }: Props) {
         <MotiView
           from={{ opacity: 0, translateY: 12 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 360, delay: 300 }}>
+          transition={{ type: "timing", duration: 360, delay: 300 }}
+        >
           <Text
             style={{
               fontSize: 28,
@@ -165,7 +185,8 @@ export function HowItWorksToneStep({ onContinue }: Props) {
               lineHeight: 34,
               color: "#fff",
               marginBottom: 10,
-            }}>
+            }}
+          >
             {t("onboarding.howItWorks.tone.title")}
           </Text>
           <Text
@@ -173,13 +194,14 @@ export function HowItWorksToneStep({ onContinue }: Props) {
               fontSize: 15,
               lineHeight: 22,
               color: "rgba(255,255,255,0.5)",
-            }}>
+            }}
+          >
             {t("onboarding.howItWorks.tone.subtitle")}
           </Text>
         </MotiView>
 
         {/* Mini progress dots */}
-        <HowItWorksDots active={1} />
+        <HowItWorksDots active={2} />
 
         <View className="flex-1" />
 
@@ -187,11 +209,13 @@ export function HowItWorksToneStep({ onContinue }: Props) {
         <MotiView
           from={{ opacity: 0, translateY: 16 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 340, delay: 420 }}>
+          transition={{ type: "timing", duration: 340, delay: 420 }}
+        >
           <Pressable
             onPress={onContinue}
             className="rounded-2xl bg-white py-4"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          >
             <Text className="text-center text-base font-bold text-black">
               {t("onboarding.howItWorks.tone.cta")} →
             </Text>

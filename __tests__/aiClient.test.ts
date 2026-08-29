@@ -1,5 +1,6 @@
 import {
   explainQuote,
+  generateQuote,
   generateFutureQuote,
   rewriteQuote,
 } from "@/services/ai/client";
@@ -38,7 +39,9 @@ describe("AI client contract", () => {
   it("calls quote-explain and returns the explanation", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ explanation: "This means your small progress still counts." }),
+      json: async () => ({
+        explanation: "This means your small progress still counts.",
+      }),
     });
 
     const result = await explainQuote({
@@ -57,6 +60,29 @@ describe("AI client contract", () => {
       explanation: "This means your small progress still counts.",
       isValid: true,
     });
+  });
+
+  it("forwards a moment context when generating a reflection", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ quote: "The quiet in this moment is enough." }),
+    });
+
+    await generateQuote({
+      personaId: "starter",
+      personaTraits: ["curious"],
+      momentContext: "I finally slowed down after a long week.",
+      language: "en",
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://example.supabase.co/functions/v1/quote",
+      expect.objectContaining({
+        body: expect.stringContaining(
+          '"momentContext":"I finally slowed down after a long week."',
+        ),
+      }),
+    );
   });
 
   it("returns a server error reason for quote-rewrite", async () => {
@@ -83,7 +109,9 @@ describe("AI client contract", () => {
   it("calls quote-future and returns the next quote", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ quote: "Tomorrow gets easier when today is honest." }),
+      json: async () => ({
+        quote: "Tomorrow gets easier when today is honest.",
+      }),
     });
 
     const result = await generateFutureQuote({

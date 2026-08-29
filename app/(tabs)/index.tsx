@@ -1,5 +1,8 @@
 import { useMemoryStore } from "@/appState";
-import { selectBootstrapReady, useBootstrapStore } from "@/appState/bootstrapStore";
+import {
+  selectBootstrapReady,
+  useBootstrapStore,
+} from "@/appState/bootstrapStore";
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
@@ -15,6 +18,7 @@ import { useHomeFeedState } from "@/features/home/useHomeFeedState";
 import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/groupQuotePhotoCardsIntoStacks";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
+import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import {
   listQuotePhotoCards,
   quotePhotoCardToMemory,
@@ -23,12 +27,7 @@ import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  View,
-} from "react-native";
+import { ActivityIndicator, Dimensions, FlatList, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { MemoryState } from "@/appState/memoryStore";
@@ -59,7 +58,7 @@ export default function HomeScreen() {
     () => groupQuotePhotoCardsIntoStacks(feedItems),
     [feedItems],
   );
-  const { vibeHint, palette } = useHomeBackgroundPalette();
+  const { palette } = useHomeBackgroundPalette();
   const {
     isLoading,
     cameraRef,
@@ -83,6 +82,7 @@ export default function HomeScreen() {
     handleZoomPreset,
     handleToggleFacing,
     handleCapture,
+    handleGenerateAI,
     handleSavePhoto,
     handleOpenGallery,
     clearSelectedImage,
@@ -94,6 +94,8 @@ export default function HomeScreen() {
     quoteColorScheme,
     setQuoteFontSize,
     setQuoteColorScheme,
+    momentContext,
+    setMomentContext,
     handleSubmitQuoteEdit,
     handleInvalidQuoteEdit,
   } = useHomeCamera({
@@ -103,16 +105,16 @@ export default function HomeScreen() {
     onMilestoneReached: setMilestone,
     homeVibeKey: palette.vibeKey,
   });
+  const { captureRefView, watermarkForExport, shareMoment } =
+    useQuoteMomentShare();
   const listRef = useRef<FlatList<QuoteStack>>(null);
   const today = getTodayLocalDateKey();
   const memories = useMemoryStore((s: MemoryState) => s.memories);
-  const replaceMemories = useMemoryStore(
-    (s: MemoryState) => s.replaceMemories,
-  );
+  const replaceMemories = useMemoryStore((s: MemoryState) => s.replaceMemories);
 
   useEffect(() => {
     const ownerUserId = profile?.user_id ?? null;
-    const ownerGuestId = ownerUserId ? null : guestId ?? ensureGuestId();
+    const ownerGuestId = ownerUserId ? null : (guestId ?? ensureGuestId());
     let cancelled = false;
 
     void listQuotePhotoCards({
@@ -249,7 +251,6 @@ export default function HomeScreen() {
     );
   }
 
-
   return (
     <View className="flex-1">
       <MilestoneCelebration
@@ -316,6 +317,11 @@ export default function HomeScreen() {
               quoteColorScheme,
               onChangeQuoteFontSize: setQuoteFontSize,
               onChangeQuoteColorScheme: setQuoteColorScheme,
+              momentContext,
+              onMomentContextChange: setMomentContext,
+              onGenerateReflection: handleGenerateAI,
+              captureRefView,
+              watermarkForExport,
               onSubmitQuoteEdit: handleSubmitQuoteEdit,
               onInvalidQuoteEdit: handleInvalidQuoteEdit,
               authorName,
@@ -334,7 +340,6 @@ export default function HomeScreen() {
               aiResultBody: aiResult?.body ?? null,
               aiToolsLoading: isAiToolLoading,
               aiToolsLoadingLabel,
-              vibeHint,
               cardPalette: palette,
               pendingQuoteText: rewriteReviewText ?? futureReviewText ?? null,
               pendingQuoteTitle: futureReviewText
@@ -366,12 +371,16 @@ export default function HomeScreen() {
         onCameraPress={handleCameraButtonPress}
         onOpenGallery={handleOpenGallery}
         onSavePhoto={handleSavePhoto}
+        onShareImage={() => {
+          void shareMoment();
+        }}
         onReact={handleReact}
         isGenerating={isGenerating}
         isCapturing={isCapturing}
         cameraReady={cameraReady}
         hasImage={!!selectedImageUri}
         canSave={Boolean(dailyQuoteText && !hasSavedCurrentPhoto)}
+        canShare={Boolean(dailyQuoteText && selectedImageUri && !hideQuote)}
         isSaving={isSavingPhoto}
       />
       <HomeEmojiOverlay bursts={emojiBursts} screenHeight={SCREEN_HEIGHT} />

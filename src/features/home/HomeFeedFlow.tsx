@@ -2,14 +2,10 @@ import { QuoteCardSkeleton } from "@/features/quotes/QuoteCardSkeleton";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
 import { QuoteStackEntry } from "@/features/quotes/quoteStack/QuoteStackEntry";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
+import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { MotiView } from "moti";
 import type { ComponentProps, ReactElement, RefObject } from "react";
-import {
-  Dimensions,
-  FlatList,
-  RefreshControl,
-  View,
-} from "react-native";
+import { Dimensions, FlatList, RefreshControl, View } from "react-native";
 
 type Props = {
   listRef: RefObject<FlatList<QuoteStack> | null>;
@@ -21,8 +17,12 @@ type Props = {
   isFeedRefreshing: boolean;
   isFeedLoading: boolean;
   refreshFeed: () => Promise<void>;
-  viewabilityConfig: ComponentProps<typeof FlatList<QuoteStack>>["viewabilityConfig"];
-  onViewableItemsChanged: ComponentProps<typeof FlatList<QuoteStack>>["onViewableItemsChanged"];
+  viewabilityConfig: ComponentProps<
+    typeof FlatList<QuoteStack>
+  >["viewabilityConfig"];
+  onViewableItemsChanged: ComponentProps<
+    typeof FlatList<QuoteStack>
+  >["onViewableItemsChanged"];
   header: ReactElement;
   viewportHeight: number;
   authorName: string;
@@ -54,6 +54,8 @@ export function HomeFeedFlow({
   isOnFeed,
   onActiveQuoteIdChange,
 }: Props) {
+  const reduceMotion = useReducedMotionPreference();
+
   return (
     <FlatList
       ref={listRef}
@@ -98,10 +100,15 @@ export function HomeFeedFlow({
       }
       renderItem={({ item, index }) => (
         <MotiView
-          from={{ opacity: 0, translateY: 16 }}
+          from={reduceMotion ? { opacity: 1 } : { opacity: 0, translateY: 16 }}
           animate={{ opacity: 1, translateY: 0 }}
-          style={{ alignItems: 'center' }}
-          transition={{ type: "timing", duration: 300, delay: index === 0 ? 0 : 60 }}>
+          style={{ alignItems: "center" }}
+          transition={{
+            type: "timing",
+            duration: reduceMotion ? 0 : 240,
+            delay: reduceMotion || index === 0 ? 0 : 50,
+          }}
+        >
           <QuoteStackEntry
             stack={item}
             screenHeight={viewportHeight}

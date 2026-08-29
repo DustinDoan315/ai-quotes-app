@@ -1,6 +1,7 @@
 import { AppIcon } from "@/components/AppIcon";
 import { HomeBackground } from "@/features/home/HomeBackground";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
+import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { APP_BRAND_MARK } from "@/theme/appBrand";
 import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import { MotiView } from "moti";
@@ -19,16 +20,24 @@ export function WelcomeStep({ onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
+  const reduceMotion = useReducedMotionPreference();
 
   return (
     <OnboardingStepShell>
       <View
         className="flex-1 px-6"
-        style={{ paddingTop: Math.max(insets.top, 24), paddingBottom: Math.max(insets.bottom, 24) }}>
-
+        style={{
+          paddingTop: Math.max(insets.top, 24),
+          paddingBottom: Math.max(insets.bottom, 24),
+        }}
+      >
         {/* Brand mark */}
         <MotiView
-          from={{ opacity: 0, translateY: 8 }}
+          from={
+            reduceMotion
+              ? { opacity: 1, translateY: 0 }
+              : { opacity: 0, translateY: 8 }
+          }
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: "timing", duration: 380, delay: 60 }}
           style={{
@@ -36,18 +45,33 @@ export function WelcomeStep({ onContinue }: Props) {
             flexDirection: "row",
             alignItems: "center",
             gap: 12,
-          }}>
+          }}
+        >
           <AppIcon size={34} borderRadius={9} />
           <Text className="text-sm font-semibold uppercase tracking-widest text-white/60">
             {APP_BRAND_MARK}
           </Text>
         </MotiView>
 
+        <Text className="mb-4 text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
+          {t("onboarding.welcome.progress")}
+        </Text>
+
         {/* Quote card — yesterday's vibe */}
         <MotiView
-          from={{ opacity: 0, scale: 0.94 }}
+          from={
+            reduceMotion
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 0.94 }
+          }
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", delay: 120, damping: 18, stiffness: 120 }}>
+          transition={{
+            type: "spring",
+            delay: 120,
+            damping: 18,
+            stiffness: 120,
+          }}
+        >
           <View
             style={{
               height: 220,
@@ -56,7 +80,8 @@ export function WelcomeStep({ onContinue }: Props) {
               borderWidth: 1,
               borderColor: "rgba(255,255,255,0.12)",
               marginBottom: 36,
-            }}>
+            }}
+          >
             <HomeBackground palette={DAWN_PALETTE} />
             <View
               style={[
@@ -74,7 +99,8 @@ export function WelcomeStep({ onContinue }: Props) {
                   fontStyle: "italic",
                   lineHeight: 28,
                   color: "#fff",
-                }}>
+                }}
+              >
                 {t("onboarding.welcome.previewQuote")}
               </Text>
             </View>
@@ -84,14 +110,16 @@ export function WelcomeStep({ onContinue }: Props) {
                 position: "absolute",
                 bottom: 14,
                 left: 16,
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontSize: 11,
                   fontWeight: "700",
                   letterSpacing: 1.2,
                   color: "rgba(255,255,255,0.55)",
-                }}>
+                }}
+              >
                 {t("onboarding.welcome.previewAttribution")}
               </Text>
             </View>
@@ -100,9 +128,14 @@ export function WelcomeStep({ onContinue }: Props) {
 
         {/* Headline */}
         <MotiView
-          from={{ opacity: 0, translateY: 14 }}
+          from={
+            reduceMotion
+              ? { opacity: 1, translateY: 0 }
+              : { opacity: 0, translateY: 14 }
+          }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 400, delay: 260 }}>
+          transition={{ type: "timing", duration: 400, delay: 260 }}
+        >
           <Text
             style={{
               fontSize: 32,
@@ -110,23 +143,30 @@ export function WelcomeStep({ onContinue }: Props) {
               lineHeight: 38,
               color: "#fff",
               marginBottom: 12,
-            }}>
+            }}
+          >
             {t("onboarding.welcome.headline")}
           </Text>
         </MotiView>
 
         {/* Sub-copy */}
         <MotiView
-          from={{ opacity: 0, translateY: 14 }}
+          from={
+            reduceMotion
+              ? { opacity: 1, translateY: 0 }
+              : { opacity: 0, translateY: 14 }
+          }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 400, delay: 340 }}>
+          transition={{ type: "timing", duration: 400, delay: 340 }}
+        >
           <Text
             style={{
               fontSize: 16,
               lineHeight: 24,
               color: "rgba(255,255,255,0.55)",
               marginBottom: 0,
-            }}>
+            }}
+          >
             {t("onboarding.welcome.subheadline")}
           </Text>
         </MotiView>
@@ -135,13 +175,19 @@ export function WelcomeStep({ onContinue }: Props) {
 
         {/* CTAs */}
         <MotiView
-          from={{ opacity: 0, translateY: 20 }}
+          from={
+            reduceMotion
+              ? { opacity: 1, translateY: 0 }
+              : { opacity: 0, translateY: 20 }
+          }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 380, delay: 460 }}>
+          transition={{ type: "timing", duration: 380, delay: 460 }}
+        >
           <Pressable
             onPress={onContinue}
             className="rounded-2xl bg-white py-4"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          >
             <Text className="text-center text-base font-bold text-black">
               {t("onboarding.welcome.cta")} →
             </Text>
@@ -149,14 +195,19 @@ export function WelcomeStep({ onContinue }: Props) {
 
           <Pressable
             onPress={() => router.push("/login")}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 14 })}>
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.6 : 1,
+              paddingVertical: 14,
+            })}
+          >
             <Text
               style={{
                 textAlign: "center",
                 fontSize: 14,
                 fontWeight: "500",
                 color: "rgba(255,255,255,0.35)",
-              }}>
+              }}
+            >
               {t("onboarding.welcome.alreadyHaveAccount")}
             </Text>
           </Pressable>

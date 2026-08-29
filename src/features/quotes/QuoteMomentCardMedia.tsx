@@ -1,19 +1,14 @@
-import { HomeBackground } from "@/features/home/HomeBackground";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { Text, View } from "react-native";
 
 import type { HomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
-import type { HomeBackgroundPalette } from "@/types/homeBackground";
 
 interface QuoteMomentCardMediaProps {
   item: QuotePhotoCard;
-  bgPalette: HomeBackgroundPalette | null;
   chrome: HomeVibeFeedChrome | null;
   aspectRatio: number;
-  bgLayout: { width: number; height: number } | null;
-  onBgLayout: (width: number, height: number) => void;
   watermarkForExport: boolean;
   displayName: string;
   avatarFallbackName: string;
@@ -26,11 +21,8 @@ interface QuoteMomentCardMediaProps {
 
 export const QuoteMomentCardMedia = ({
   item,
-  bgPalette,
   chrome,
   aspectRatio,
-  bgLayout,
-  onBgLayout,
   watermarkForExport,
   displayName,
   avatarFallbackName,
@@ -42,22 +34,7 @@ export const QuoteMomentCardMedia = ({
 }: QuoteMomentCardMediaProps) => {
   const { t } = useTranslation();
   return (
-    <View
-      onLayout={(e) => {
-        const { width, height } = e.nativeEvent.layout;
-        if (width > 0 && height > 0) {
-          onBgLayout(width, height);
-        }
-      }}
-      style={{ aspectRatio }}
-      className="relative overflow-hidden bg-black">
-      {bgLayout && bgPalette ? (
-        <HomeBackground
-          palette={bgPalette}
-          width={bgLayout.width}
-          height={bgLayout.height}
-        />
-      ) : null}
+    <View style={{ aspectRatio }} className="relative overflow-hidden bg-black">
       {item.imageUrl ? (
         <Image
           source={{ uri: item.imageUrl }}
@@ -103,18 +80,21 @@ export const QuoteMomentCardMedia = ({
               chrome
                 ? undefined
                 : "overflow-hidden rounded-2xl border border-white/35 bg-black/45 shadow-lg shadow-black/40"
-            }>
+            }
+          >
             <View className="absolute inset-0 bg-gradient-to-br from-amber-400/15 via-transparent to-fuchsia-500/10" />
             <View className="px-3 py-2.5">
               <View className="mb-1.5 h-px w-7 bg-gradient-to-r from-amber-200/90 to-transparent" />
               <Text
                 className="text-[11px] font-bold uppercase tracking-[0.14em] text-white"
-                numberOfLines={1}>
+                numberOfLines={1}
+              >
                 {t("home.momentsFeed.watermarkBrand")}
               </Text>
               <Text
                 className="mt-0.5 text-[10px] font-medium leading-tight text-white/75"
-                numberOfLines={2}>
+                numberOfLines={2}
+              >
                 {t("home.momentsFeed.watermarkTagline")}
               </Text>
             </View>
@@ -127,7 +107,8 @@ export const QuoteMomentCardMedia = ({
           chrome?.imageWash.backgroundColor
             ? { backgroundColor: chrome.imageWash.backgroundColor }
             : undefined
-        }>
+        }
+      >
         <View className="mb-2 flex-row items-center justify-between">
           <View className="flex-1 flex-row items-center pr-2">
             <View className="h-9 w-9 overflow-hidden rounded-full border border-white/25 bg-white/15">
@@ -148,19 +129,19 @@ export const QuoteMomentCardMedia = ({
             <View className="ml-2.5 min-w-0 flex-1">
               <Text
                 className="text-sm font-semibold text-white"
-                numberOfLines={1}>
+                numberOfLines={1}
+              >
                 {displayName}
               </Text>
               <View className="flex-row items-center">
-                <Text
-                  className="text-[10px] text-white/55"
-                  numberOfLines={1}>
+                <Text className="text-[10px] text-white/55" numberOfLines={1}>
                   {createdDateLabel}
                 </Text>
                 <Text className="mx-1 text-[10px] text-white/35">/</Text>
                 <Text
                   className="text-[11px] font-medium text-white/65"
-                  numberOfLines={1}>
+                  numberOfLines={1}
+                >
                   {createdTimeLabel}
                 </Text>
               </View>
@@ -173,7 +154,8 @@ export const QuoteMomentCardMedia = ({
                 chrome
                   ? "shrink-0 overflow-hidden bg-black/55"
                   : "shrink-0 overflow-hidden rounded-2xl border border-amber-300/45 bg-black/55 shadow-md shadow-black/30"
-              }>
+              }
+            >
               <View
                 style={
                   chrome
@@ -187,13 +169,15 @@ export const QuoteMomentCardMedia = ({
                   chrome
                     ? undefined
                     : "bg-gradient-to-r from-amber-400/25 via-fuchsia-400/15 to-transparent px-3 py-2"
-                }>
+                }
+              >
                 <Text className="text-center text-[9px] font-bold uppercase tracking-[0.2em] text-amber-100/95">
                   {t("home.momentsFeed.momentEyebrow")}
                 </Text>
                 <Text
                   className="mt-0.5 text-center text-[11px] font-semibold text-white"
-                  numberOfLines={1}>
+                  numberOfLines={1}
+                >
                   {t("home.momentsFeed.watermarkBrand")}
                 </Text>
               </View>
@@ -204,7 +188,8 @@ export const QuoteMomentCardMedia = ({
           <Text
             className="mt-1 font-semibold leading-snug"
             style={{ fontSize, color: textColor }}
-            numberOfLines={4}>
+            numberOfLines={4}
+          >
             {item.quote}
           </Text>
         ) : null}

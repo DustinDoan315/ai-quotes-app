@@ -7,6 +7,7 @@ import { Gesture } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAIStore } from "@/features/ai/aiStore";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert } from "react-native";
 import { useCameraPermission } from "@/hooks/useCameraPermission";
 import { useGenerateQuote } from "@/features/ai/useGenerateQuote";
 import { useQuoteStore } from "@/appState/quoteStore";
@@ -16,6 +17,7 @@ import { analyticsEvents } from "@/services/analytics/events";
 import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
+import { useReminderStore } from "@/appState/reminderStore";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { compressImageForUpload } from "@/utils/imageProcessor";
@@ -83,8 +85,13 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [facing, setFacing] = useState<CameraFacing>("back");
   const [zoom, setZoom] = useState(() => factorToZoom(1));
   const [generationProgress, setGenerationProgress] = useState(0);
-  const [quoteFontSize, setQuoteFontSize] = useState<"small" | "medium" | "large">("medium");
-  const [quoteColorScheme, setQuoteColorScheme] = useState<"light" | "amber" | "pink">("light");
+  const [quoteFontSize, setQuoteFontSize] = useState<
+    "small" | "medium" | "large"
+  >("medium");
+  const [quoteColorScheme, setQuoteColorScheme] = useState<
+    "light" | "amber" | "pink"
+  >("light");
+  const [momentContext, setMomentContext] = useState("");
   const cameraRef = useRef<CameraView | null>(null);
   const isCapturingRef = useRef(false);
   const isSavingPhotoRef = useRef(false);
@@ -185,7 +192,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   function handleCameraMountError(event: CameraMountError) {
     console.error("Failed to start camera preview", event);
     setCameraReady(false);
-    setCameraError(event.message || i18n.t("camera.errors.failedToStartPreview"));
+    setCameraError(
+      event.message || i18n.t("camera.errors.failedToStartPreview"),
+    );
     showToast(i18n.t("camera.errors.failedToStartPreview"), "error");
   }
 
@@ -195,6 +204,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
+    setMomentContext("");
     clearDailyQuote();
   }
 
@@ -238,7 +248,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
     }
-    const quote = await generate(base64, enforceCooldown);
+    const quote = await generate(base64, enforceCooldown, momentContext);
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
       generationIntervalRef.current = null;
@@ -273,8 +283,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       }
       setSelectedImageUri(photo.uri);
       setSelectedImageBase64(null);
+      clearDailyQuote();
       setHideQuote(true);
-      await generateForImage(photo.uri, false);
+      setMomentContext("");
       setHasSavedCurrentPhoto(false);
     } catch (error) {
       console.error("Failed to capture image", error);
@@ -287,11 +298,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   async function handleGenerateAI() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await generateForImage(
-      selectedImageUri ?? null,
-      true,
-      selectedImageBase64,
-    );
+    await generateForImage(selectedImageUri ?? null, true, selectedImageBase64);
   }
 
   function handleClearQuote() {
@@ -324,7 +331,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       const userId = profile?.user_id ?? null;
       const guestId = userId ? null : ensureGuestId();
       const photoStackId = canCreatePhotoStack
-        ? photoStackIdRef.current ?? Crypto.randomUUID()
+        ? (photoStackIdRef.current ?? Crypto.randomUUID())
         : null;
       const result = await saveUserPhoto({
         localUri: selectedImageUri,
@@ -382,8 +389,40 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
+      setMomentContext("");
       showToast(i18n.t("camera.success.photoSaved"), "success");
       onPhotoSaved?.();
+
+      const reminderState = useReminderStore.getState();
+      if (
+        !reminderState.reminderEnabled &&
+        !reminderState.hasPromptedAfterFirstSave
+      ) {
+        reminderState.markReminderPromptShown();
+        Alert.alert(
+          i18n.t("camera.firstSaveReminder.title"),
+          i18n.t("camera.firstSaveReminder.body"),
+          [
+            {
+              text: i18n.t("camera.firstSaveReminder.notNow"),
+              style: "cancel",
+            },
+            {
+              text: i18n.t("camera.firstSaveReminder.enable"),
+              onPress: () => {
+                void reminderState.enableReminder().then((enabled) => {
+                  if (!enabled) {
+                    showToast(
+                      i18n.t("camera.firstSaveReminder.permissionDenied"),
+                      "info",
+                    );
+                  }
+                });
+              },
+            },
+          ],
+        );
+      }
     } catch (error) {
       console.error("Failed to save photo", error);
       showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
@@ -407,11 +446,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       setSelectedImageUri(picked.uri);
-      const pickedBase64 = picked.base64 || null;
-      setSelectedImageBase64(pickedBase64);
+      setSelectedImageBase64(picked.base64 || null);
+      clearDailyQuote();
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
-      await generateForImage(picked.uri, false, pickedBase64);
+      setMomentContext("");
     } catch (error) {
       console.error("Failed to pick image from gallery", error);
       showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
@@ -478,6 +517,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     quoteColorScheme,
     setQuoteFontSize,
     setQuoteColorScheme,
+    momentContext,
+    setMomentContext,
     handleSubmitQuoteEdit,
     handleInvalidQuoteEdit,
     dailyQuoteText: dailyQuote?.text ?? null,

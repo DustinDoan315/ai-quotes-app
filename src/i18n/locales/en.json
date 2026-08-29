@@ -21,8 +21,16 @@
       "count_other": "{{count}} photos in this Pro stack",
       "finish": "Done"
     },
-    "saveButton": "Save",
-    "savingButton": "Saving"
+    "saveButton": "Save memory",
+    "savingButton": "Saving memory…",
+    "shareImageButton": "Share image",
+    "firstSaveReminder": {
+      "title": "Keep this feeling close?",
+      "body": "Turn on a gentle daily reminder after your first saved memory.",
+      "notNow": "Not now",
+      "enable": "Turn on reminders",
+      "permissionDenied": "Notifications are off. You can enable reminders later in Profile."
+    }
   },
   "memories": {
     "title": "Memories",
@@ -71,6 +79,20 @@
     "generating": {
       "label": "Crafting your vibe...",
       "takePhotoPrompt": "Take a photo to get your vibe"
+    },
+    "captureFlow": {
+      "contextTitle": "What did this moment feel like?",
+      "contextSubtitle": "Optional — a few words make the reflection more personal.",
+      "contextPlaceholder": "Quiet, proud, relieved…",
+      "moods": {
+        "peaceful": "Peaceful",
+        "joyful": "Joyful",
+        "proud": "Proud",
+        "tender": "Tender"
+      },
+      "generate": "Generate reflection",
+      "editAndStyle": "Edit & style",
+      "hideEditing": "Done editing"
     },
     "aiTools": {
       "title": "AI tools",
@@ -369,19 +391,27 @@
   },
   "onboarding": {
     "welcome": {
-      "headline": "Your daily vibe, distilled.",
-      "subheadline": "One quote a day, tuned to who you are and what today asks of you.",
+      "headline": "Turn a photo into a memory.",
+      "subheadline": "Capture a moment, add a feeling if you want, and keep the reflection that lands.",
       "previewQuote": "\"A small, true thing— carried gently— is enough.\"",
-      "previewAttribution": "YESTERDAY'S VIBE",
-      "cta": "Begin",
+      "previewAttribution": "A MOMENT, KEPT",
+      "progress": "1 OF 3",
+      "cta": "See how it works",
       "alreadyHaveAccount": "I already have an account"
     },
     "howItWorks": {
       "tone": {
-        "sectionLabel": "HOW IT WORKS · 1 OF 3",
-        "title": "Tell us your tone",
-        "subtitle": "A few taps on what calms, fires, or steadies you. No long quiz, no signup tax.",
-        "cta": "Next"
+        "sectionLabel": "STEP 2 OF 3",
+        "title": "Start with a moment",
+        "subtitle": "Take a photo or choose one from your library. We only ask for access when you choose.",
+        "cta": "Next",
+        "preview": {
+          "camera": "Camera",
+          "library": "Photo library",
+          "pause": "Take your time",
+          "notice": "Notice the feeling",
+          "yours": "Make it yours"
+        }
       },
       "compose": {
         "sectionLabel": "HOW IT WORKS · 2 OF 3",
@@ -393,13 +423,13 @@
         "previewVibeKey": "DAWN"
       },
       "save": {
-        "sectionLabel": "HOW IT WORKS · 3 OF 3",
-        "title": "Save what lands",
-        "subtitle": "Tap a line that hits. It joins a private collection you can revisit anytime.",
-        "cta": "Got it — let's set up",
-        "line1": "\"Begin again, slowly.\"",
-        "line2": "\"Soft is also strong.\"",
-        "line3": "\"Hold what holds you back, briefly.\""
+        "sectionLabel": "STEP 3 OF 3",
+        "title": "Make it yours",
+        "subtitle": "Add a feeling if you want, edit the reflection, then save the memory or share the image.",
+        "cta": "Start creating",
+        "line1": "Add a feeling, if you want.",
+        "line2": "Edit the reflection until it sounds like you.",
+        "line3": "Save the memory or share the image."
       }
     },
     "persona": {

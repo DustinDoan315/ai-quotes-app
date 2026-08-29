@@ -11,9 +11,11 @@ type ReminderState = {
   reminderHour: number;
   reminderMinute: number;
   scheduledNotificationId: string | null;
+  hasPromptedAfterFirstSave: boolean;
   enableReminder: () => Promise<boolean>;
   disableReminder: () => Promise<void>;
   setReminderTime: (hour: number, minute: number) => Promise<void>;
+  markReminderPromptShown: () => void;
 };
 
 const initial: Pick<
@@ -22,11 +24,13 @@ const initial: Pick<
   | "reminderHour"
   | "reminderMinute"
   | "scheduledNotificationId"
+  | "hasPromptedAfterFirstSave"
 > = {
   reminderEnabled: false,
   reminderHour: 9,
   reminderMinute: 0,
   scheduledNotificationId: null,
+  hasPromptedAfterFirstSave: false,
 };
 
 export const useReminderStore = create<ReminderState>()(
@@ -59,6 +63,7 @@ export const useReminderStore = create<ReminderState>()(
         const patch = await syncDailyReminderSchedule(get());
         set(patch);
       },
+      markReminderPromptShown: () => set({ hasPromptedAfterFirstSave: true }),
     }),
     {
       name: "reminder-storage",
@@ -68,6 +73,7 @@ export const useReminderStore = create<ReminderState>()(
         reminderHour: state.reminderHour,
         reminderMinute: state.reminderMinute,
         scheduledNotificationId: state.scheduledNotificationId,
+        hasPromptedAfterFirstSave: state.hasPromptedAfterFirstSave,
       }),
     },
   ),

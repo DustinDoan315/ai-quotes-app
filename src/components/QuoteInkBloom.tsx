@@ -126,18 +126,18 @@ export function QuoteInkBloom({
     glowOpacity.value = withRepeat(
       withSequence(
         withTiming(0.9, { duration: 850, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0.45, { duration: 850, easing: Easing.inOut(Easing.sin) })
+        withTiming(0.45, { duration: 850, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
-      false
+      false,
     );
     glowScale.value = withRepeat(
       withSequence(
         withTiming(1.14, { duration: 850, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0.94, { duration: 850, easing: Easing.inOut(Easing.sin) })
+        withTiming(0.94, { duration: 850, easing: Easing.inOut(Easing.sin) }),
       ),
       -1,
-      false
+      false,
     );
     return () => {
       cancelAnimation(glowOpacity);
@@ -213,74 +213,110 @@ export function QuoteInkBloom({
         // Squash on impact — scaleX expands, scaleY compresses, spring back
         dropScaleX.value = withSequence(
           withTiming(1.45, { duration: 75, easing: Easing.out(Easing.quad) }),
-          withSpring(1, { damping: 10, stiffness: 280 })
+          withSpring(1, { damping: 10, stiffness: 280 }),
         );
         dropScaleY.value = withSequence(
           withTiming(0.6, { duration: 75, easing: Easing.out(Easing.quad) }),
-          withSpring(1, { damping: 10, stiffness: 280 })
+          withSpring(1, { damping: 10, stiffness: 280 }),
         );
 
         // Impact particles burst outward
         p1x.value = 0;
         p1y.value = 0;
         p1op.value = 1;
-        p1x.value = withTiming(PARTICLES[0]!.dx, { duration: 380, easing: Easing.out(Easing.cubic) });
-        p1y.value = withTiming(PARTICLES[0]!.dy, { duration: 380, easing: Easing.out(Easing.cubic) });
+        p1x.value = withTiming(PARTICLES[0]!.dx, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
+        p1y.value = withTiming(PARTICLES[0]!.dy, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
         p1op.value = withDelay(60, withTiming(0, { duration: 300 }));
 
         p2x.value = 0;
         p2y.value = 0;
         p2op.value = 1;
-        p2x.value = withTiming(PARTICLES[1]!.dx, { duration: 380, easing: Easing.out(Easing.cubic) });
-        p2y.value = withTiming(PARTICLES[1]!.dy, { duration: 380, easing: Easing.out(Easing.cubic) });
+        p2x.value = withTiming(PARTICLES[1]!.dx, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
+        p2y.value = withTiming(PARTICLES[1]!.dy, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
         p2op.value = withDelay(60, withTiming(0, { duration: 300 }));
 
         p3x.value = 0;
         p3y.value = 0;
         p3op.value = 1;
-        p3x.value = withTiming(PARTICLES[2]!.dx, { duration: 380, easing: Easing.out(Easing.cubic) });
-        p3y.value = withTiming(PARTICLES[2]!.dy, { duration: 380, easing: Easing.out(Easing.cubic) });
+        p3x.value = withTiming(PARTICLES[2]!.dx, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
+        p3y.value = withTiming(PARTICLES[2]!.dy, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
         p3op.value = withDelay(60, withTiming(0, { duration: 300 }));
 
         p4x.value = 0;
         p4y.value = 0;
         p4op.value = 1;
-        p4x.value = withTiming(PARTICLES[3]!.dx, { duration: 380, easing: Easing.out(Easing.cubic) });
-        p4y.value = withTiming(PARTICLES[3]!.dy, { duration: 380, easing: Easing.out(Easing.cubic) });
+        p4x.value = withTiming(PARTICLES[3]!.dx, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
+        p4y.value = withTiming(PARTICLES[3]!.dy, {
+          duration: 380,
+          easing: Easing.out(Easing.cubic),
+        });
         p4op.value = withDelay(60, withTiming(0, { duration: 300 }));
 
         // Phase 2: 4 rings bloom with staggered delays, cubic easing = more organic spread
-        ring1Scale.value = withTiming(1.7, { duration: 920, easing: Easing.out(Easing.cubic) });
+        ring1Scale.value = withTiming(1.7, {
+          duration: 920,
+          easing: Easing.out(Easing.cubic),
+        });
         ring1Opacity.value = withSequence(
           withTiming(0.75, { duration: 1 }),
-          withTiming(0, { duration: 900 })
+          withTiming(0, { duration: 900 }),
         );
 
         ring2Scale.value = withDelay(
           140,
-          withTiming(2.15, { duration: 960, easing: Easing.out(Easing.cubic) })
+          withTiming(2.15, { duration: 960, easing: Easing.out(Easing.cubic) }),
         );
         ring2Opacity.value = withDelay(
           140,
-          withSequence(withTiming(0.6, { duration: 1 }), withTiming(0, { duration: 940 }))
+          withSequence(
+            withTiming(0.6, { duration: 1 }),
+            withTiming(0, { duration: 940 }),
+          ),
         );
 
         ring3Scale.value = withDelay(
           280,
-          withTiming(2.6, { duration: 1000, easing: Easing.out(Easing.cubic) })
+          withTiming(2.6, { duration: 1000, easing: Easing.out(Easing.cubic) }),
         );
         ring3Opacity.value = withDelay(
           280,
-          withSequence(withTiming(0.45, { duration: 1 }), withTiming(0, { duration: 980 }))
+          withSequence(
+            withTiming(0.45, { duration: 1 }),
+            withTiming(0, { duration: 980 }),
+          ),
         );
 
         ring4Scale.value = withDelay(
           420,
-          withTiming(3.1, { duration: 1040, easing: Easing.out(Easing.cubic) })
+          withTiming(3.1, { duration: 1040, easing: Easing.out(Easing.cubic) }),
         );
         ring4Opacity.value = withDelay(
           420,
-          withSequence(withTiming(0.3, { duration: 1 }), withTiming(0, { duration: 1020 }))
+          withSequence(
+            withTiming(0.3, { duration: 1 }),
+            withTiming(0, { duration: 1020 }),
+          ),
         );
 
         // Droplet fades after rings settle; restart cycle after full fade
@@ -291,9 +327,9 @@ export function QuoteInkBloom({
             if (f && !isCompleteRef.current) {
               runOnJS(setCycleKey)((k: number) => k + 1);
             }
-          })
+          }),
         );
-      }
+      },
     );
 
     return () => {
@@ -370,42 +406,42 @@ export function QuoteInkBloom({
       return;
     }
 
-    // Final big bloom — expo easing = explosive fast start that gracefully decelerates
+    // Final bloom completes inside the camera flow's brief settle window.
     ring1Scale.value = 0;
     ring1Opacity.value = 0.7;
     ring1Scale.value = withTiming(5.5, {
-      duration: 720,
+      duration: 360,
       easing: Easing.out(Easing.exp),
     });
-    ring1Opacity.value = withTiming(0, { duration: 700 });
+    ring1Opacity.value = withTiming(0, { duration: 340 });
 
     // Second final bloom — softer, larger, slight delay
     ring2Scale.value = 0;
     ring2Opacity.value = 0.4;
     ring2Scale.value = withDelay(
-      80,
-      withTiming(7.5, { duration: 800, easing: Easing.out(Easing.exp) })
+      40,
+      withTiming(7.5, { duration: 420, easing: Easing.out(Easing.exp) }),
     );
-    ring2Opacity.value = withDelay(80, withTiming(0, { duration: 760 }));
+    ring2Opacity.value = withDelay(40, withTiming(0, { duration: 400 }));
 
     // Drop dissolves with squash
-    dropScaleX.value = withTiming(0, { duration: 280 });
-    dropScaleY.value = withTiming(0, { duration: 280 });
-    dropOpacity.value = withTiming(0, { duration: 260 });
+    dropScaleX.value = withTiming(0, { duration: 160 });
+    dropScaleY.value = withTiming(0, { duration: 160 });
+    dropOpacity.value = withTiming(0, { duration: 150 });
 
-    // Quote reveals: float up + scale spring + fade in
-    quoteOpacity.value = withDelay(240, withTiming(1, { duration: 540 }));
+    // Quote reveals quickly, then yields to the editable card beneath it.
+    quoteOpacity.value = withDelay(100, withTiming(1, { duration: 260 }));
     quoteTranslateY.value = withDelay(
-      240,
-      withTiming(0, { duration: 540, easing: Easing.out(Easing.cubic) })
+      100,
+      withTiming(0, { duration: 260, easing: Easing.out(Easing.cubic) }),
     );
     quoteScale.value = withDelay(
-      240,
-      withSpring(1, { damping: 15, stiffness: 160 })
+      100,
+      withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) }),
     );
 
     // Backdrop fades last
-    backdropOpacity.value = withDelay(440, withTiming(0, { duration: 680 }));
+    backdropOpacity.value = withDelay(180, withTiming(0, { duration: 300 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComplete, reduceMotion]);
 
@@ -528,32 +564,16 @@ export function QuoteInkBloom({
 
         {/* Impact particles */}
         <Animated.View
-          style={[
-            styles.particle,
-            { backgroundColor: accentColor },
-            p1Style,
-          ]}
+          style={[styles.particle, { backgroundColor: accentColor }, p1Style]}
         />
         <Animated.View
-          style={[
-            styles.particle,
-            { backgroundColor: accentColor },
-            p2Style,
-          ]}
+          style={[styles.particle, { backgroundColor: accentColor }, p2Style]}
         />
         <Animated.View
-          style={[
-            styles.particle,
-            { backgroundColor: accentColor },
-            p3Style,
-          ]}
+          style={[styles.particle, { backgroundColor: accentColor }, p3Style]}
         />
         <Animated.View
-          style={[
-            styles.particle,
-            { backgroundColor: accentColor },
-            p4Style,
-          ]}
+          style={[styles.particle, { backgroundColor: accentColor }, p4Style]}
         />
 
         {/* Phase 1: droplet — larger, with shadow depth + squash/stretch */}

@@ -33,9 +33,7 @@ function getRequestFailureReason(error: unknown, fallback: string): string {
 
 function cleanBase64(value: string | undefined): string {
   if (typeof value !== "string" || !value.trim()) return "";
-  return value
-    .trim()
-    .replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
+  return value.trim().replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "");
 }
 
 async function callEdgeFunction(
@@ -49,7 +47,9 @@ async function callEdgeFunction(
     throw new Error("Missing Supabase configuration");
   }
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.access_token) {
     throw new Error("No active session. Please restart the app.");
   }
@@ -65,7 +65,10 @@ async function callEdgeFunction(
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json().catch(() => ({})) as Record<string, unknown>;
+  const data = (await response.json().catch(() => ({}))) as Record<
+    string,
+    unknown
+  >;
   return { response, data };
 }
 
@@ -80,6 +83,7 @@ export const generateQuote = async (
     const payload: {
       personaTraits: string[];
       base64Image?: string;
+      momentContext?: string;
       language: "vi" | "en";
       visionLanguage?: "vi" | "en";
       debugVision?: boolean;
@@ -89,6 +93,8 @@ export const generateQuote = async (
       visionLanguage,
     };
     if (cleanedBase64) payload.base64Image = cleanedBase64;
+    const momentContext = request.momentContext?.trim().slice(0, 180);
+    if (momentContext) payload.momentContext = momentContext;
     if (request.debugVision) payload.debugVision = true;
 
     const { response, data } = await callEdgeFunction("quote", payload);
@@ -152,7 +158,11 @@ export const explainQuote = async (
     const explanation =
       typeof data.explanation === "string" ? data.explanation.trim() : "";
     if (!explanation) {
-      return { explanation: "", isValid: false, reason: "Empty explanation from service" };
+      return {
+        explanation: "",
+        isValid: false,
+        reason: "Empty explanation from service",
+      };
     }
 
     return { explanation, isValid: true };
@@ -193,7 +203,10 @@ export const rewriteQuote = async (
       return { quote: "", isValid: false, reason: "Empty quote from service" };
     }
 
-    const rewriteValidation = validateRewriteReviewQuote(rawQuote, request.quote);
+    const rewriteValidation = validateRewriteReviewQuote(
+      rawQuote,
+      request.quote,
+    );
     if (!rewriteValidation.isValid) {
       return { quote: "", isValid: false, reason: rewriteValidation.reason };
     }

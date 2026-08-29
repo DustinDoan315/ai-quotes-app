@@ -14,7 +14,7 @@ This repository does not currently use a separate `/backend` folder. Supabase fu
 
 ### `POST /functions/v1/quote`
 
-Generates a daily motivational quote from persona traits and an optional image.
+Generates a daily motivational quote from persona traits, an optional image, and an optional one-line feeling.
 
 Request body:
 
@@ -22,6 +22,7 @@ Request body:
 {
   "personaTraits": ["curious", "optimistic"],
   "base64Image": "optional-base64",
+  "momentContext": "optional, maximum 180 characters",
   "language": "vi",
   "visionLanguage": "en",
   "debugVision": false
