@@ -70,6 +70,7 @@ export default function HomeScreen() {
     isCapturing,
     isSavingPhoto,
     selectedImageUri,
+    photoOrientation,
     hideQuote,
     hasSavedCurrentPhoto,
     canCreatePhotoStack,
@@ -238,6 +239,13 @@ export default function HomeScreen() {
     }
   }
 
+  function handleOpenGalleryPress() {
+    if (isOnFeed) {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    }
+    void handleOpenGallery();
+  }
+
   function handleClearCurrentImage() {
     clearAiToolState();
     clearSelectedImage();
@@ -302,6 +310,7 @@ export default function HomeScreen() {
               cameraError,
               isCameraActive,
               selectedImageUri,
+              photoOrientation,
               canDeleteImage: !hasSavedCurrentPhoto,
               canCreatePhotoStack,
               photoStackCount,
@@ -369,7 +378,7 @@ export default function HomeScreen() {
         onSendMessage={handleSendMessage}
         onOpenMemories={handleOpenMemories}
         onCameraPress={handleCameraButtonPress}
-        onOpenGallery={handleOpenGallery}
+        onOpenGallery={handleOpenGalleryPress}
         onSavePhoto={handleSavePhoto}
         onShareImage={() => {
           void shareMoment();

@@ -59,5 +59,15 @@ target 'InklyDailyVibes' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    # fmt 11.0.2 does not compile with Xcode 26's C++20 consteval checks.
+    # Keep the compatibility override scoped to this vendored pod.
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'fmt'
+
+      target.build_configurations.each do |build_configuration|
+        build_configuration.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
   end
 end

@@ -19,6 +19,7 @@ import { useMemoryStore } from "@/appState";
 import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useReminderStore } from "@/appState/reminderStore";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
+import type { QuoteOrientation } from "@/constants/quoteImageSize";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import { compressImageForUpload } from "@/utils/imageProcessor";
 import { formatLocalDateKey } from "@/utils/dateKey";
@@ -57,6 +58,12 @@ function activePresetForFactor(factor: number): ZoomPreset {
 
 type CameraFacing = "back" | "front";
 
+function orientationForImage(width?: number, height?: number): QuoteOrientation {
+  return width != null && height != null && width > height
+    ? "landscape"
+    : "portrait";
+}
+
 export type PinchGesture = ReturnType<typeof Gesture.Pinch>;
 
 type UseHomeCameraOptions = {
@@ -78,6 +85,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(
     null,
   );
+  const [photoOrientation, setPhotoOrientation] =
+    useState<QuoteOrientation>("portrait");
   const [hideQuote, setHideQuote] = useState(false);
   const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
   const [photoStackCount, setPhotoStackCount] = useState(0);
@@ -201,6 +210,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   function clearSelectedImage() {
     setSelectedImageUri(null);
     setSelectedImageBase64(null);
+    setPhotoOrientation("portrait");
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
@@ -283,6 +293,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       }
       setSelectedImageUri(photo.uri);
       setSelectedImageBase64(null);
+      setPhotoOrientation("portrait");
       clearDailyQuote();
       setHideQuote(true);
       setMomentContext("");
@@ -338,7 +349,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         userId,
         guestId,
         quote: quoteText,
-        orientation: "portrait",
+        orientation: photoOrientation,
         styleFontId: quoteFontSize,
         styleColorSchemeId: quoteColorScheme,
         homeVibeKey: homeVibeKey ?? null,
@@ -386,6 +397,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       }
       setSelectedImageUri(null);
       setSelectedImageBase64(null);
+      setPhotoOrientation("portrait");
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
@@ -446,7 +458,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       setSelectedImageUri(picked.uri);
-      setSelectedImageBase64(picked.base64 || null);
+      setSelectedImageBase64(null);
+      setPhotoOrientation(orientationForImage(picked.width, picked.height));
       clearDailyQuote();
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
@@ -494,6 +507,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     isCapturing,
     isSavingPhoto,
     selectedImageUri,
+    photoOrientation,
     hideQuote,
     hasSavedCurrentPhoto,
     canCreatePhotoStack,

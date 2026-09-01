@@ -1,4 +1,4 @@
-import { PaywallScreen } from "@/features/paywall/PaywallScreen";
+import { RevenueCatPaywallScreen } from "@/features/paywall/RevenueCatPaywallScreen";
 import type { PaywallReason, PaywallSource } from "@/features/paywall/types";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -16,10 +16,13 @@ export default function PaywallModal() {
     goBackOrReplace(router, "/(tabs)");
   };
 
+  const reason = params.reason ?? "generic";
+  const source = params.source ?? "manual";
+
   return (
-    <PaywallScreen
-      reason={params.reason ?? "generic"}
-      source={params.source ?? "manual"}
+    <RevenueCatPaywallScreen
+      reason={reason}
+      source={source}
       onClose={handleClose}
     />
   );

@@ -64,6 +64,7 @@ Copy `.env.example` to `.env` and fill in:
 | `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` | RevenueCat Apple app SDK key; required for iOS production builds |
 | `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY` | RevenueCat Google app SDK key; required for Android production builds |
 | `EXPO_PUBLIC_REVENUECAT_API_KEY` | Legacy local/Test Store fallback only; never use for a store release |
+| `EXPO_PUBLIC_REVENUECAT_PAYWALL_UI` | Set to `true` to opt into the RevenueCat dashboard Paywall UI; leave `false` to use the custom fallback until the dashboard paywall and Apple products are ready |
 | `EXPO_PUBLIC_GPT_API_URL` | OpenAI API base URL |
 | `EXPO_PUBLIC_GPT_MODEL` | OpenAI model (e.g. `gpt-4o-mini`) |
 | `EXPO_PUBLIC_POSTHOG_API_KEY` | PostHog analytics |

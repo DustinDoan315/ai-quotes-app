@@ -41,7 +41,6 @@ export type HomeVibeFeedChrome = ReturnType<typeof getHomeVibeFeedChrome>;
 
 export function getHomeVibeFeedChrome(palette: HomeBackgroundPalette): {
   hairline: ViewStyle;
-  imageWash: ViewStyle;
   photoBorder: ViewStyle;
   cornerColor: string;
   brandShell: ViewStyle;
@@ -78,15 +77,6 @@ export function getHomeVibeFeedChrome(palette: HomeBackgroundPalette): {
       borderTopRightRadius: 22,
       backgroundColor: primary,
       opacity: 0.95,
-    },
-    imageWash: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 1,
-      height: 208,
-      backgroundColor: hexToRgba(primary, 0.42),
     },
     photoBorder: {
       position: "absolute",

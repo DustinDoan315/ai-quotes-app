@@ -41,6 +41,7 @@ import type {
   QuoteColor,
   QuoteFontSize,
 } from "@/features/home/QuoteStyleControls";
+import type { QuoteOrientation } from "@/constants/quoteImageSize";
 
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
@@ -48,6 +49,7 @@ export type HomeCameraSectionProps = {
   cameraError: string | null;
   isCameraActive: boolean;
   selectedImageUri: string | null;
+  photoOrientation: QuoteOrientation;
   canDeleteImage: boolean;
   canCreatePhotoStack: boolean;
   photoStackCount: number;
@@ -99,6 +101,7 @@ export const HomeCameraSection = ({
   cameraError,
   isCameraActive,
   selectedImageUri,
+  photoOrientation,
   canDeleteImage,
   canCreatePhotoStack,
   photoStackCount,
@@ -148,7 +151,7 @@ export const HomeCameraSection = ({
     width: number;
     height: number;
   } | null>(null);
-  const cardAspect = getQuoteAspectRatio("portrait");
+  const cardAspect = getQuoteAspectRatio(photoOrientation);
   const { width: windowWidth } = useWindowDimensions();
   const cardWidth = useMemo(() => getFeedCardWidth(windowWidth), [windowWidth]);
   const [isEditingQuote, setIsEditingQuote] = useState(false);

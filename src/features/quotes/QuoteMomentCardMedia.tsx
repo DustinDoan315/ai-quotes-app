@@ -45,7 +45,6 @@ export const QuoteMomentCardMedia = ({
           transition={0}
         />
       ) : null}
-      {chrome ? <View pointerEvents="none" style={chrome.imageWash} /> : null}
       <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
       {chrome ? (
         <>
@@ -101,14 +100,7 @@ export const QuoteMomentCardMedia = ({
           </View>
         </View>
       ) : null}
-      <View
-        className="absolute inset-x-0 bottom-0 z-10 rounded-t-2xl px-5 pb-4 pt-3"
-        style={
-          chrome?.imageWash.backgroundColor
-            ? { backgroundColor: chrome.imageWash.backgroundColor }
-            : undefined
-        }
-      >
+      <View className="absolute inset-x-0 bottom-0 z-10 px-5 pb-4 pt-12">
         <View className="mb-2 flex-row items-center justify-between">
           <View className="flex-1 flex-row items-center pr-2">
             <View className="h-9 w-9 overflow-hidden rounded-full border border-white/25 bg-white/15">
