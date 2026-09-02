@@ -1,6 +1,11 @@
 export const APPLE_STANDARD_EULA_URL =
   "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
+const INKLY_PRIVACY_POLICY_URL =
+  "https://inkly-web-taupe.vercel.app/privacy";
+const INKLY_TERMS_OF_SERVICE_URL =
+  "https://inkly-web-taupe.vercel.app/terms";
+
 const normalizeUrl = (value: string | undefined): string | null => {
   const trimmed = value?.trim();
 
@@ -16,9 +21,10 @@ const normalizeUrl = (value: string | undefined): string | null => {
 };
 
 export const LEGAL_LINKS = {
-  privacyPolicyUrl: normalizeUrl(process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL),
+  privacyPolicyUrl:
+    normalizeUrl(process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL) ??
+    INKLY_PRIVACY_POLICY_URL,
   termsOfServiceUrl:
     normalizeUrl(process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL) ??
-    APPLE_STANDARD_EULA_URL,
+    INKLY_TERMS_OF_SERVICE_URL,
 } as const;
-

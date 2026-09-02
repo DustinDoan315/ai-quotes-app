@@ -55,7 +55,10 @@ export function HowItWorksToneStep({ onContinue }: Props) {
     <OnboardingStepShell>
       <View
         className="flex-1 px-6"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+        style={{
+          paddingTop: Math.max(insets.top, 24),
+          paddingBottom: Math.max(insets.bottom, 24),
+        }}
       >
         {/* Section label */}
         <MotiView
