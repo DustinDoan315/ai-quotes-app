@@ -11,6 +11,7 @@ interface CameraActionsBarProps {
   isGenerating: boolean;
   isCapturing: boolean;
   cameraReady: boolean;
+  cameraPermissionGranted: boolean;
   hasImage: boolean;
   canSave: boolean;
   canShare: boolean;
@@ -26,6 +27,7 @@ export function CameraActionsBar({
   isGenerating,
   isCapturing,
   cameraReady,
+  cameraPermissionGranted,
   hasImage,
   canSave,
   canShare,
@@ -71,7 +73,7 @@ export function CameraActionsBar({
         ) : (
           <Pressable
             onPress={onCapture}
-            disabled={!cameraReady || isCapturing}
+            disabled={(cameraPermissionGranted && !cameraReady) || isCapturing}
             className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/80 bg-white/10"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,

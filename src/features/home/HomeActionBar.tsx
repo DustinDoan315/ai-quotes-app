@@ -29,6 +29,7 @@ type Props = {
   isGenerating: boolean;
   isCapturing: boolean;
   cameraReady: boolean;
+  cameraPermissionGranted: boolean;
   hasImage: boolean;
   canSave: boolean;
   canShare: boolean;
@@ -56,6 +57,7 @@ export function HomeActionBar({
   isGenerating,
   isCapturing,
   cameraReady,
+  cameraPermissionGranted,
   hasImage,
   canSave,
   canShare,
@@ -108,6 +110,7 @@ export function HomeActionBar({
             isGenerating={isGenerating}
             isCapturing={isCapturing}
             cameraReady={cameraReady}
+            cameraPermissionGranted={cameraPermissionGranted}
             hasImage={hasImage}
             canSave={canSave}
             canShare={canShare}

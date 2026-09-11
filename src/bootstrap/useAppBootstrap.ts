@@ -22,6 +22,9 @@ import { revenuecatClient } from "@/services/paywall/revenuecatClient";
 import { checkSupabaseReachable } from "@/config/supabase";
 import { useEffect } from "react";
 
+export const AUTH_UNAVAILABLE_MESSAGE =
+  "Inkly can't connect to its service right now. Check your connection and try again.";
+
 function syncUiLanguageOnBoot(): (() => void) | undefined {
   const applyLanguageSync = () => {
     const { uiLanguage } = useUserStore.getState();
@@ -85,17 +88,23 @@ async function waitForUserStoreHydration(): Promise<void> {
 
 async function bootstrapAuth(): Promise<void> {
   await waitForUserStoreHydration();
-  const { session } = await getSessionSafely();
+  const { session, error: sessionError } = await getSessionSafely();
+  if (sessionError) {
+    throw sessionError;
+  }
+
   if (session) {
     await syncUserProfile(session.user);
     return;
   }
 
   const { signInAnonymously } = await import("@/services/supabase-auth");
-  const { user, error } = await signInAnonymously();
-  if (!error && user) {
-    await syncUserProfile(user);
+  const { user, session: anonymousSession, error } = await signInAnonymously();
+  if (error || !user || !anonymousSession) {
+    throw error ?? new Error("Anonymous Supabase session was not created");
   }
+
+  await syncUserProfile(user);
 }
 
 function bootstrapTelemetry(): void {
@@ -112,11 +121,13 @@ function bootstrapTelemetry(): void {
 }
 
 export function useAppBootstrap(): void {
+  const authRetryCount = useBootstrapStore((state) => state.authRetryCount);
+
   useEffect(() => {
-    const { setAuthReady, setConfigReady } = useBootstrapStore.getState();
     const unsubscribeLanguageHydration = syncUiLanguageOnBoot();
     const unsubscribeReminderHydration = syncReminderOnBoot();
     bootstrapTelemetry();
+    const { setConfigReady } = useBootstrapStore.getState();
 
     checkSupabaseReachable();
 
@@ -133,14 +144,6 @@ export function useAppBootstrap(): void {
     // Auth and RevenueCat are independent startup tasks. Auth must not wait
     // on the store SDK, otherwise the first route can render without a
     // Supabase session while RevenueCat is still contacting Apple.
-    void bootstrapAuth()
-      .catch((error: unknown) => {
-        console.error("Failed to bootstrap auth:", error);
-      })
-      .finally(() => {
-        setAuthReady(true);
-      });
-
     void bootstrapRevenueCat().catch((error: unknown) => {
       console.error("Failed to initialize RevenueCat:", error);
     });
@@ -150,4 +153,32 @@ export function useAppBootstrap(): void {
       unsubscribeReminderHydration?.();
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const { setAuthReady, setAuthError, setAuthRetrying } =
+      useBootstrapStore.getState();
+
+    setAuthReady(false);
+    setAuthError(null);
+    setAuthRetrying(true);
+
+    // A missing anonymous session is a service outage for the core guest
+    // flow. Keep the app in a retryable state instead of rendering a home
+    // screen that will fail later with "No active session".
+    void bootstrapAuth()
+      .catch((error: unknown) => {
+        console.error("Failed to bootstrap auth:", error);
+        if (!cancelled) setAuthError(AUTH_UNAVAILABLE_MESSAGE);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setAuthReady(true);
+        setAuthRetrying(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authRetryCount]);
 }

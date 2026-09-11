@@ -27,7 +27,14 @@ import { getTodayLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, FlatList, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { MemoryState } from "@/appState/memoryStore";
@@ -44,6 +51,9 @@ export default function HomeScreen() {
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
   const bootstrapReady = useBootstrapStore(selectBootstrapReady);
+  const authError = useBootstrapStore((s) => s.authError);
+  const authRetrying = useBootstrapStore((s) => s.authRetrying);
+  const retryAuth = useBootstrapStore((s) => s.retryAuth);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
   const guestId = useUserStore((s) => s.guestId);
   const ensureGuestId = useUserStore((s) => s.ensureGuestId);
@@ -61,6 +71,7 @@ export default function HomeScreen() {
   const { palette } = useHomeBackgroundPalette();
   const {
     isLoading,
+    isGranted: cameraPermissionGranted,
     cameraRef,
     cameraReady,
     cameraError,
@@ -251,10 +262,36 @@ export default function HomeScreen() {
     clearSelectedImage();
   }
 
-  if (!bootstrapReady || isLoading) {
+  if (!bootstrapReady || isLoading || authRetrying) {
     return (
       <View className="flex-1 items-center justify-center bg-transparent">
         <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  if (authError) {
+    return (
+      <View className="flex-1 items-center justify-center bg-black px-8">
+        <View className="w-full max-w-sm items-center rounded-[28px] border border-white/15 bg-white/10 px-6 py-7">
+          <Text className="text-center text-xl font-semibold text-white">
+            {t("serviceUnavailable.title")}
+          </Text>
+          <Text className="mt-3 text-center text-sm leading-5 text-white/70">
+            {t("serviceUnavailable.body")}
+          </Text>
+          <Pressable
+            onPress={retryAuth}
+            className="mt-6 rounded-full bg-white px-6 py-3"
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+          >
+            <Text className="font-semibold text-black">
+              {authRetrying
+                ? t("serviceUnavailable.retrying")
+                : t("serviceUnavailable.retry")}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -309,6 +346,7 @@ export default function HomeScreen() {
               pinchGesture,
               cameraError,
               isCameraActive,
+              cameraPermissionGranted,
               selectedImageUri,
               photoOrientation,
               canDeleteImage: !hasSavedCurrentPhoto,
@@ -387,6 +425,7 @@ export default function HomeScreen() {
         isGenerating={isGenerating}
         isCapturing={isCapturing}
         cameraReady={cameraReady}
+        cameraPermissionGranted={cameraPermissionGranted}
         hasImage={!!selectedImageUri}
         canSave={Boolean(dailyQuoteText && !hasSavedCurrentPhoto)}
         canShare={Boolean(dailyQuoteText && selectedImageUri && !hideQuote)}

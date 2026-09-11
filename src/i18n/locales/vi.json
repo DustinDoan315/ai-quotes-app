@@ -5,7 +5,8 @@
       "quoteRequiredToSave": "Hãy tạo một câu trích dẫn trước khi lưu kỷ niệm này.",
       "failedToSavePhoto": "Không thể lưu ảnh",
       "galleryPermissionRequired": "Chúng tôi cần quyền truy cập thư viện ảnh.",
-      "failedToStartPreview": "Không thể khởi động xem trước camera. Hãy đóng và mở lại màn hình."
+      "failedToStartPreview": "Không thể khởi động xem trước camera. Hãy đóng và mở lại màn hình.",
+      "permissionRequired": "Hãy cho phép truy cập camera để chụp ảnh."
     },
     "info": {
       "photoAlreadySaved": "Ảnh đã được lưu",
@@ -29,7 +30,15 @@
       "notNow": "Để sau",
       "enable": "Bật lời nhắc",
       "permissionDenied": "Thông báo đang tắt. Bạn có thể bật lại sau trong Hồ sơ."
-    }
+    },
+    "permissionTitle": "Camera đang tắt",
+    "permissionHint": "Nhấn nút chụp để bật camera hoặc chọn ảnh từ thư viện."
+  },
+  "serviceUnavailable": {
+    "title": "Inkly tạm thời không khả dụng",
+    "body": "Không thể kết nối đến dịch vụ Inkly nên việc tạo vibe đang tạm dừng. Hãy kiểm tra kết nối và thử lại.",
+    "retry": "Thử lại",
+    "retrying": "Đang thử lại…"
   },
   "memories": {
     "title": "Kỷ niệm",
@@ -350,6 +359,7 @@
         "googleFailed": "Đăng nhập Google thất bại. Vui lòng thử lại.",
         "appleFailed": "Đăng nhập Apple thất bại. Vui lòng thử lại.",
         "signInFailed": "Đăng nhập thất bại. Vui lòng thử lại.",
+        "serviceUnavailable": "Inkly tạm thời không khả dụng. Hãy kiểm tra kết nối và thử lại.",
         "identityLinkingUnavailable": "Hiện chưa thể kết nối lần đăng nhập này với tài khoản khách của bạn. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
         "identityAlreadyLinked": "Tài khoản Apple hoặc Google này đã được kết nối với một tài khoản Inkly khác. Hãy đăng nhập vào tài khoản đó."
       }

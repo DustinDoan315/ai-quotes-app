@@ -48,6 +48,7 @@ export type HomeCameraSectionProps = {
   pinchGesture: PinchGesture;
   cameraError: string | null;
   isCameraActive: boolean;
+  cameraPermissionGranted: boolean;
   selectedImageUri: string | null;
   photoOrientation: QuoteOrientation;
   canDeleteImage: boolean;
@@ -100,6 +101,7 @@ export const HomeCameraSection = ({
   pinchGesture,
   cameraError,
   isCameraActive,
+  cameraPermissionGranted,
   selectedImageUri,
   photoOrientation,
   canDeleteImage,
@@ -350,7 +352,23 @@ export const HomeCameraSection = ({
                         onCameraReady={onCameraReady}
                         onMountError={onCameraMountError}
                       />
-                    ) : null}
+                    ) : (
+                      <View className="flex-1 items-center justify-center px-8">
+                        <Ionicons
+                          name="camera-outline"
+                          size={30}
+                          color="rgba(255,255,255,0.42)"
+                        />
+                        <Text className="mt-3 text-center text-sm font-semibold text-white/85">
+                          {t("camera.permissionTitle")}
+                        </Text>
+                        <Text className="mt-2 text-center text-xs leading-4 text-white/60">
+                          {cameraPermissionGranted
+                            ? t("camera.errors.failedToStartPreview")
+                            : t("camera.permissionHint")}
+                        </Text>
+                      </View>
+                    )}
                     {isCameraActive && !dailyQuoteText && !isGenerating ? (
                       <View
                         className="absolute inset-0 items-center justify-center"

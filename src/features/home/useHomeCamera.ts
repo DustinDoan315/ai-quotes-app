@@ -277,9 +277,30 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   }
 
   async function handleCapture() {
-    if (!cameraRef.current || !cameraReady || isCapturingRef.current) {
+    if (isCapturingRef.current) {
       return;
     }
+
+    if (!isGranted) {
+      isCapturingRef.current = true;
+      try {
+        const permissionResult = await requestPermission();
+        if (!permissionResult.granted) {
+          showToast(i18n.t("camera.errors.permissionRequired"), "error");
+        }
+      } catch (error) {
+        console.error("Failed to request camera permission", error);
+        showToast(i18n.t("camera.errors.permissionRequired"), "error");
+      } finally {
+        isCapturingRef.current = false;
+      }
+      return;
+    }
+
+    if (!cameraRef.current || !cameraReady) {
+      return;
+    }
+
     isCapturingRef.current = true;
     setIsCapturing(true);
     try {

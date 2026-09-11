@@ -102,6 +102,10 @@ function getSafeAuthErrorMessage(error: unknown, fallback: string, t: (key: stri
     return t("auth.login.errors.identityAlreadyLinked");
   }
 
+  if (/network request failed|failed to fetch|networkerror|load failed|timed out|timeout/i.test(normalized)) {
+    return t("auth.login.errors.serviceUnavailable");
+  }
+
   const containsCredential = /access[_ -]?token|authorization|bearer|api[_ -]?key|jwt/i.test(message);
   return message && message.length <= 240 && !containsCredential ? message : fallback;
 }
@@ -181,7 +185,7 @@ export default function LoginScreen() {
       } else if (err instanceof Error && err.message.includes("RNGoogleSignin")) {
         setError("Google Sign-In requires a development build or production app.");
       } else {
-        setError(t("auth.login.errors.googleFailed"));
+        setError(getSafeAuthErrorMessage(err, t("auth.login.errors.googleFailed"), t));
       }
     } finally {
       setLoadingGoogle(false);
@@ -220,7 +224,7 @@ export default function LoginScreen() {
       if (e?.code === "ERR_REQUEST_CANCELED") {
         // user cancelled — no error shown
       } else {
-        setError(t("auth.login.errors.appleFailed"));
+        setError(getSafeAuthErrorMessage(err, t("auth.login.errors.appleFailed"), t));
       }
     } finally {
       setLoadingApple(false);

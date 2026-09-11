@@ -5,7 +5,8 @@
       "quoteRequiredToSave": "Generate a quote before saving this reflection.",
       "failedToSavePhoto": "Failed to save photo",
       "galleryPermissionRequired": "We need gallery access to pick photos.",
-      "failedToStartPreview": "Camera preview couldn't start. Close and reopen the screen."
+      "failedToStartPreview": "Camera preview couldn't start. Close and reopen the screen.",
+      "permissionRequired": "Allow camera access to capture a photo."
     },
     "info": {
       "photoAlreadySaved": "Photo already saved",
@@ -30,7 +31,15 @@
       "notNow": "Not now",
       "enable": "Turn on reminders",
       "permissionDenied": "Notifications are off. You can enable reminders later in Profile."
-    }
+    },
+    "permissionTitle": "Camera access is off",
+    "permissionHint": "Tap the shutter to enable your camera, or choose a photo from your library."
+  },
+  "serviceUnavailable": {
+    "title": "Inkly is temporarily unavailable",
+    "body": "We couldn't connect to Inkly's service, so creating a vibe is paused. Check your connection and try again.",
+    "retry": "Try again",
+    "retrying": "Trying again…"
   },
   "memories": {
     "title": "Memories",
@@ -351,6 +360,7 @@
         "googleFailed": "Google sign-in failed. Please try again.",
         "appleFailed": "Apple sign-in failed. Please try again.",
         "signInFailed": "Sign-in failed. Please try again.",
+        "serviceUnavailable": "Inkly is temporarily unavailable. Check your connection and try again.",
         "identityLinkingUnavailable": "This sign-in can't be connected to your guest account right now. Please try again later or contact support.",
         "identityAlreadyLinked": "This Apple or Google account is already connected to another Inkly account. Sign in to that account instead."
       }

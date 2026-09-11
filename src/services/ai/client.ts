@@ -51,7 +51,7 @@ async function callEdgeFunction(
     data: { session },
   } = await supabase.auth.getSession();
   if (!session?.access_token) {
-    throw new Error("No active session. Please restart the app.");
+    throw new Error(BACKEND_UNAVAILABLE_MESSAGE);
   }
   const token = session.access_token;
 
