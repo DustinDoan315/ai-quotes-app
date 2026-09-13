@@ -52,20 +52,20 @@ export function CameraActionsBar({
           <Pressable
             onPress={onSave}
             disabled={!canSave || isSaving}
-            className="h-14 w-32 flex-row items-center justify-center rounded-full border-2 border-white/80 bg-white/10"
+            className="h-14 w-32 items-center justify-center rounded-full border-2 border-white/80 bg-white/10"
             style={({ pressed }) => ({
               opacity: pressed || !canSave || isSaving ? 0.7 : 1,
             })}
           >
             {isSaving ? (
-              <>
+              <View className="w-full flex-row items-center justify-center">
                 <ActivityIndicator size="small" color="#ffffff" />
-                <Text className="ml-2 text-sm font-semibold text-white">
+                <Text className="ml-2 text-center text-sm font-semibold text-white">
                   {t("camera.savingButton")}
                 </Text>
-              </>
+              </View>
             ) : (
-              <Text className="text-sm font-semibold text-white">
+              <Text className="text-center text-sm font-semibold text-white">
                 {t("camera.saveButton")}
               </Text>
             )}
@@ -92,13 +92,13 @@ export function CameraActionsBar({
           <Pressable
             onPress={onShare}
             disabled={!canShare}
-            className="items-center rounded-2xl bg-black/45 px-2 py-2"
+            className="w-20 items-center justify-center rounded-2xl bg-black/45 px-2 py-2"
             style={({ pressed }) => ({
               opacity: !canShare ? 0.45 : pressed ? 0.8 : 1,
             })}
           >
             <Ionicons name="share-outline" size={21} color="#ffffff" />
-            <Text className="mt-1 text-[10px] font-semibold text-white">
+            <Text className="mt-1 w-full text-center text-[10px] font-semibold text-white">
               {t("camera.shareImageButton")}
             </Text>
           </Pressable>
