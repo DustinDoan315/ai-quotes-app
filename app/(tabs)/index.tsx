@@ -6,6 +6,7 @@ import {
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
+import { ServiceUnavailableScreen } from "@/components/ServiceUnavailableScreen";
 import { HomeActionBar } from "@/features/home/HomeActionBar";
 import { StreakModal } from "@/features/streak/StreakModal";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
@@ -31,8 +32,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Pressable,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -271,29 +270,7 @@ export default function HomeScreen() {
   }
 
   if (authError) {
-    return (
-      <View className="flex-1 items-center justify-center bg-black px-8">
-        <View className="w-full max-w-sm items-center rounded-[28px] border border-white/15 bg-white/10 px-6 py-7">
-          <Text className="text-center text-xl font-semibold text-white">
-            {t("serviceUnavailable.title")}
-          </Text>
-          <Text className="mt-3 text-center text-sm leading-5 text-white/70">
-            {t("serviceUnavailable.body")}
-          </Text>
-          <Pressable
-            onPress={retryAuth}
-            className="mt-6 rounded-full bg-white px-6 py-3"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          >
-            <Text className="font-semibold text-black">
-              {authRetrying
-                ? t("serviceUnavailable.retrying")
-                : t("serviceUnavailable.retry")}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-    );
+    return <ServiceUnavailableScreen isRetrying={authRetrying} onRetry={retryAuth} />;
   }
 
   return (
