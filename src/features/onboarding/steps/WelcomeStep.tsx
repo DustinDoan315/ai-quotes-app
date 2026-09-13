@@ -194,7 +194,15 @@ export function WelcomeStep({ onContinue }: Props) {
           </Pressable>
 
           <Pressable
-            onPress={() => router.push("/login")}
+            onPress={() =>
+              router.push({
+                pathname: "/login",
+                params: {
+                  returnTo: "/(tabs)",
+                  fromOnboarding: "true",
+                },
+              } as never)
+            }
             style={({ pressed }) => ({
               opacity: pressed ? 0.6 : 1,
               paddingVertical: 14,

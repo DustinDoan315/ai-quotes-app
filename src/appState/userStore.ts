@@ -3,11 +3,22 @@ import i18n from '@/i18n';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-type Persona = {
+export type Persona = {
   id: string;
   traits: string[];
   preferences: Record<string, unknown>;
 };
+
+export function createStarterPersona(): Persona {
+  return {
+    id: "starter",
+    traits: ["curious", "optimistic"],
+    preferences: {
+      stylePreference: "dark-minimal",
+      goals: [],
+    },
+  };
+}
 
 type UserProfile = {
   id: string;
@@ -28,6 +39,7 @@ export type UiLanguagePreference = "vi" | "en";
 
 type UserState = {
   persona: Persona | null;
+  onboardingCompleted: boolean;
   profile: UserProfile | null;
   authState: AuthState;
   guestId: string | null;
@@ -36,6 +48,7 @@ type UserState = {
   quoteLanguage: QuoteLanguagePreference;
   uiLanguage: UiLanguagePreference;
   setPersona: (persona: Persona) => void;
+  completeOnboarding: () => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
   setGuestDisplayName: (name: string | null) => void;
@@ -46,9 +59,10 @@ type UserState = {
   ensureGuestId: () => string;
 };
 
-const initialState: Omit<UserState, "setPersona" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "setUiLanguage" | "clearUser" | "ensureGuestId"> =
+const initialState: Omit<UserState, "setPersona" | "completeOnboarding" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "setUiLanguage" | "clearUser" | "ensureGuestId"> =
   {
     persona: null,
+    onboardingCompleted: false,
     profile: null,
     authState: "guest",
     guestId: null,
@@ -65,7 +79,9 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       ...initialState,
-      setPersona: (persona) => set({ persona }),
+      setPersona: (persona) => set({ persona, onboardingCompleted: true }),
+      completeOnboarding: () =>
+        set({ persona: createStarterPersona(), onboardingCompleted: true }),
       setProfile: (profile) => set({ profile }),
       setAuthState: (authState) => set({ authState }),
       setGuestDisplayName: (guestDisplayName) => set({ guestDisplayName }),
@@ -91,14 +107,29 @@ export const useUserStore = create<UserState>()(
       // Reset the old device/Vietnamese defaults once so existing installs
       // also open in English. Future explicit language changes remain persisted
       // and can still switch both UI and quote output.
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ profile: state.profile, persona: state.persona, guestId: state.guestId, guestDisplayName: state.guestDisplayName, inviteNudgeDismissed: state.inviteNudgeDismissed, quoteLanguage: state.quoteLanguage, uiLanguage: state.uiLanguage }),
-      migrate: (persistedState) => ({
-        ...(persistedState as Partial<UserState>),
-        quoteLanguage: "en",
-        uiLanguage: "en",
+      partialize: (state) => ({
+        profile: state.profile,
+        persona: state.persona,
+        onboardingCompleted: state.onboardingCompleted,
+        guestId: state.guestId,
+        guestDisplayName: state.guestDisplayName,
+        inviteNudgeDismissed: state.inviteNudgeDismissed,
+        quoteLanguage: state.quoteLanguage,
+        uiLanguage: state.uiLanguage,
       }),
+      migrate: (persistedState) => {
+        const state = persistedState as Partial<UserState>;
+        return {
+          ...state,
+          onboardingCompleted:
+            state.onboardingCompleted ??
+            Boolean(state.persona || state.profile || state.guestId),
+          quoteLanguage: "en",
+          uiLanguage: "en",
+        };
+      },
     },
   ),
 );

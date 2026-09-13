@@ -5,32 +5,31 @@ import { WelcomeStep } from "@/features/onboarding/steps/WelcomeStep";
 import { Redirect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { useUserStoreHydrated } from "@/utils/useUserStoreHydrated";
+import { shouldShowOnboarding } from "@/utils/onboardingGate";
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const setPersona = useUserStore((s) => s.setPersona);
   const persona = useUserStore((s) => s.persona);
+  const profile = useUserStore((s) => s.profile);
+  const onboardingCompleted = useUserStore((s) => s.onboardingCompleted);
   const hydrated = useUserStoreHydrated();
   const [step, setStep] = useState<0 | 1 | 2>(0);
 
+  const completeOnboarding = useUserStore((s) => s.completeOnboarding);
+
   const handleComplete = useCallback(() => {
-    setPersona({
-      id: "starter",
-      traits: ["curious", "optimistic"],
-      preferences: {
-        stylePreference: "dark-minimal",
-        goals: [],
-      },
-    });
+    completeOnboarding();
 
     router.replace("/(tabs)" as never);
-  }, [setPersona, router]);
+  }, [completeOnboarding, router]);
 
   if (!hydrated) {
     return null;
   }
 
-  if (persona) {
+  if (
+    !shouldShowOnboarding({ persona, profile, onboardingCompleted })
+  ) {
     return <Redirect href="/(tabs)" />;
   }
 

@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { useUserStore } from "@/appState/userStore";
 import { AppIcon } from "@/components/AppIcon";
 import { LEGAL_LINKS } from "@/config/legalLinks";
 import { APP_BRAND_MARK } from "@/theme/appBrand";
@@ -113,8 +114,13 @@ function getSafeAuthErrorMessage(error: unknown, fallback: string, t: (key: stri
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ returnTo?: string }>();
+  const params = useLocalSearchParams<{
+    returnTo?: string;
+    fromOnboarding?: string;
+  }>();
   const returnTo = sanitizeReturnTo(params.returnTo);
+  const fromOnboarding = params.fromOnboarding === "true";
+  const completeOnboarding = useUserStore((state) => state.completeOnboarding);
   const { signInWithGoogle, signInWithApple } = useAuth();
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingApple, setLoadingApple] = useState(false);
@@ -174,6 +180,7 @@ export default function LoginScreen() {
         setError(getSafeAuthErrorMessage(authError, t("auth.login.errors.signInFailed"), t));
         return;
       }
+      if (fromOnboarding) completeOnboarding();
       router.replace(returnTo as never);
     } catch (err: unknown) {
       const e = err as { code?: string };
@@ -218,6 +225,7 @@ export default function LoginScreen() {
         setError(getSafeAuthErrorMessage(authError, t("auth.login.errors.signInFailed"), t));
         return;
       }
+      if (fromOnboarding) completeOnboarding();
       router.replace(returnTo as never);
     } catch (err: unknown) {
       const e = err as { code?: string };
@@ -344,7 +352,10 @@ export default function LoginScreen() {
         {/* Footer */}
         <View className="mt-8 items-center">
           <Pressable
-            onPress={() => router.replace(returnTo as never)}
+            onPress={() => {
+              if (fromOnboarding) completeOnboarding();
+              router.replace(returnTo as never);
+            }}
             disabled={isBusy}
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
             <Text className="text-white/60 text-sm">{t("auth.login.continueAsGuest")}</Text>

@@ -2,11 +2,12 @@ import { useUserStore } from "@/appState/userStore";
 import { ServiceUnavailableScreen } from "@/components/ServiceUnavailableScreen";
 import { Redirect } from "expo-router";
 import { useUserStoreHydrated } from "@/utils/useUserStoreHydrated";
+import { shouldShowOnboarding } from "@/utils/onboardingGate";
 import { selectBootstrapReady, useBootstrapStore } from "@/appState/bootstrapStore";
 import { ActivityIndicator, View } from "react-native";
 
 export default function Index() {
-  const { persona } = useUserStore();
+  const { persona, profile, onboardingCompleted } = useUserStore();
   const hydrated = useUserStoreHydrated();
   const bootstrapReady = useBootstrapStore(selectBootstrapReady);
   const authError = useBootstrapStore((state) => state.authError);
@@ -30,7 +31,7 @@ export default function Index() {
     );
   }
 
-  if (!persona) {
+  if (shouldShowOnboarding({ persona, profile, onboardingCompleted })) {
     return <Redirect href="/(onboarding)" />;
   }
 
