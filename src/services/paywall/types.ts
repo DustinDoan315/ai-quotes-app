@@ -16,4 +16,3 @@ export type RevenueCatCustomerInfo = {
   activeEntitlementIds: string[];
   latestExpirationAt: string | null;
 };
-

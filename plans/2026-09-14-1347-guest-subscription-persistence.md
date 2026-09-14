@@ -26,11 +26,11 @@ Allow an anonymous iOS user to retain access to a purchased subscription after r
 - [x] Guest cloud-memory ownership uses the authenticated Supabase UUID.
 - [x] Supabase has `REVENUECAT_SECRET_API_KEY` configured.
 - [x] Subscription-related Edge Functions are deployed.
-- [ ] RevenueCat entitlement `pro_access` is configured.
-- [ ] iOS products are attached to the current RevenueCat offering.
-- [ ] RevenueCat webhook URL and authorization secret are verified.
-- [ ] Restore behavior is set to “Transfer to new App User ID.”
-- [ ] A replacement RevenueCat v1 secret is generated and stored in Supabase.
+- [x] RevenueCat entitlement `pro_access` is configured.
+- [x] iOS products are attached to the current RevenueCat offering.
+- [x] RevenueCat webhook URL and authorization secret are verified.
+- [x] Restore behavior is set to “Transfer to new App User ID.”
+- [x] A replacement RevenueCat v1 secret is generated and stored in Supabase.
 - [ ] The unused `REVENUECAT_API_KEY` secret is removed after rotation.
 - [ ] Physical iPhone sandbox reinstall and restore flow passes.
 
@@ -45,7 +45,7 @@ Allow an anonymous iOS user to retain access to a purchased subscription after r
 | `2026-09-14` | Deployed `sync-subscription` and updated `revenuecat-webhook`. | Both active in Supabase; unauthenticated requests return `401`. |
 | `2026-09-14` | Audited all deployed Edge Functions. | Only legacy `billing-offerings` and `billing-customer` used `REVENUECAT_API_KEY`; both were updated to the new secret name and deployed at version 8. |
 | `2026-09-14` | Committed and pushed the implementation. | Commit `1de4a16` is on `origin/main`. |
-| `2026-09-14` | Attempted RevenueCat dashboard configuration and secret rotation through MCP. | Blocked because no RevenueCat management MCP is available and no replacement key has been generated. |
+| `2026-09-14` | Verified RevenueCat configuration through the authenticated MCP/dashboard. | Project `Inkly` uses entitlement `pro_access`, current offering `default`, active iOS monthly/yearly/lifetime products, “Transfer to new App User ID,” and an active Supabase webhook returning HTTP 200. A single v1 secret key was created on `2026-09-14`. |
 
 ## Risks and notes
 
@@ -55,7 +55,6 @@ Allow an anonymous iOS user to retain access to a purchased subscription after r
 
 ## Next actions
 
-1. Enable RevenueCat management MCP or authorize a logged-in RevenueCat dashboard session.
-2. Configure `pro_access`, attach the iOS products to the current offering, configure the webhook, and set restore behavior.
-3. Generate a replacement v1 secret, set it as `REVENUECAT_SECRET_API_KEY`, verify it, then unset the old `REVENUECAT_API_KEY`.
-4. Run the physical iPhone sandbox test matrix and record the result here.
+1. Verify the old `REVENUECAT_API_KEY` secret is removed from Supabase after the replacement key rotation.
+2. Run the physical iPhone sandbox reinstall and restore test matrix and record the result here.
+3. Resolve the remaining code-audit findings before release, especially webhook ordering/idempotency and guest-memory isolation.
