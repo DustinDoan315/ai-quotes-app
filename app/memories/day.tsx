@@ -41,6 +41,7 @@ export default function MemoriesDayScreen() {
   const toggleFavorite = useMemoryStore((s: MemoryState) => s.toggleFavorite);
   const setVisibility = useMemoryStore((s: MemoryState) => s.setVisibility);
   const profile = useUserStore((s) => s.profile);
+  const authUserId = useUserStore((s) => s.authUserId);
   const guestId = useUserStore((s) => s.guestId);
   const showToast = useUIStore((s) => s.showToast);
   const [updatingVisibilityId, setUpdatingVisibilityId] = useState<string | null>(null);
@@ -72,7 +73,7 @@ export default function MemoriesDayScreen() {
   );
 
   const mineMemories = useMemo(() => {
-    const userId = profile?.user_id ?? null;
+    const userId = profile?.user_id ?? authUserId;
     const hasIdentity = Boolean(userId || guestId);
     const isMine = (m: QuoteMemory) => {
       if (!hasIdentity) {
@@ -84,7 +85,7 @@ export default function MemoriesDayScreen() {
       );
     };
     return dayMemories.filter((m) => isMine(m));
-  }, [dayMemories, guestId, profile?.user_id]);
+  }, [authUserId, dayMemories, guestId, profile?.user_id]);
 
   const {
     cards: friendCards,

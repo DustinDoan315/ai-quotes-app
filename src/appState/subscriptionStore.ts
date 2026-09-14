@@ -14,11 +14,13 @@ import {
   type SubscriptionSnapshot,
 } from "@/domain/subscription/subscriptionResolver";
 import { pickBestValuePackageId } from "@/utils/paywallPackage";
+import { syncSubscriptionWithServer } from "@/services/paywall/subscriptionSync";
 
 type SubscriptionActionResult = {
   ok: boolean;
   becamePro?: boolean;
   errorMessage?: string;
+  serverSynced?: boolean;
 };
 
 type SubscriptionState = {
@@ -56,6 +58,9 @@ const createSnapshotFromCustomerInfo = (
   };
 };
 
+const syncServerSubscription = async (): Promise<boolean> =>
+  (await syncSubscriptionWithServer()) != null;
+
 export const useSubscriptionStore = create<SubscriptionState>()(
   persist(
     (set, get) => ({
@@ -89,7 +94,11 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
-          return { ok: true, becamePro: plan === "pro" };
+          return {
+            ok: true,
+            becamePro: plan === "pro",
+            serverSynced: await syncServerSubscription(),
+          };
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Failed to sync subscription";
@@ -169,7 +178,11 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
-          return { ok: true, becamePro: plan === "pro" };
+          return {
+            ok: true,
+            becamePro: plan === "pro",
+            serverSynced: await syncServerSubscription(),
+          };
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Failed to complete purchase";
@@ -194,7 +207,11 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
-          return { ok: true, becamePro: plan === "pro" };
+          return {
+            ok: true,
+            becamePro: plan === "pro",
+            serverSynced: await syncServerSubscription(),
+          };
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Failed to restore purchases";
@@ -219,7 +236,11 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             plan,
             lastSyncedAt: Date.now(),
           });
-          return { ok: true, becamePro: plan === "pro" };
+          return {
+            ok: true,
+            becamePro: plan === "pro",
+            serverSynced: await syncServerSubscription(),
+          };
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Failed to refresh subscription";

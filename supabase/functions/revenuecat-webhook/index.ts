@@ -20,6 +20,7 @@ type RevenueCatEvent = {
   type: string;
   app_user_id: string;
   original_app_user_id: string;
+  aliases?: string[];
   entitlement_ids: string[] | null;
   expiration_at_ms: number | null;
 };
@@ -27,6 +28,18 @@ type RevenueCatEvent = {
 type WebhookPayload = {
   event: RevenueCatEvent;
   api_version: string;
+};
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const findSupabaseUserId = (event: RevenueCatEvent): string | null => {
+  const candidates = [
+    event.app_user_id,
+    ...(event.aliases ?? []),
+    event.original_app_user_id,
+  ];
+  return candidates.find((candidate) => UUID_PATTERN.test(candidate)) ?? null;
 };
 
 Deno.serve(async (req: Request) => {
@@ -52,9 +65,17 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Missing event fields" }, 400);
   }
 
-  // Use original_app_user_id as the canonical Supabase user UUID; RevenueCat
-  // can create alias IDs during anonymous-to-identified transitions.
-  const userId = event.original_app_user_id || event.app_user_id;
+  // The app uses Supabase UUIDs as RevenueCat App User IDs. During a legacy
+  // anonymous-to-identified transition, the UUID may be present in aliases
+  // while original_app_user_id is still a RevenueCat anonymous ID.
+  const userId = findSupabaseUserId(event);
+  if (!userId) {
+    console.warn(
+      "[revenuecat-webhook] Ignoring event without a Supabase UUID App User ID",
+      { type: event.type, appUserId: event.app_user_id },
+    );
+    return jsonResponse({ ok: true, skipped: "unmapped_app_user_id" });
+  }
 
   const expiresAt = event.expiration_at_ms
     ? new Date(event.expiration_at_ms).toISOString()

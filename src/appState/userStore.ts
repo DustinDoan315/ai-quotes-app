@@ -42,6 +42,8 @@ type UserState = {
   onboardingCompleted: boolean;
   profile: UserProfile | null;
   authState: AuthState;
+  /** Current Supabase user id, including anonymous users. Not persisted. */
+  authUserId: string | null;
   guestId: string | null;
   guestDisplayName: string | null;
   inviteNudgeDismissed: boolean;
@@ -51,6 +53,7 @@ type UserState = {
   completeOnboarding: () => void;
   setProfile: (profile: UserProfile | null) => void;
   setAuthState: (state: AuthState) => void;
+  setAuthUserId: (userId: string | null) => void;
   setGuestDisplayName: (name: string | null) => void;
   setInviteNudgeDismissed: (dismissed: boolean) => void;
   setQuoteLanguage: (lang: QuoteLanguagePreference) => void;
@@ -59,12 +62,26 @@ type UserState = {
   ensureGuestId: () => string;
 };
 
-const initialState: Omit<UserState, "setPersona" | "completeOnboarding" | "setProfile" | "setAuthState" | "setGuestDisplayName" | "setInviteNudgeDismissed" | "setQuoteLanguage" | "setUiLanguage" | "clearUser" | "ensureGuestId"> =
+const initialState: Omit<
+  UserState,
+  | "setPersona"
+  | "completeOnboarding"
+  | "setProfile"
+  | "setAuthState"
+  | "setAuthUserId"
+  | "setGuestDisplayName"
+  | "setInviteNudgeDismissed"
+  | "setQuoteLanguage"
+  | "setUiLanguage"
+  | "clearUser"
+  | "ensureGuestId"
+> =
   {
     persona: null,
     onboardingCompleted: false,
     profile: null,
     authState: "guest",
+    authUserId: null,
     guestId: null,
     guestDisplayName: null,
     inviteNudgeDismissed: false,
@@ -84,6 +101,7 @@ export const useUserStore = create<UserState>()(
         set({ persona: createStarterPersona(), onboardingCompleted: true }),
       setProfile: (profile) => set({ profile }),
       setAuthState: (authState) => set({ authState }),
+      setAuthUserId: (authUserId) => set({ authUserId }),
       setGuestDisplayName: (guestDisplayName) => set({ guestDisplayName }),
       setInviteNudgeDismissed: (inviteNudgeDismissed) => set({ inviteNudgeDismissed }),
       setQuoteLanguage: (quoteLanguage) => set({ quoteLanguage }),

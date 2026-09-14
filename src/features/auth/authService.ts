@@ -20,10 +20,11 @@ function getProfileDisplayName(user: User): string | null {
 export const syncUserProfile = async (user: User | null) => {
   const store = useUserStore.getState();
   const { setProfile, setAuthState, setGuestDisplayName } = store;
+  useUserStore.setState({ authUserId: user?.id ?? null });
 
   if (isRevenueCatInitialized()) {
     try {
-      if (user && !user.is_anonymous) {
+      if (user) {
         await revenuecatClient.logIn(user.id);
       } else if (!user) {
         await revenuecatClient.logOut();

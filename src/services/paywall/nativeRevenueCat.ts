@@ -40,7 +40,7 @@ export function isRevenueCatInitialized(): boolean {
   return isInitialized;
 }
 
-export async function initializeRevenueCat(): Promise<void> {
+export async function initializeRevenueCat(appUserId?: string): Promise<void> {
   if (isInitialized) {
     return;
   }
@@ -62,7 +62,10 @@ export async function initializeRevenueCat(): Promise<void> {
       installRevenueCatLogHandler();
       const alreadyConfigured = await Purchases.isConfigured();
       if (!alreadyConfigured) {
-        Purchases.configure({ apiKey });
+        Purchases.configure({
+          apiKey,
+          appUserID: appUserId?.trim() || undefined,
+        });
       }
       isInitialized = true;
     } catch (error) {

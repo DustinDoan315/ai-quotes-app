@@ -30,7 +30,7 @@ export const QuoteMomentCard = ({
   dotsContent,
 }: QuoteMomentCardProps) => {
   const { t } = useTranslation();
-  const profile = useUserStore((s) => s.profile);
+  const authUserId = useUserStore((s) => s.authUserId);
   const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =
     useQuoteMomentShare();
@@ -40,7 +40,7 @@ export const QuoteMomentCard = ({
   const chrome = bgPalette ? getHomeVibeFeedChrome(bgPalette) : null;
   const baseDisplayName = item.authorDisplayName ?? authorName;
   const isMine =
-    (profile?.user_id && item.userId && item.userId === profile.user_id) ||
+    (authUserId && item.userId && item.userId === authUserId) ||
     (guestId && item.guestId && item.guestId === guestId);
   const displayName = isMine ? "Me" : baseDisplayName;
   const displayAvatar = item.authorAvatarUrl ?? authorAvatarUrl;

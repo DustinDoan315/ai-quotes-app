@@ -7,6 +7,7 @@ import { syncUserProfile } from "@/features/auth/authService";
 import {
   getCurrentUserProfile,
   getSessionSafely,
+  signInAnonymously,
   signInWithGoogle as signInWithGoogleApi,
   signInWithApple as signInWithAppleApi,
   deleteCurrentAccount,
@@ -128,7 +129,22 @@ export function useAuth(): UseAuthReturn {
     const { error } = await signOut();
     setProfile(null);
     if (!error) {
-      await syncUserProfile(null);
+      useSubscriptionStore.getState().clearSubscription();
+
+      // Keep the guest flow authenticated after sign-out. A fresh anonymous
+      // Supabase UUID also gives RevenueCat a new, isolated customer identity.
+      const guest = await signInAnonymously();
+      if (guest.error || !guest.user || !guest.session) {
+        await syncUserProfile(null);
+        setUser(null);
+        setSession(null);
+        return { error: guest.error ?? new Error("Guest session was not created") };
+      }
+
+      await syncUserProfile(guest.user);
+      await useSubscriptionStore.getState().initSubscription();
+      setUser(guest.user);
+      setSession(guest.session);
     }
     return { error };
   };

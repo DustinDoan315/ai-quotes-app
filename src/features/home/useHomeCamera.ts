@@ -111,7 +111,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     null,
   );
   const { dailyQuote, clearDailyQuote } = useQuoteStore();
-  const { profile, persona, ensureGuestId } = useUserStore();
+  const { profile, authUserId, persona, ensureGuestId } = useUserStore();
   const { showToast } = useUIStore();
   const { generate } = useGenerateQuote();
   const { isGenerating } = useAIStore();
@@ -360,8 +360,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setIsSavingPhoto(true);
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const userId = profile?.user_id ?? null;
-      const guestId = userId ? null : ensureGuestId();
+      const userId = profile?.user_id ?? authUserId;
+      const guestId = profile?.user_id ? null : ensureGuestId();
       const photoStackId = canCreatePhotoStack
         ? (photoStackIdRef.current ?? Crypto.randomUUID())
         : null;

@@ -129,7 +129,9 @@ Success response:
 Required environment:
 
 - App `.env`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-- Supabase function secrets: `OPENAI_API_KEY`
+- Supabase function secret for AI functions: `OPENAI_API_KEY`
+- Subscription function secrets: `REVENUECAT_SECRET_API_KEY` and
+  `REVENUECAT_WEBHOOK_SECRET`
 
 Common commands:
 

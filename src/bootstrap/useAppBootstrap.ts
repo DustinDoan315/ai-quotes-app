@@ -20,6 +20,7 @@ import {
 } from "@/services/paywall/nativeRevenueCat";
 import { revenuecatClient } from "@/services/paywall/revenuecatClient";
 import { checkSupabaseReachable } from "@/config/supabase";
+import type { Session } from "@supabase/supabase-js";
 import { useEffect } from "react";
 
 export const AUTH_UNAVAILABLE_MESSAGE =
@@ -65,11 +66,10 @@ function syncReminderOnBoot(): (() => void) | undefined {
   });
 }
 
-async function bootstrapRevenueCat(): Promise<void> {
-  await initializeRevenueCat();
+async function bootstrapRevenueCat(session: Session | null): Promise<void> {
+  await initializeRevenueCat(session?.user?.id);
   if (isRevenueCatInitialized()) {
-    const { session } = await getSessionSafely();
-    if (session?.user && !session.user.is_anonymous) {
+    if (session?.user) {
       await revenuecatClient.logIn(session.user.id);
     }
     await useSubscriptionStore.getState().initSubscription();
@@ -86,7 +86,7 @@ async function waitForUserStoreHydration(): Promise<void> {
   });
 }
 
-async function bootstrapAuth(): Promise<void> {
+async function bootstrapAuth(): Promise<Session> {
   await waitForUserStoreHydration();
   const { session, error: sessionError } = await getSessionSafely();
   if (sessionError) {
@@ -95,7 +95,7 @@ async function bootstrapAuth(): Promise<void> {
 
   if (session) {
     await syncUserProfile(session.user);
-    return;
+    return session;
   }
 
   const { signInAnonymously } = await import("@/services/supabase-auth");
@@ -105,6 +105,7 @@ async function bootstrapAuth(): Promise<void> {
   }
 
   await syncUserProfile(user);
+  return anonymousSession;
 }
 
 function bootstrapTelemetry(): void {
@@ -141,13 +142,6 @@ export function useAppBootstrap(): void {
         setConfigReady(true);
       });
 
-    // Auth and RevenueCat are independent startup tasks. Auth must not wait
-    // on the store SDK, otherwise the first route can render without a
-    // Supabase session while RevenueCat is still contacting Apple.
-    void bootstrapRevenueCat().catch((error: unknown) => {
-      console.error("Failed to initialize RevenueCat:", error);
-    });
-
     return () => {
       unsubscribeLanguageHydration?.();
       unsubscribeReminderHydration?.();
@@ -166,9 +160,13 @@ export function useAppBootstrap(): void {
     // A missing anonymous session is a service outage for the core guest
     // flow. Keep the app in a retryable state instead of rendering a home
     // screen that will fail later with "No active session".
+    // RevenueCat must receive the Supabase identity before its first
+    // CustomerInfo lookup. This applies to anonymous users as well as users
+    // who have linked Apple or Google.
     void bootstrapAuth()
+      .then((session) => bootstrapRevenueCat(session))
       .catch((error: unknown) => {
-        console.error("Failed to bootstrap auth:", error);
+        console.error("Failed to bootstrap auth and subscription:", error);
         if (!cancelled) setAuthError(AUTH_UNAVAILABLE_MESSAGE);
       })
       .finally(() => {

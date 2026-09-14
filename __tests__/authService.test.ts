@@ -67,14 +67,15 @@ describe("syncUserProfile", () => {
     expect(mockLogIn).not.toHaveBeenCalled();
   });
 
-  it("does not log out RevenueCat for anonymous users", async () => {
+  it("logs anonymous users into RevenueCat with the Supabase user id", async () => {
     await syncUserProfile({
       id: "anon-123",
       is_anonymous: true,
     } as never);
 
-    expect(mockLogIn).not.toHaveBeenCalled();
+    expect(mockLogIn).toHaveBeenCalledWith("anon-123");
     expect(mockLogOut).not.toHaveBeenCalled();
+    expect(mockSetState).toHaveBeenCalledWith({ authUserId: "anon-123" });
     expect(mockSetProfile).toHaveBeenCalledWith(null);
     expect(mockSetAuthState).toHaveBeenCalledWith("guest");
   });

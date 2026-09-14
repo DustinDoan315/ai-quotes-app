@@ -54,6 +54,7 @@ export default function HomeScreen() {
   const authRetrying = useBootstrapStore((s) => s.authRetrying);
   const retryAuth = useBootstrapStore((s) => s.retryAuth);
   const guestDisplayName = useUserStore((s) => s.guestDisplayName);
+  const authUserId = useUserStore((s) => s.authUserId);
   const guestId = useUserStore((s) => s.guestId);
   const ensureGuestId = useUserStore((s) => s.ensureGuestId);
   const {
@@ -124,7 +125,7 @@ export default function HomeScreen() {
   const replaceMemories = useMemoryStore((s: MemoryState) => s.replaceMemories);
 
   useEffect(() => {
-    const ownerUserId = profile?.user_id ?? null;
+    const ownerUserId = profile?.user_id ?? authUserId;
     const ownerGuestId = ownerUserId ? null : (guestId ?? ensureGuestId());
     let cancelled = false;
 
@@ -150,7 +151,7 @@ export default function HomeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [ensureGuestId, guestId, profile?.user_id, replaceMemories]);
+  }, [authUserId, ensureGuestId, guestId, profile?.user_id, replaceMemories]);
   const pastMemories = useMemo(() => {
     const target = new Date(today);
     const day = target.getDate();
@@ -228,7 +229,7 @@ export default function HomeScreen() {
     shouldShowMessageBar,
   } = useHomeFeedState({
     quoteStacks,
-    userId: profile?.user_id ?? null,
+    userId: profile?.user_id ?? authUserId,
     guestId: guestId ?? null,
   });
   const flatListExtraData = useMemo(
