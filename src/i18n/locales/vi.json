@@ -332,7 +332,10 @@
     "guestTitle": "Hồ sơ",
     "yourStyleLabel": "Phong cách của bạn",
     "displayNameHint": "Tên hiển thị (lưu trên thiết bị này)",
-    "guestSignInHint": "Đăng nhập để lưu hồ sơ và mời bạn bè."
+    "guestSignInHint": "Đăng nhập để lưu hồ sơ và mời bạn bè.",
+    "upgradeToPro": "Nâng cấp lên Pro",
+    "upgradeToProDescription": "Mở khóa câu trích dẫn, xuất ảnh và phong cách cao cấp không giới hạn.",
+    "upgradeToProHint": "Mở các gói đăng ký."
   },
   "auth": {
     "phoneNumberPlaceholder": "Số điện thoại",

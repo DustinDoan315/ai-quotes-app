@@ -333,7 +333,10 @@
     "guestTitle": "Profile",
     "yourStyleLabel": "Your style",
     "displayNameHint": "Display name (saved on this device)",
-    "guestSignInHint": "Sign in to save your profile and invite friends."
+    "guestSignInHint": "Sign in to save your profile and invite friends.",
+    "upgradeToPro": "Upgrade to Pro",
+    "upgradeToProDescription": "Unlock unlimited quotes, exports, and premium styles.",
+    "upgradeToProHint": "Opens subscription plans."
   },
   "auth": {
     "phoneNumberPlaceholder": "Phone number",

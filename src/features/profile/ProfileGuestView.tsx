@@ -3,6 +3,7 @@ import { ProfileIdentityCard } from "@/features/profile/ProfileIdentityCard";
 import { ProfileLanguageSection } from "@/features/profile/ProfileLanguageSection";
 import { ProfileLegalLinks } from "@/features/profile/ProfileLegalLinks";
 import { ProfileReminderSection } from "@/features/profile/ProfileReminderSection";
+import { ProfileUpgradeCard } from "@/features/profile/ProfileUpgradeCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -38,6 +39,7 @@ export function ProfileGuestView({
 
       <ScrollView className="flex-1 px-4 py-6" contentContainerClassName="pb-10">
         <ProfileIdentityCard />
+        <ProfileUpgradeCard />
         {persona ? (
           <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
             <Text className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">
@@ -94,4 +96,3 @@ export function ProfileGuestView({
     </View>
   );
 }
-

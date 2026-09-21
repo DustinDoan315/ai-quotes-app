@@ -11,4 +11,5 @@ export type PaywallSource =
   | "theme_gate"
   | "persona_gate"
   | "onboarding"
+  | "profile_upgrade"
   | "manual";

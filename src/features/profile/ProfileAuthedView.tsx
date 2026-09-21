@@ -9,6 +9,7 @@ import { ProfilePhoneCard } from "@/features/profile/ProfilePhoneCard";
 import { ProfileAuthedSettingsSections } from "@/features/profile/ProfileAuthedSettingsSections";
 import { ProfileDeleteAccountSection } from "@/features/profile/ProfileDeleteAccountSection";
 import { ProfileSignOutButton } from "@/features/profile/ProfileSignOutButton";
+import { ProfileUpgradeCard } from "@/features/profile/ProfileUpgradeCard";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
 import * as ImagePicker from "expo-image-picker";
@@ -252,6 +253,7 @@ export function ProfileAuthedView({
 
       <ScrollView className="flex-1 px-4 py-6" contentContainerClassName="pb-10">
         <ProfileIdentityCard />
+        <ProfileUpgradeCard />
         <ProfileAvatarRow
           avatarUrl={avatarUrl}
           avatarSaving={avatarSaving}

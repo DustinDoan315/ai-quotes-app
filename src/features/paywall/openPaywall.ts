@@ -46,3 +46,7 @@ export function openPaywall(params: PaywallOpenParams): void {
     },
   });
 }
+
+export function openProfileUpgradePaywall(): void {
+  openPaywall({ reason: "generic", source: "profile_upgrade" });
+}
