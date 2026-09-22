@@ -6,9 +6,6 @@ export type GenerateQuoteRequest = {
   base64Image?: string;
   momentContext?: string;
   language?: QuoteLanguage;
-  visionLanguage?: QuoteLanguage;
-  debugVision?: boolean;
-  model?: string;
 };
 
 export type GenerateQuoteResponse = {

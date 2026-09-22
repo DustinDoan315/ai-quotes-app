@@ -78,25 +78,19 @@ export const generateQuote = async (
   try {
     const cleanedBase64 = cleanBase64(request.base64Image);
     const language = request.language ?? getQuoteLanguage();
-    const visionLanguage = request.visionLanguage ?? "en";
 
     const payload: {
       personaTraits: string[];
       base64Image?: string;
       momentContext?: string;
       language: "vi" | "en";
-      visionLanguage?: "vi" | "en";
-      debugVision?: boolean;
     } = {
       personaTraits: request.personaTraits,
       language,
-      visionLanguage,
     };
     if (cleanedBase64) payload.base64Image = cleanedBase64;
     const momentContext = request.momentContext?.trim().slice(0, 180);
     if (momentContext) payload.momentContext = momentContext;
-    if (request.debugVision) payload.debugVision = true;
-
     const { response, data } = await callEdgeFunction("quote", payload);
 
     if (!response.ok) {

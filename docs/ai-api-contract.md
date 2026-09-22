@@ -23,9 +23,7 @@ Request body:
   "personaTraits": ["curious", "optimistic"],
   "base64Image": "optional-base64",
   "momentContext": "optional, maximum 180 characters",
-  "language": "vi",
-  "visionLanguage": "en",
-  "debugVision": false
+  "language": "vi"
 }
 ```
 
@@ -119,7 +117,7 @@ Success response:
 
 - `personaTraits` is required and normalized to 8 items max.
 - Trait strings are trimmed and limited to 40 characters.
-- Generated quotes are capped at 180 characters.
+- Source and generated quotes are validated as one non-empty sentence of at most 180 characters.
 - Explanations are capped at 320 characters.
 - Invalid or missing payload fields return `400`.
 - Missing `OPENAI_API_KEY` returns `500`.

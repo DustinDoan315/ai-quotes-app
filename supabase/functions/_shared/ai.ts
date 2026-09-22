@@ -116,6 +116,28 @@ export const validateGeneratedQuote = (
   return parsed;
 };
 
+export const parseStructuredQuote = (value: string): QuoteValidationResult => {
+  const parsed = safeParseJson<{ quote?: unknown }>(value);
+  return validateGeneratedQuote(parsed?.quote);
+};
+
+const GENERIC_QUOTE_PATTERNS = [
+  /\bstay (strong|positive|focused)\b/i,
+  /\bbelieve in yourself\b/i,
+  /\bnever give up\b/i,
+  /\bkeep going\b/i,
+  /\bfollow your dreams\b/i,
+  /\byou'?ve got this\b/i,
+  /\bthe sky is the limit\b/i,
+  /\bsuccess is a journey\b/i,
+  /\bembrace the journey\b/i,
+  /\bhãy (mạnh mẽ|cố gắng|tin vào bản thân)\b/i,
+  /\bđừng bao giờ bỏ cuộc\b/i,
+];
+
+export const shouldRetryQuote = (result: QuoteValidationResult): boolean =>
+  !result.ok || GENERIC_QUOTE_PATTERNS.some((pattern) => pattern.test(result.quote));
+
 export const cleanExplanation = (value: string): string => {
   let explanation = value.replace(/\s+/g, " ").trim();
 

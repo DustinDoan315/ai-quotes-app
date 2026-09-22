@@ -107,7 +107,6 @@ export const useGenerateQuote = () => {
         base64Image: base64Image ?? undefined,
         momentContext,
         language: quoteLanguage ?? "en",
-        visionLanguage: "en",
       });
 
       if (!response.isValid) {

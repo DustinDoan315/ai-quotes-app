@@ -1,4 +1,6 @@
 import {
+  parseStructuredQuote,
+  shouldRetryQuote,
   readQuoteInput,
   validateGeneratedQuote,
 } from "./ai.ts";
@@ -17,5 +19,17 @@ Deno.test("generated quote requires one non-empty sentence", () => {
   assert(
     !validateGeneratedQuote("One thought. Another thought.").ok,
     "multiple sentences should be rejected",
+  );
+});
+
+Deno.test("structured quote parsing keeps a valid quote and retries generic output", () => {
+  const parsed = parseStructuredQuote(
+    '{"quote":"The quiet you chose today can still carry you forward."}',
+  );
+  assert(parsed.ok, "structured quote should parse");
+  assert(!shouldRetryQuote(parsed), "specific quote should not retry");
+  assert(
+    shouldRetryQuote({ ok: true, quote: "Keep going." }),
+    "generic quote should retry",
   );
 });
