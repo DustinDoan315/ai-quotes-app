@@ -39,11 +39,11 @@
 - Produces: `readQuoteInput(value)`, `validateGeneratedQuote(value)`, and `callOpenAI()` requests with `store: false`.
 - Consumed by: all four AI Edge Functions.
 
-- [ ] Write Deno tests for valid 180-character input, rejected 181-character input, and rejected empty/multi-sentence generated output.
-- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify the new assertions fail.
-- [ ] Add the smallest shared validators, switch the default language to English, and set `store: false` in the shared Responses request type.
-- [ ] Re-run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify it passes.
-- [ ] Commit: `fix: validate AI quote inputs before generation`.
+- [x] Write Deno tests for valid 180-character input, rejected 181-character input, and rejected empty/multi-sentence generated output.
+- [x] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify the new assertions fail.
+- [x] Add the smallest shared validators, switch the default language to English, and set `store: false` in the shared Responses request type.
+- [x] Re-run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify it passes.
+- [x] Commit: `fix: validate AI quote inputs before generation`.
 
 ### Task 2: Replace the two-call quote pipeline
 
@@ -58,12 +58,12 @@
 - Produces: unchanged `{ quote, language }` quote response.
 - Consumed by: `useGenerateQuote`.
 
-- [ ] Write a Deno test for structured quote parsing and retry classification before editing quote generation.
-- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify it fails because the direct matching helper is absent.
-- [ ] Replace the detailed vision schema and second model request with one low-detail, structured multimodal quote request. Place user feeling above photo and traits in the prompt; retain one explicit retry only for a rejected output.
-- [ ] Remove unused debug-vision and vision-language client contract fields, then update the API contract.
-- [ ] Re-run the Deno test and `npm test -- --runInBand __tests__/aiClient.test.ts`.
-- [ ] Commit: `feat: generate quotes from direct moment matching`.
+- [x] Write a Deno test for structured quote parsing and retry classification before editing quote generation.
+- [x] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify it fails because the direct matching helper is absent.
+- [x] Replace the detailed vision schema and second model request with one low-detail, structured multimodal quote request. Place user feeling above photo and traits in the prompt; retain one explicit retry only for a rejected output.
+- [x] Remove unused debug-vision and vision-language client contract fields, then update the API contract.
+- [x] Re-run the Deno test and `npm test -- --runInBand __tests__/aiClient.test.ts`.
+- [x] Commit: `feat: generate quotes from direct moment matching`.
 
 ### Task 3: Protect AI extras before quota reservation
 
@@ -79,9 +79,9 @@
 
 - [ ] Write Deno tests that prove valid source input is required before reservation and valid generated rewrite/future output remains one sentence.
 - [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify the new output-validation assertions fail.
-- [ ] Validate each request before `assertAndIncrementUsage`; validate quote-producing responses before success.
-- [ ] Re-run the Deno tests and focused Jest quote-review tests.
-- [ ] Commit: `fix: protect AI extras from invalid quota use`.
+- [x] Validate each request before `assertAndIncrementUsage`; validate quote-producing responses before success.
+- [x] Re-run the Deno tests and focused Jest quote-review tests.
+- [x] Commit: `fix: protect AI extras from invalid quota use`.
 
 ### Task 4: Make generation progress meaningful
 
@@ -95,19 +95,21 @@
 - Produces: `generationStage: "idle" | "preparing" | "matching" | "writing" | "revealing"` alongside existing progress.
 - Consumed by: `HomeCameraSection` and `QuoteInkBloom`.
 
-- [ ] Write a Jest test for the pure stage-label mapping, including idle and failure reset behavior.
-- [ ] Run the test and verify it fails before the mapping exists.
-- [ ] Add the minimal stage state and a label in the existing bloom; respect the existing reduced-motion behavior and reset every exit path to idle.
-- [ ] Re-run the focused test, `npm run lint`, and the full Jest suite.
-- [ ] Commit: `feat: show quote matching progress`.
+- [x] Write a Jest test for the pure stage-label mapping, including idle and failure reset behavior.
+- [x] Run the test and verify it fails before the mapping exists.
+- [x] Add the minimal stage state and a label in the existing bloom; respect the existing reduced-motion behavior and reset every exit path to idle.
+- [x] Re-run the focused test, `npm run lint`, and the full Jest suite.
+- [x] Commit: `feat: show quote matching progress`.
 
 ### Task 5: Review and deploy
 
 **Files:**
 - Modify: `docs/ai-api-contract.md`
 
-- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts`, `npm run lint`, and `npm test -- --runInBand`.
-- [ ] Inspect the branch diff for API-shape, secret, and log regressions.
+- [x] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts`, `npm run lint`, and `npm test -- --runInBand`.
+- [x] Inspect the branch diff for API-shape, secret, and log regressions.
 - [ ] Deploy exactly `quote`, `quote-rewrite`, `quote-future`, and `quote-explain` with the linked project ref.
 - [ ] Verify deployment with `supabase functions list --project-ref nwaqdinhdtqqdcjcpxnq` and a protected invalid-request call that must return `400` without invoking OpenAI.
 - [ ] Commit documentation if deployment verification changes it: `docs: record quote matching contract`.
+
+> Deployment is blocked only by missing Supabase CLI/dashboard authentication on this machine. The existing `OPENAI_API_KEY` secret is deliberately unchanged and does not authorize management API deployments.
