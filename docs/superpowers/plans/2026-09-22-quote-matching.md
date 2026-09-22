@@ -40,9 +40,9 @@
 - Consumed by: all four AI Edge Functions.
 
 - [ ] Write Deno tests for valid 180-character input, rejected 181-character input, and rejected empty/multi-sentence generated output.
-- [ ] Run `deno test supabase/functions/_shared/ai_test.ts` and verify the new assertions fail.
+- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify the new assertions fail.
 - [ ] Add the smallest shared validators, switch the default language to English, and set `store: false` in the shared Responses request type.
-- [ ] Re-run `deno test supabase/functions/_shared/ai_test.ts` and verify it passes.
+- [ ] Re-run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify it passes.
 - [ ] Commit: `fix: validate AI quote inputs before generation`.
 
 ### Task 2: Replace the two-call quote pipeline
@@ -59,7 +59,7 @@
 - Consumed by: `useGenerateQuote`.
 
 - [ ] Write a Deno test for structured quote parsing and retry classification before editing quote generation.
-- [ ] Run the Deno test and verify it fails because the direct matching helper is absent.
+- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify it fails because the direct matching helper is absent.
 - [ ] Replace the detailed vision schema and second model request with one low-detail, structured multimodal quote request. Place user feeling above photo and traits in the prompt; retain one explicit retry only for a rejected output.
 - [ ] Remove unused debug-vision and vision-language client contract fields, then update the API contract.
 - [ ] Re-run the Deno test and `npm test -- --runInBand __tests__/aiClient.test.ts`.
@@ -77,8 +77,8 @@
 - Consumes: Task 1 `readQuoteInput` and `validateGeneratedQuote`.
 - Produces: the existing endpoint response shapes.
 
-- [ ] Write Deno tests that prove a rejected source quote never reaches the reservation boundary and valid generated rewrite/future output remains one sentence.
-- [ ] Run the Deno tests and verify they fail against the old call order.
+- [ ] Write Deno tests that prove valid source input is required before reservation and valid generated rewrite/future output remains one sentence.
+- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts` and verify the new output-validation assertions fail.
 - [ ] Validate each request before `assertAndIncrementUsage`; validate quote-producing responses before success.
 - [ ] Re-run the Deno tests and focused Jest quote-review tests.
 - [ ] Commit: `fix: protect AI extras from invalid quota use`.
@@ -106,7 +106,7 @@
 **Files:**
 - Modify: `docs/ai-api-contract.md`
 
-- [ ] Run `deno test supabase/functions/_shared/ai_test.ts`, `npm run lint`, and `npm test -- --runInBand`.
+- [ ] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts`, `npm run lint`, and `npm test -- --runInBand`.
 - [ ] Inspect the branch diff for API-shape, secret, and log regressions.
 - [ ] Deploy exactly `quote`, `quote-rewrite`, `quote-future`, and `quote-explain` with the linked project ref.
 - [ ] Verify deployment with `supabase functions list --project-ref nwaqdinhdtqqdcjcpxnq` and a protected invalid-request call that must return `400` without invoking OpenAI.

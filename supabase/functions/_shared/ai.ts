@@ -33,7 +33,7 @@ export const normalizeTraits = (traits: string[]): string[] =>
     .slice(0, MAX_TRAITS);
 
 export const normalizeLanguage = (language?: string): SupportedLanguage => {
-  if (!language) return "vi";
+  if (!language) return "en";
 
   const value = language.trim().toLowerCase();
 
@@ -78,17 +78,42 @@ export const extractOutputText = (data: unknown): string => {
   return "";
 };
 
-export const cleanQuote = (value: string): string => {
-  let quote = value
+export const cleanQuote = (value: string): string =>
+  value
     .replace(/^[\"'""'']+|[\"'""'']+$/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
-  if (quote.length > MAX_QUOTE_LENGTH) {
-    quote = quote.slice(0, MAX_QUOTE_LENGTH).trimEnd();
+export type QuoteValidationResult =
+  | { ok: true; quote: string }
+  | { ok: false; error: string };
+
+export const readQuoteInput = (value: unknown): QuoteValidationResult => {
+  if (typeof value !== "string") {
+    return { ok: false, error: "Missing quote" };
   }
 
-  return quote;
+  const quote = cleanQuote(value);
+  if (!quote) return { ok: false, error: "Missing quote" };
+  if (quote.length > MAX_QUOTE_LENGTH) {
+    return { ok: false, error: "Quote exceeds 180 characters" };
+  }
+
+  return { ok: true, quote };
+};
+
+export const validateGeneratedQuote = (
+  value: unknown,
+): QuoteValidationResult => {
+  const parsed = readQuoteInput(value);
+  if (!parsed.ok) return parsed;
+
+  const sentenceEndings = parsed.quote.match(/[.!?]+(?=\s|$)/g) ?? [];
+  if (sentenceEndings.length > 1) {
+    return { ok: false, error: "Quote must stay as one sentence" };
+  }
+
+  return parsed;
 };
 
 export const cleanExplanation = (value: string): string => {
@@ -112,6 +137,7 @@ export type OpenAIRequestBody = {
       type: string;
       name?: string;
       schema?: Record<string, unknown>;
+      strict?: boolean;
     };
   };
 };
@@ -123,7 +149,7 @@ export const callOpenAI = async (body: OpenAIRequestBody) => {
       Authorization: `Bearer ${OPENAI_API_KEY}`,
       "Content-Type": "application/json; charset=utf-8",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...body, store: false }),
   });
 };
 
