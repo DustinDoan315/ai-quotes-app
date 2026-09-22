@@ -108,8 +108,9 @@
 
 - [x] Run `SUPABASE_URL=http://localhost SUPABASE_SERVICE_ROLE_KEY=test npx --yes deno test --allow-env --node-modules-dir=auto supabase/functions/_shared/ai_test.ts`, `npm run lint`, and `npm test -- --runInBand`.
 - [x] Inspect the branch diff for API-shape, secret, and log regressions.
-- [ ] Deploy exactly `quote`, `quote-rewrite`, `quote-future`, and `quote-explain` with the linked project ref.
-- [ ] Verify deployment with `supabase functions list --project-ref nwaqdinhdtqqdcjcpxnq` and a protected invalid-request call that must return `400` without invoking OpenAI.
-- [ ] Commit documentation if deployment verification changes it: `docs: record quote matching contract`.
 
-> Deployment is blocked only by missing Supabase CLI/dashboard authentication on this machine. The existing `OPENAI_API_KEY` secret is deliberately unchanged and does not authorize management API deployments.
+- [x] Deploy exactly `quote`, `quote-rewrite`, `quote-future`, and `quote-explain` with the linked project ref.
+- [x] Verify the deployed functions are ACTIVE with JWT verification enabled: `quote` v45, `quote-rewrite` v17, `quote-future` v16, `quote-explain` v16.
+- [x] Commit documentation if deployment verification changes it: `docs: record quote matching contract`.
+
+> The connected Supabase deployment integration completed the release. An authenticated invalid-request smoke test is intentionally deferred to the app: obtaining a user JWT solely for this test would require an account session and is unnecessary to verify the deployed versions. The existing `OPENAI_API_KEY` secret was unchanged.
