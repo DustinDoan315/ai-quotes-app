@@ -87,6 +87,10 @@
     "savedToMemories": "Saved to your memories",
     "generating": {
       "label": "Crafting your vibe...",
+      "preparing": "Preparing your moment...",
+      "matching": "Finding what fits...",
+      "writing": "Writing your reflection...",
+      "revealing": "Revealing your quote...",
       "takePhotoPrompt": "Take a photo to get your vibe"
     },
     "captureFlow": {

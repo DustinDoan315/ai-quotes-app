@@ -25,6 +25,10 @@ import { compressImageForUpload } from "@/utils/imageProcessor";
 import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
+import {
+  getGenerationResultStage,
+  type GenerationStage,
+} from "@/features/home/generationStage";
 import i18n from "@/i18n";
 
 const EXPO_ZOOM_MIN = 0;
@@ -94,6 +98,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [facing, setFacing] = useState<CameraFacing>("back");
   const [zoom, setZoom] = useState(() => factorToZoom(1));
   const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStage, setGenerationStage] =
+    useState<GenerationStage>("idle");
   const [quoteFontSize, setQuoteFontSize] = useState<
     "small" | "medium" | "large"
   >("medium");
@@ -108,6 +114,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const zoomRef = useRef(factorToZoom(1));
   const zoomStartRef = useRef(factorToZoom(1));
   const generationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
+  const generationStageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const { dailyQuote, clearDailyQuote } = useQuoteStore();
@@ -131,6 +140,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       if (generationIntervalRef.current) {
         clearInterval(generationIntervalRef.current);
         generationIntervalRef.current = null;
+      }
+      if (generationStageTimeoutRef.current) {
+        clearTimeout(generationStageTimeoutRef.current);
+        generationStageTimeoutRef.current = null;
       }
     };
   }, []);
@@ -214,6 +227,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
+    setGenerationStage("idle");
     setMomentContext("");
     clearDailyQuote();
   }
@@ -232,6 +246,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       clearInterval(generationIntervalRef.current);
       generationIntervalRef.current = null;
     }
+    if (generationStageTimeoutRef.current) {
+      clearTimeout(generationStageTimeoutRef.current);
+      generationStageTimeoutRef.current = null;
+    }
+    setGenerationStage("preparing");
     setGenerationProgress(0.08);
     generationIntervalRef.current = setInterval(() => {
       setGenerationProgress((current) => {
@@ -251,6 +270,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           generationIntervalRef.current = null;
         }
         setGenerationProgress(0);
+        setGenerationStage("idle");
         showToast(
           err instanceof Error ? err.message : "Failed to process image",
           "error",
@@ -258,11 +278,21 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
     }
+    setGenerationStage("matching");
+    generationStageTimeoutRef.current = setTimeout(() => {
+      setGenerationStage("writing");
+    }, 550);
     const quote = await generate(base64, enforceCooldown, momentContext);
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
       generationIntervalRef.current = null;
     }
+    if (generationStageTimeoutRef.current) {
+      clearTimeout(generationStageTimeoutRef.current);
+      generationStageTimeoutRef.current = null;
+    }
+    const resultStage = getGenerationResultStage(Boolean(quote));
+    setGenerationStage(resultStage);
     if (!quote) {
       setGenerationProgress(0);
       return;
@@ -273,6 +303,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setTimeout(resolve, INK_BLOOM_SETTLE_MS);
     });
     setGenerationProgress(0);
+    setGenerationStage("idle");
     showToast("Quote generated", "success");
   }
 
@@ -337,6 +368,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     clearDailyQuote();
     setHideQuote(true);
     setGenerationProgress(0);
+    setGenerationStage("idle");
   }
 
   async function handleSavePhoto() {
@@ -422,6 +454,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
+      setGenerationStage("idle");
       setMomentContext("");
       showToast(i18n.t("camera.success.photoSaved"), "success");
       onPhotoSaved?.();
@@ -548,6 +581,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     finishPhotoStack,
     isGenerating,
     generationProgress,
+    generationStage,
     quoteFontSize,
     quoteColorScheme,
     setQuoteFontSize,

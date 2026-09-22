@@ -86,6 +86,10 @@
     "savedToMemories": "Đã lưu vào kỷ niệm",
     "generating": {
       "label": "Đang tạo câu trích dẫn...",
+      "preparing": "Đang chuẩn bị khoảnh khắc...",
+      "matching": "Đang tìm điều phù hợp...",
+      "writing": "Đang viết câu phản chiếu...",
+      "revealing": "Đang hiện câu trích dẫn...",
       "takePhotoPrompt": "Chụp ảnh để nhận câu trích dẫn của bạn"
     },
     "captureFlow": {

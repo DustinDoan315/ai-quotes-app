@@ -27,6 +27,8 @@ export interface QuoteInkBloomProps {
   isComplete: boolean;
   /** Quote text shown after settle completes */
   quoteText?: string;
+  /** Short, user-visible generation stage */
+  statusLabel?: string;
 }
 
 const { width: SCREEN_W } = Dimensions.get("window");
@@ -48,6 +50,7 @@ export function QuoteInkBloom({
   progress,
   isComplete,
   quoteText,
+  statusLabel,
 }: QuoteInkBloomProps) {
   // ── Phase 1: drop ──────────────────────────────────────────────────────────
   const dropY = useSharedValue(-80);
@@ -594,6 +597,7 @@ export function QuoteInkBloom({
             <Text style={styles.quoteText}>{quoteText}</Text>
           </Animated.View>
         ) : null}
+        {statusLabel ? <Text style={styles.statusLabel}>{statusLabel}</Text> : null}
       </View>
 
       {/* Phase 3: progress bar with glowing tip */}
@@ -682,6 +686,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     lineHeight: 28,
+  },
+  statusLabel: {
+    position: "absolute",
+    bottom: 52,
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 13,
+    fontWeight: "600",
   },
   progressTrack: {
     position: "absolute",

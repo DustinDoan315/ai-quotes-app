@@ -4,6 +4,10 @@ import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradien
 import { getFeedCardWidth } from "@/features/quotes/feedCardSizing";
 import { PinchGesture } from "@/features/home/useHomeCamera";
 import {
+  getGenerationStageLabelKey,
+  type GenerationStage,
+} from "@/features/home/generationStage";
+import {
   MAX_REWRITE_REVIEW_CHARACTERS,
   validateEditableQuote,
   validateRewriteReviewQuote,
@@ -62,6 +66,7 @@ export type HomeCameraSectionProps = {
   dailyQuoteText: string | null;
   isGenerating: boolean;
   generationProgress: number;
+  generationStage: GenerationStage;
   quoteFontSize: QuoteFontSize;
   quoteColorScheme: QuoteColor;
   onChangeQuoteFontSize: (size: QuoteFontSize) => void;
@@ -115,6 +120,7 @@ export const HomeCameraSection = ({
   dailyQuoteText,
   isGenerating,
   generationProgress,
+  generationStage,
   quoteFontSize,
   quoteColorScheme,
   onChangeQuoteFontSize,
@@ -149,6 +155,7 @@ export const HomeCameraSection = ({
   onCancelPendingQuote,
 }: HomeCameraSectionProps) => {
   const { t } = useTranslation();
+  const generationStageLabelKey = getGenerationStageLabelKey(generationStage);
   const [shellSize, setShellSize] = useState<{
     width: number;
     height: number;
@@ -684,6 +691,11 @@ export const HomeCameraSection = ({
                     progress={generationProgress}
                     isComplete={!isGenerating && generationProgress >= 1}
                     quoteText={dailyQuoteText ?? undefined}
+                    statusLabel={
+                      generationStageLabelKey
+                        ? t(generationStageLabelKey)
+                        : undefined
+                    }
                   />
                 ) : null}
                 {selectedImageUri && !dailyQuoteText && !isGenerating ? (
