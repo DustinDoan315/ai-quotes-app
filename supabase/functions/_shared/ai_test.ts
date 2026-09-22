@@ -22,6 +22,13 @@ Deno.test("generated quote requires one non-empty sentence", () => {
   );
 });
 
+Deno.test("generated quote rejects unsafe content", () => {
+  assert(
+    !validateGeneratedQuote("You need medical advice.").ok,
+    "unsafe content should be rejected server-side",
+  );
+});
+
 Deno.test("structured quote parsing keeps a valid quote and retries generic output", () => {
   const parsed = parseStructuredQuote(
     '{"quote":"The quiet you chose today can still carry you forward."}',

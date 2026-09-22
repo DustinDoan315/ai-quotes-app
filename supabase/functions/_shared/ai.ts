@@ -88,6 +88,19 @@ export type QuoteValidationResult =
   | { ok: true; quote: string }
   | { ok: false; error: string };
 
+const FORBIDDEN_QUOTE_PATTERNS = [
+  /\bkill\b/i,
+  /\bsuicid(e|al)\b/i,
+  /\bself[- ]harm\b/i,
+  /\bhate speech\b/i,
+  /\bfinancial advice\b/i,
+  /\blegal advice\b/i,
+  /\bmedical advice\b/i,
+  /\bdiagnos(e|is|ed)\b/i,
+  /\bsexually explicit\b/i,
+  /\bpornograph/i,
+];
+
 export const readQuoteInput = (value: unknown): QuoteValidationResult => {
   if (typeof value !== "string") {
     return { ok: false, error: "Missing quote" };
@@ -111,6 +124,9 @@ export const validateGeneratedQuote = (
   const sentenceEndings = parsed.quote.match(/[.!?]+(?=\s|$)/g) ?? [];
   if (sentenceEndings.length > 1) {
     return { ok: false, error: "Quote must stay as one sentence" };
+  }
+  if (FORBIDDEN_QUOTE_PATTERNS.some((pattern) => pattern.test(parsed.quote))) {
+    return { ok: false, error: "Quote contains forbidden content" };
   }
 
   return parsed;

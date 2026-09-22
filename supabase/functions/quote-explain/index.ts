@@ -7,6 +7,7 @@ import {
   jsonResponse,
   normalizeLanguage,
   normalizeTraits,
+  readQuoteInput,
   requireAuth,
 } from "../_shared/ai.ts";
 import { UsageLimitError, assertAndIncrementUsage, usageLimitResponse } from "../_shared/usage.ts";
@@ -54,18 +55,14 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
-    await assertAndIncrementUsage(authResult.userId);
-
     if (!OPENAI_API_KEY) {
       return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
 
     const body = (await req.json()) as ExplainQuoteRequestBody;
-    const quote = typeof body.quote === "string" ? body.quote.trim() : "";
-
-    if (!quote) {
-      return jsonResponse({ error: "Missing quote" }, 400);
-    }
+    const quoteInput = readQuoteInput(body.quote);
+    if (!quoteInput.ok) return jsonResponse({ error: quoteInput.error }, 400);
+    const quote = quoteInput.quote;
 
     if (!Array.isArray(body.personaTraits) || body.personaTraits.length === 0) {
       return jsonResponse({ error: "Missing persona traits" }, 400);
@@ -79,6 +76,8 @@ Deno.serve(async (req: Request) => {
 
     const language = normalizeLanguage(body.language);
     const traitsDescription = normalizedTraits.join(", ");
+
+    await assertAndIncrementUsage(authResult.userId);
 
     const response = await callOpenAI({
       model: "gpt-4.1-mini",

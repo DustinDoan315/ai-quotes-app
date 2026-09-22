@@ -1,12 +1,13 @@
 import {
   OPENAI_API_KEY,
   callOpenAI,
-  cleanQuote,
   extractOutputText,
   jsonResponse,
   normalizeLanguage,
   normalizeTraits,
+  readQuoteInput,
   requireAuth,
+  validateGeneratedQuote,
 } from "../_shared/ai.ts";
 import { UsageLimitError, assertAndIncrementUsage, usageLimitResponse } from "../_shared/usage.ts";
 
@@ -53,18 +54,14 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
-    await assertAndIncrementUsage(authResult.userId);
-
     if (!OPENAI_API_KEY) {
       return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
 
     const body = (await req.json()) as FutureQuoteRequestBody;
-    const quote = typeof body.quote === "string" ? body.quote.trim() : "";
-
-    if (!quote) {
-      return jsonResponse({ error: "Missing quote" }, 400);
-    }
+    const quoteInput = readQuoteInput(body.quote);
+    if (!quoteInput.ok) return jsonResponse({ error: quoteInput.error }, 400);
+    const quote = quoteInput.quote;
 
     if (!Array.isArray(body.personaTraits) || body.personaTraits.length === 0) {
       return jsonResponse({ error: "Missing persona traits" }, 400);
@@ -78,6 +75,8 @@ Deno.serve(async (req: Request) => {
 
     const language = normalizeLanguage(body.language);
     const traitsDescription = normalizedTraits.join(", ");
+
+    await assertAndIncrementUsage(authResult.userId);
 
     const response = await callOpenAI({
       model: "gpt-4.1-mini",
@@ -115,10 +114,10 @@ Return only the quote.
       throw new Error("Empty future quote generated");
     }
 
-    return jsonResponse({
-      quote: cleanQuote(rawQuote),
-      language,
-    });
+    const generatedQuote = validateGeneratedQuote(rawQuote);
+    if (!generatedQuote.ok) throw new Error(generatedQuote.error);
+
+    return jsonResponse({ quote: generatedQuote.quote, language });
   } catch (error) {
     if (error instanceof UsageLimitError) return usageLimitResponse();
     console.error("Unhandled error in quote-future function:", error);

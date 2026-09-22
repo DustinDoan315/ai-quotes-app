@@ -1,6 +1,6 @@
 # AI API Contract
 
-Last updated: 2026-03-30
+Last updated: 2026-09-22
 
 ## Current Backend Layout
 
@@ -117,7 +117,7 @@ Success response:
 
 - `personaTraits` is required and normalized to 8 items max.
 - Trait strings are trimmed and limited to 40 characters.
-- Source and generated quotes are validated as one non-empty sentence of at most 180 characters.
+- Source quotes are non-empty and at most 180 characters; generated quotes must also be one sentence.
 - Explanations are capped at 320 characters.
 - Invalid or missing payload fields return `400`.
 - Missing `OPENAI_API_KEY` returns `500`.

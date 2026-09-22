@@ -2,12 +2,13 @@ import {
   MAX_QUOTE_LENGTH,
   OPENAI_API_KEY,
   callOpenAI,
-  cleanQuote,
   extractOutputText,
   jsonResponse,
   normalizeLanguage,
   normalizeTraits,
+  readQuoteInput,
   requireAuth,
+  validateGeneratedQuote,
 } from "../_shared/ai.ts";
 import { UsageLimitError, assertAndIncrementUsage, usageLimitResponse } from "../_shared/usage.ts";
 
@@ -30,11 +31,6 @@ const normalizeForComparison = (value: string): string =>
     .replace(/["']/g, "")
     .replace(/[^\p{L}\p{N}]+/gu, "")
     .trim();
-
-const hasMultipleSentences = (value: string): boolean => {
-  const sentenceEndings = value.match(/[.!?]+(?=\s|$)/g) ?? [];
-  return /\r|\n/.test(value) || sentenceEndings.length > 1;
-};
 
 const getToneInstruction = (
   tone: RewriteTone,
@@ -100,18 +96,14 @@ Deno.serve(async (req: Request) => {
   if (authResult instanceof Response) return authResult;
 
   try {
-    await assertAndIncrementUsage(authResult.userId);
-
     if (!OPENAI_API_KEY) {
       return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
     }
 
     const body = (await req.json()) as RewriteQuoteRequestBody;
-    const quote = typeof body.quote === "string" ? body.quote.trim() : "";
-
-    if (!quote) {
-      return jsonResponse({ error: "Missing quote" }, 400);
-    }
+    const quoteInput = readQuoteInput(body.quote);
+    if (!quoteInput.ok) return jsonResponse({ error: quoteInput.error }, 400);
+    const quote = quoteInput.quote;
 
     if (!Array.isArray(body.personaTraits) || body.personaTraits.length === 0) {
       return jsonResponse({ error: "Missing persona traits" }, 400);
@@ -130,6 +122,8 @@ Deno.serve(async (req: Request) => {
     const language = normalizeLanguage(body.language);
     const traitsDescription = normalizedTraits.join(", ");
     const toneInstruction = getToneInstruction(body.tone, language);
+
+    await assertAndIncrementUsage(authResult.userId);
 
     const response = await callOpenAI({
       model: "gpt-4.1-mini",
@@ -168,11 +162,9 @@ Return only the rewritten quote.
       throw new Error("Empty rewritten quote generated");
     }
 
-    const cleanedQuote = cleanQuote(rawQuote);
-
-    if (hasMultipleSentences(cleanedQuote)) {
-      throw new Error("Rewrite must stay as one sentence");
-    }
+    const generatedQuote = validateGeneratedQuote(rawQuote);
+    if (!generatedQuote.ok) throw new Error(generatedQuote.error);
+    const cleanedQuote = generatedQuote.quote;
 
     if (
       normalizeForComparison(cleanedQuote) === normalizeForComparison(quote)
