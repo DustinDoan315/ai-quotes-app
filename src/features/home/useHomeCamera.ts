@@ -106,7 +106,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [quoteColorScheme, setQuoteColorScheme] = useState<
     "light" | "amber" | "pink"
   >("light");
-  const [momentContext, setMomentContext] = useState("");
   const cameraRef = useRef<CameraView | null>(null);
   const isCapturingRef = useRef(false);
   const isSavingPhotoRef = useRef(false);
@@ -228,7 +227,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
     setGenerationStage("idle");
-    setMomentContext("");
     clearDailyQuote();
   }
 
@@ -282,7 +280,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     generationStageTimeoutRef.current = setTimeout(() => {
       setGenerationStage("writing");
     }, 550);
-    const quote = await generate(base64, enforceCooldown, momentContext);
+    const quote = await generate(base64, enforceCooldown);
     if (generationIntervalRef.current) {
       clearInterval(generationIntervalRef.current);
       generationIntervalRef.current = null;
@@ -348,8 +346,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setPhotoOrientation("portrait");
       clearDailyQuote();
       setHideQuote(true);
-      setMomentContext("");
       setHasSavedCurrentPhoto(false);
+      void generateForImage(photo.uri, true);
     } catch (error) {
       console.error("Failed to capture image", error);
       showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
@@ -359,7 +357,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     }
   }
 
-  async function handleGenerateAI() {
+  async function handleRetryGeneration() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await generateForImage(selectedImageUri ?? null, true, selectedImageBase64);
   }
@@ -455,7 +453,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
       setGenerationStage("idle");
-      setMomentContext("");
       showToast(i18n.t("camera.success.photoSaved"), "success");
       onPhotoSaved?.();
 
@@ -517,7 +514,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       clearDailyQuote();
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
-      setMomentContext("");
+      void generateForImage(picked.uri, true);
     } catch (error) {
       console.error("Failed to pick image from gallery", error);
       showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
@@ -573,7 +570,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     handleZoomPreset,
     handleToggleFacing,
     handleCapture,
-    handleGenerateAI,
+    handleRetryGeneration,
     handleClearQuote,
     handleSavePhoto,
     handleOpenGallery,
@@ -586,8 +583,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     quoteColorScheme,
     setQuoteFontSize,
     setQuoteColorScheme,
-    momentContext,
-    setMomentContext,
     handleSubmitQuoteEdit,
     handleInvalidQuoteEdit,
     dailyQuoteText: dailyQuote?.text ?? null,

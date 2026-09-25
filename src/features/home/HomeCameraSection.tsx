@@ -71,9 +71,7 @@ export type HomeCameraSectionProps = {
   quoteColorScheme: QuoteColor;
   onChangeQuoteFontSize: (size: QuoteFontSize) => void;
   onChangeQuoteColorScheme: (color: QuoteColor) => void;
-  momentContext: string;
-  onMomentContextChange: (value: string) => void;
-  onGenerateReflection: () => void;
+  onRetryGeneration: () => void;
   captureRefView: React.RefObject<View | null>;
   watermarkForExport: boolean;
   onSubmitQuoteEdit: (text: string) => void;
@@ -125,9 +123,7 @@ export const HomeCameraSection = ({
   quoteColorScheme,
   onChangeQuoteFontSize,
   onChangeQuoteColorScheme,
-  momentContext,
-  onMomentContextChange,
-  onGenerateReflection,
+  onRetryGeneration,
   captureRefView,
   watermarkForExport,
   onSubmitQuoteEdit,
@@ -698,50 +694,24 @@ export const HomeCameraSection = ({
                     }
                   />
                 ) : null}
-                {selectedImageUri && !dailyQuoteText && !isGenerating ? (
+                {selectedImageUri &&
+                !dailyQuoteText &&
+                !isGenerating &&
+                generationProgress === 0 ? (
                   <View className="absolute inset-x-0 bottom-0 z-[8] border-t border-white/15 bg-black/80 px-4 pb-4 pt-3">
                     <Text className="text-sm font-semibold text-white">
-                      {t("home.captureFlow.contextTitle")}
+                      {t("home.captureFlow.retryTitle")}
                     </Text>
                     <Text className="mt-1 text-xs leading-4 text-white/75">
-                      {t("home.captureFlow.contextSubtitle")}
+                      {t("home.captureFlow.retrySubtitle")}
                     </Text>
-                    <TextInput
-                      value={momentContext}
-                      onChangeText={onMomentContextChange}
-                      maxLength={180}
-                      placeholder={t("home.captureFlow.contextPlaceholder")}
-                      placeholderTextColor="rgba(255,255,255,0.52)"
-                      className="mt-3 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white"
-                      returnKeyType="done"
-                    />
-                    <View className="mt-2 flex-row flex-wrap gap-2">
-                      {["peaceful", "joyful", "proud", "tender"].map((mood) => (
-                        <Pressable
-                          key={mood}
-                          onPress={() =>
-                            onMomentContextChange(
-                              t(`home.captureFlow.moods.${mood}`),
-                            )
-                          }
-                          className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5"
-                          style={({ pressed }) => ({
-                            opacity: pressed ? 0.75 : 1,
-                          })}
-                        >
-                          <Text className="text-xs font-medium text-white">
-                            {t(`home.captureFlow.moods.${mood}`)}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
                     <Pressable
-                      onPress={onGenerateReflection}
+                      onPress={onRetryGeneration}
                       className="mt-3 items-center rounded-xl bg-white px-4 py-3"
                       style={({ pressed }) => ({ opacity: pressed ? 0.86 : 1 })}
                     >
                       <Text className="text-sm font-bold text-black">
-                        {t("home.captureFlow.generate")}
+                        {t("home.captureFlow.retry")}
                       </Text>
                     </Pressable>
                   </View>

@@ -14,7 +14,7 @@ This repository does not currently use a separate `/backend` folder. Supabase fu
 
 ### `POST /functions/v1/quote`
 
-Generates a daily motivational quote from persona traits, an optional image, and an optional one-line feeling.
+Generates a daily motivational quote from persona traits, an optional image, and an optional one-line feeling. The home flow omits the feeling on the first pass; when `momentContext` is absent, the service infers a fitting mood from the photo and persona traits, using the photo as the primary content signal and the traits only for voice.
 
 Request body:
 
@@ -121,6 +121,8 @@ Success response:
 - Explanations are capped at 320 characters.
 - Invalid or missing payload fields return `400`.
 - Missing `OPENAI_API_KEY` returns `500`.
+- `momentContext` remains optional for backwards compatibility. It is honored when supplied, but it is not required for initial quote generation.
+- `quote-rewrite` is the optional post-generation path for changing the quote mood to calm, funny, or savage; it is not part of the initial capture flow.
 
 ## Local Setup
 

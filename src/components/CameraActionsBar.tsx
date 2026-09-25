@@ -58,11 +58,8 @@ export function CameraActionsBar({
             })}
           >
             {isSaving ? (
-              <View className="w-full flex-row items-center justify-center">
+              <View className="w-full items-center justify-center">
                 <ActivityIndicator size="small" color="#ffffff" />
-                <Text className="ml-2 text-center text-sm font-semibold text-white">
-                  {t("camera.savingButton")}
-                </Text>
               </View>
             ) : (
               <Text className="text-center text-sm font-semibold text-white">
@@ -98,9 +95,6 @@ export function CameraActionsBar({
             })}
           >
             <Ionicons name="share-outline" size={21} color="#ffffff" />
-            <Text className="mt-1 w-full text-center text-[10px] font-semibold text-white">
-              {t("camera.shareImageButton")}
-            </Text>
           </Pressable>
         ) : (
           <Pressable

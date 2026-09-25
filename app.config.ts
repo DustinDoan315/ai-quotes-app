@@ -22,6 +22,23 @@ function getGoogleIosUrlScheme(): string | undefined {
 const googleIosUrlScheme = getGoogleIosUrlScheme();
 
 const googleSigninPlugin = "@react-native-google-signin/google-signin";
+const inviteWebOrigin = (
+  process.env.EXPO_PUBLIC_INVITE_WEB_ORIGIN ??
+  "https://inkly-web-taupe.vercel.app"
+).replace(/\/$/, "");
+const inviteWebHost = new URL(inviteWebOrigin).hostname;
+const inviteAppLink = {
+  action: "VIEW",
+  autoVerify: true,
+  category: ["BROWSABLE", "DEFAULT"],
+  data: [
+    {
+      scheme: "https",
+      host: inviteWebHost,
+      pathPrefix: "/invite",
+    },
+  ],
+};
 const plugins = [...(expo.plugins ?? []).filter((p: unknown) => {
   if (p === "expo-dev-client" || (p as unknown[])?.[0] === "expo-dev-client") {
     return false;
@@ -48,6 +65,22 @@ if (googleIosUrlScheme) {
 module.exports = {
   expo: {
     ...expo,
+    ios: {
+      ...expo.ios,
+      associatedDomains: [
+        ...new Set([
+          ...(expo.ios?.associatedDomains ?? []),
+          `applinks:${inviteWebHost}`,
+        ]),
+      ],
+    },
+    android: {
+      ...expo.android,
+      intentFilters: [
+        ...(expo.android?.intentFilters ?? []),
+        inviteAppLink,
+      ],
+    },
     plugins,
     extra: {
       ...(expo.extra ?? {}),

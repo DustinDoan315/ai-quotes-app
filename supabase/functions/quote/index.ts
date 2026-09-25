@@ -28,7 +28,7 @@ type SupportedLanguage = "vi" | "en";
 
 const CREATIVE_MODEL = "gpt-4.1";
 const GENERATION_ERROR_MESSAGE =
-  "Quote couldn't be generated. Tap Generate to try again.";
+  "Quote couldn't be generated. Tap Try again to retry.";
 
 const normalizeMomentContext = (value: unknown): string =>
   typeof value === "string" ? value.trim().slice(0, 180) : "";
@@ -37,12 +37,12 @@ const buildSystemPrompt = (language: SupportedLanguage): string =>
   language === "en"
     ? `Write one personal, emotionally precise quote in English for a photo journal.
 
-Signal priority: the user's stated feeling is authoritative; use the photo only for one concrete supporting detail; use persona traits only to shape voice.
+If the user provides a stated feeling, honor it. When no stated feeling is provided, infer a fitting emotional mood from the photo and persona traits. Use the photo as the primary content signal; use persona traits only to shape voice.
 
 Return one natural complete sentence of at most 180 characters. Do not describe the image literally or mention a photo, camera, or scene. Avoid slogans, clichés, generic advice, profanity, and quotation marks.`
     : `Viết một quote cá nhân, giàu cảm xúc bằng tiếng Việt cho nhật ký ảnh.
 
-Thứ tự ưu tiên: cảm xúc người dùng tự nói là quan trọng nhất; chỉ dùng ảnh để lấy một chi tiết cụ thể hỗ trợ; traits chỉ định hình giọng văn.
+Nếu người dùng nêu cảm xúc, hãy tôn trọng cảm xúc đó. Khi không có cảm xúc được nêu, hãy tự suy ra một tâm trạng phù hợp từ bức ảnh và các traits. Dùng bức ảnh làm tín hiệu nội dung chính; chỉ dùng traits để định hình giọng văn.
 
 Chỉ trả về một câu tự nhiên, hoàn chỉnh, tối đa 180 ký tự. Không mô tả ảnh theo nghĩa đen hoặc nhắc đến ảnh, camera, hay khung cảnh. Tránh khẩu hiệu, sáo rỗng, lời khuyên chung chung, thô tục và dấu ngoặc kép.`;
 
@@ -57,7 +57,7 @@ const buildInput = (
     content: [
       {
         type: "input_text",
-        text: `User's stated feeling (primary signal): ${momentContext || "none"}\nPersona traits (voice only): ${traitsDescription}\n${retryInstruction}`,
+        text: `User's stated feeling (optional): ${momentContext || "none"}\nPersona traits (voice only): ${traitsDescription}\n${retryInstruction}`,
       },
       ...(image
         ? [

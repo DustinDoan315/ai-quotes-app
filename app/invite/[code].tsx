@@ -1,10 +1,11 @@
 import { useUserStore } from "@/appState/userStore";
+import { APP_STORE_URL } from "@/config/appLinks";
 import { addFriend, resolveInviteCode } from "@/services/inviteApi";
 import { captureMessage } from "@/services/analytics/sentry";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type InviteStatus = "loading" | "success" | "error" | "invalid" | "need_login" | "self";
@@ -44,6 +45,12 @@ export default function InviteByCodeScreen() {
   const [status, setStatus] = useState<InviteStatus>("loading");
 
   useEffect(() => {
+    if (Platform.OS !== "web") return;
+    window.location.replace(APP_STORE_URL);
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
     let cancelled = false;
     const rawCode = code?.trim();
     if (!rawCode) {
@@ -64,6 +71,7 @@ export default function InviteByCodeScreen() {
   }, [code, profile?.user_id]);
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
     if (status === "success" || status === "invalid" || status === "self") {
       const t = setTimeout(() => router.replace("/(tabs)/friends" as never), 1500);
       return () => clearTimeout(t);
@@ -75,6 +83,19 @@ export default function InviteByCodeScreen() {
   }, [status, router]);
 
   const returnTo = code ? `/invite/${code}` : "/(tabs)";
+
+  if (Platform.OS === "web") {
+    return (
+      <View
+        className="flex-1 items-center justify-center bg-black px-6"
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text className="mt-4 text-center text-white/80">
+          Opening Inkly…
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View

@@ -85,6 +85,23 @@ describe("AI client contract", () => {
     );
   });
 
+  it("omits momentContext when generating from the photo alone", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ quote: "The quiet in this moment is enough." }),
+    });
+
+    await generateQuote({
+      personaId: "guest",
+      personaTraits: ["curious", "optimistic"],
+      language: "en",
+    });
+
+    const [, request] = (global.fetch as jest.Mock).mock.calls[0];
+    const body = JSON.parse(request.body as string) as Record<string, unknown>;
+    expect(body).not.toHaveProperty("momentContext");
+  });
+
   it("returns a server error reason for quote-rewrite", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,

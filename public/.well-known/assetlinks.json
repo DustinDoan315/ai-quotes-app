@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.dustindoan.inkly",
+      "sha256_cert_fingerprints": [
+        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C",
+        "14:BB:66:4C:FB:93:80:C9:3A:33:96:B5:58:24:C2:0D:70:CD:32:CA:BE:56:6D:E7:E4:D4:6F:2B:BC:48:80:2F"
+      ]
+    }
+  }
+]

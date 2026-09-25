@@ -23,8 +23,6 @@
       "finish": "Done"
     },
     "saveButton": "Save memory",
-    "savingButton": "Saving memory…",
-    "shareImageButton": "Share image",
     "firstSaveReminder": {
       "title": "Keep this feeling close?",
       "body": "Turn on a gentle daily reminder after your first saved memory.",
@@ -94,21 +92,14 @@
       "takePhotoPrompt": "Take a photo to get your vibe"
     },
     "captureFlow": {
-      "contextTitle": "What did this moment feel like?",
-      "contextSubtitle": "Optional — a few words make the reflection more personal.",
-      "contextPlaceholder": "Quiet, proud, relieved…",
-      "moods": {
-        "peaceful": "Peaceful",
-        "joyful": "Joyful",
-        "proud": "Proud",
-        "tender": "Tender"
-      },
-      "generate": "Generate reflection",
+      "retryTitle": "We couldn’t create the quote yet",
+      "retrySubtitle": "Inkly will find a mood from your photo. Try again when you’re ready.",
+      "retry": "Try again",
       "editAndStyle": "Edit & style",
       "hideEditing": "Done editing"
     },
     "aiTools": {
-      "title": "AI tools",
+      "title": "Rewrite mood",
       "explain": "Explain",
       "future": "Next",
       "funny": "Funny",
@@ -388,7 +379,7 @@
     "qrModalTitle": "Your invite QR",
     "qrModalBody": "Let a friend scan this to connect.",
     "qrModalClose": "Close invite QR",
-    "inviteMessage": "Join me on {{appName}}! Get your own AI daily quote.\n\n{{url}}",
+    "inviteMessage": "Join me on {{appName}}! Open this link to accept my invite. If you don’t have Inkly yet, it will take you to the App Store.\n\n{{url}}",
     "inviteAcceptConnecting": "Connecting…",
     "inviteAcceptSuccess": "You’re now connected. Taking you to Friends…",
     "inviteAcceptInvalid": "Invalid or expired invite. Going to Friends…",
@@ -409,7 +400,7 @@
   "onboarding": {
     "welcome": {
       "headline": "Turn a photo into a memory.",
-      "subheadline": "Capture a moment, add a feeling if you want, and keep the reflection that lands.",
+      "subheadline": "Capture a moment and let Inkly find the feeling, then keep the reflection that lands.",
       "previewQuote": "\"A small, true thing— carried gently— is enough.\"",
       "previewAttribution": "A MOMENT, KEPT",
       "progress": "1 OF 3",
@@ -433,7 +424,7 @@
       "compose": {
         "sectionLabel": "HOW IT WORKS · 2 OF 3",
         "title": "Inkly composes for you",
-        "subtitle": "Each morning, one quote — written from your traits, today's mood, and the season.",
+        "subtitle": "Each morning, one quote — written from your photo, your traits, and the mood Inkly finds.",
         "cta": "Next",
         "previewQuote": "\"Today bends toward the calm you carry.\"",
         "previewTag": "COMPOSING · TODAY",
@@ -442,10 +433,10 @@
       "save": {
         "sectionLabel": "STEP 3 OF 3",
         "title": "Make it yours",
-        "subtitle": "Add a feeling if you want, edit the reflection, then save the memory or share the image.",
+        "subtitle": "Inkly finds the first mood for you. Edit or rewrite the reflection, then save the memory or share the image.",
         "cta": "Start creating",
-        "line1": "Add a feeling, if you want.",
-        "line2": "Edit the reflection until it sounds like you.",
+        "line1": "Start with the mood Inkly finds.",
+        "line2": "Rewrite the reflection until it sounds like you.",
         "line3": "Save the memory or share the image."
       }
     },
