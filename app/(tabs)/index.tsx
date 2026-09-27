@@ -24,7 +24,7 @@ import {
   listQuotePhotoCards,
   quotePhotoCardToMemory,
 } from "@/services/media/userPhotosApi";
-import { getTodayLocalDateKey } from "@/utils/dateKey";
+import { getTodayLocalDateKey, parseLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -40,12 +40,14 @@ import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
+const MEMORY_PAGE_SIZE = 500;
 
 export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [milestone, setMilestone] = useState<number | null>(null);
   const [streakModalVisible, setStreakModalVisible] = useState(false);
+  const [quoteDraftForSave, setQuoteDraftForSave] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
@@ -128,36 +130,61 @@ export default function HomeScreen() {
     const ownerGuestId = ownerUserId ? null : (guestId ?? ensureGuestId());
     let cancelled = false;
 
-    void listQuotePhotoCards({
-      userId: ownerUserId,
-      guestId: ownerGuestId,
-      limit: 500,
-    })
-      .then((cards) => {
-        if (cancelled) return;
-        replaceMemories(
-          cards
-            .filter((card) => card.quote.trim().length > 0)
-            .map(quotePhotoCardToMemory),
-        );
-      })
-      .catch((error) => {
+    void (async () => {
+      const memories: QuoteMemory[] = [];
+      let offset = 0;
+      try {
+        while (!cancelled) {
+          const cards = await listQuotePhotoCards({
+            userId: ownerUserId,
+            guestId: ownerGuestId,
+            limit: MEMORY_PAGE_SIZE,
+            offset,
+            signPhotoUrls: false,
+          });
+          memories.push(
+            ...cards
+              .filter((card) => card.quote.trim().length > 0)
+              .map(quotePhotoCardToMemory),
+          );
+          if (cards.length < MEMORY_PAGE_SIZE) break;
+          offset += cards.length;
+        }
+        if (!cancelled) {
+          const byId = new Map(memories.map((memory) => [memory.id, memory]));
+          const latestLocalMemories = useMemoryStore
+            .getState()
+            .memories.filter((memory) =>
+              ownerUserId
+                ? memory.ownerUserId === ownerUserId
+                : memory.ownerGuestId === ownerGuestId,
+            );
+          latestLocalMemories.forEach((memory) => {
+            if (!byId.has(memory.id)) byId.set(memory.id, memory);
+          });
+          replaceMemories([...byId.values()]);
+        }
+      } catch (error) {
         // Keep the last local cache visible while offline; a failed cloud
         // refresh must never erase memories from the screen.
         console.error("Failed to sync cloud memories", error);
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;
     };
   }, [authUserId, ensureGuestId, guestId, profile?.user_id, replaceMemories]);
+  useEffect(() => {
+    setQuoteDraftForSave(null);
+  }, [selectedImageUri]);
   const pastMemories = useMemo(() => {
-    const target = new Date(today);
+    const target = parseLocalDateKey(today);
     const day = target.getDate();
     const month = target.getMonth();
     return memories
       .filter((m: QuoteMemory) => {
-        const d = new Date(m.date);
+        const d = parseLocalDateKey(m.date);
         return (
           d.getDate() === day && d.getMonth() === month && m.date !== today
         );
@@ -326,7 +353,8 @@ export default function HomeScreen() {
               cameraPermissionGranted,
               selectedImageUri,
               photoOrientation,
-              canDeleteImage: !hasSavedCurrentPhoto,
+              canDeleteImage: !hasSavedCurrentPhoto && !isSavingPhoto,
+              isSavingPhoto,
               canCreatePhotoStack,
               photoStackCount,
               facing,
@@ -346,6 +374,7 @@ export default function HomeScreen() {
               captureRefView,
               watermarkForExport,
               onSubmitQuoteEdit: handleSubmitQuoteEdit,
+              onQuoteDraftChange: setQuoteDraftForSave,
               onInvalidQuoteEdit: handleInvalidQuoteEdit,
               authorName,
               authorAvatarUrl,
@@ -393,7 +422,7 @@ export default function HomeScreen() {
         onOpenMemories={handleOpenMemories}
         onCameraPress={handleCameraButtonPress}
         onOpenGallery={handleOpenGalleryPress}
-        onSavePhoto={handleSavePhoto}
+        onSavePhoto={() => handleSavePhoto(quoteDraftForSave)}
         onShareImage={() => {
           void shareMoment();
         }}

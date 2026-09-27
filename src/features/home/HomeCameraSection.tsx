@@ -23,7 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraView, type CameraMountError } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { QuoteInkBloom } from "@/components/QuoteInkBloom";
 import {
   Pressable,
@@ -55,6 +55,7 @@ export type HomeCameraSectionProps = {
   isCameraActive: boolean;
   cameraPermissionGranted: boolean;
   selectedImageUri: string | null;
+  isSavingPhoto: boolean;
   photoOrientation: QuoteOrientation;
   canDeleteImage: boolean;
   canCreatePhotoStack: boolean;
@@ -76,6 +77,7 @@ export type HomeCameraSectionProps = {
   captureRefView: React.RefObject<View | null>;
   watermarkForExport: boolean;
   onSubmitQuoteEdit: (text: string) => void;
+  onQuoteDraftChange: (draft: string | null) => void;
   onInvalidQuoteEdit: (message: string) => void;
   authorName: string;
   authorAvatarUrl: string | null;
@@ -107,6 +109,7 @@ export const HomeCameraSection = ({
   isCameraActive,
   cameraPermissionGranted,
   selectedImageUri,
+  isSavingPhoto,
   photoOrientation,
   canDeleteImage,
   canCreatePhotoStack,
@@ -128,6 +131,7 @@ export const HomeCameraSection = ({
   captureRefView,
   watermarkForExport,
   onSubmitQuoteEdit,
+  onQuoteDraftChange,
   onInvalidQuoteEdit,
   authorName,
   authorAvatarUrl,
@@ -169,6 +173,7 @@ export const HomeCameraSection = ({
   const { width: windowWidth } = useWindowDimensions();
   const cardWidth = useMemo(() => getFeedCardWidth(windowWidth), [windowWidth]);
   const [isEditingQuote, setIsEditingQuote] = useState(false);
+  const previousImageUriRef = useRef(selectedImageUri);
   const [showAdvancedControls, setShowAdvancedControls] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState(dailyQuoteText ?? "");
   const chrome = useMemo(
@@ -207,11 +212,11 @@ export const HomeCameraSection = ({
 
   const createdTimeLabel = useMemo(
     () =>
-      new Date().toLocaleTimeString(undefined, {
+      new Date().toLocaleTimeString(i18n.language, {
         hour: "2-digit",
         minute: "2-digit",
       }),
-    [],
+    [i18n.language],
   );
 
   const showQuoteOverlay = Boolean(
@@ -247,30 +252,42 @@ export const HomeCameraSection = ({
     [pendingDraft, dailyQuoteText],
   );
   useEffect(() => {
+    if (previousImageUriRef.current !== selectedImageUri) {
+      previousImageUriRef.current = selectedImageUri;
+      setIsEditingQuote(false);
+      setQuoteDraft(dailyQuoteText ?? "");
+      onQuoteDraftChange(null);
+      return;
+    }
     if (!isEditingQuote) {
       setQuoteDraft(dailyQuoteText ?? "");
+      onQuoteDraftChange(null);
     }
-  }, [dailyQuoteText, isEditingQuote]);
+  }, [dailyQuoteText, isEditingQuote, onQuoteDraftChange, selectedImageUri]);
 
   const openQuoteEditor = () => {
-    if (!dailyQuoteText) {
+    if (!dailyQuoteText || isSavingPhoto) {
       return;
     }
     setQuoteDraft(dailyQuoteText);
+    onQuoteDraftChange(dailyQuoteText);
     setIsEditingQuote(true);
   };
 
   const handleCancelQuoteEdit = () => {
     setQuoteDraft(dailyQuoteText ?? "");
+    onQuoteDraftChange(null);
     setIsEditingQuote(false);
   };
 
   const handleSaveQuoteEdit = () => {
     if (!dailyQuoteText) {
+      onQuoteDraftChange(null);
       setIsEditingQuote(false);
       return;
     }
     if (quoteEditValidation.sanitizedQuote === dailyQuoteText.trim()) {
+      onQuoteDraftChange(null);
       setIsEditingQuote(false);
       return;
     }
@@ -282,6 +299,7 @@ export const HomeCameraSection = ({
       return;
     }
     onSubmitQuoteEdit(quoteEditValidation.sanitizedQuote);
+    onQuoteDraftChange(null);
     setIsEditingQuote(false);
   };
 
@@ -352,9 +370,6 @@ export const HomeCameraSection = ({
                       <View className="flex-1 items-center justify-center px-6">
                         <Text className="text-center text-sm font-semibold text-white">
                           {t("camera.errors.failedToStartPreview")}
-                        </Text>
-                        <Text className="mt-2 text-center text-xs text-white/60">
-                          {cameraError}
                         </Text>
                       </View>
                     ) : isCameraActive ? (
@@ -513,7 +528,7 @@ export const HomeCameraSection = ({
                         </View>
                         <View className="rounded-full border border-white/25 px-2.5 py-1">
                           <Text className="text-[11px] font-medium text-white/85">
-                            Today
+                            {t("camera.todayLabel")}
                           </Text>
                         </View>
                       </View>
@@ -525,14 +540,22 @@ export const HomeCameraSection = ({
                           borderWidth: 1,
                           borderColor: "rgba(255,255,255,0.34)",
                         }}
-                        disabled={isEditingQuote || Boolean(pendingQuoteText)}
+                        disabled={
+                          isEditingQuote ||
+                          Boolean(pendingQuoteText) ||
+                          isSavingPhoto
+                        }
                       >
                         {isEditingQuote ? (
                           <View>
                             <TextInput
                               autoFocus
                               value={quoteDraft}
-                              onChangeText={setQuoteDraft}
+                              editable={!isSavingPhoto}
+                              onChangeText={(text) => {
+                                setQuoteDraft(text);
+                                onQuoteDraftChange(text);
+                              }}
                               multiline
                               textAlignVertical="top"
                               className="min-h-[96px] font-semibold text-white"
@@ -564,6 +587,7 @@ export const HomeCameraSection = ({
                             <View className="mt-3 flex-row justify-end gap-2">
                               <Pressable
                                 onPress={handleCancelQuoteEdit}
+                                disabled={isSavingPhoto}
                                 className="rounded-full border border-white/20 px-3 py-2"
                                 style={({ pressed }) => ({
                                   opacity: pressed ? 0.85 : 1,
@@ -575,6 +599,7 @@ export const HomeCameraSection = ({
                               </Pressable>
                               <Pressable
                                 onPress={handleSaveQuoteEdit}
+                                disabled={isSavingPhoto}
                                 className="rounded-full bg-amber-400 px-3 py-2"
                                 style={({ pressed }) => ({
                                   opacity:
@@ -918,7 +943,7 @@ export const HomeCameraSection = ({
               <View className="flex-1 items-end">
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Switch camera"
+                  accessibilityLabel={t("camera.switchCamera")}
                   onPress={handleCameraFlipPress}
                   hitSlop={12}
                   className="h-11 w-11 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"

@@ -4,6 +4,8 @@
       "noPhotoToSave": "Không có ảnh để lưu",
       "quoteRequiredToSave": "Hãy tạo một câu trích dẫn trước khi lưu kỷ niệm này.",
       "failedToSavePhoto": "Không thể lưu ảnh",
+      "failedToGenerateQuote": "Không thể tạo câu trích dẫn. Vui lòng thử lại.",
+      "failedToProcessImage": "Không thể xử lý ảnh này. Hãy thử ảnh khác.",
       "galleryPermissionRequired": "Chúng tôi cần quyền truy cập thư viện ảnh.",
       "failedToStartPreview": "Không thể khởi động xem trước camera. Hãy đóng và mở lại màn hình.",
       "permissionRequired": "Hãy cho phép truy cập camera để chụp ảnh."
@@ -11,7 +13,9 @@
     "info": {
       "photoAlreadySaved": "Ảnh đã được lưu",
       "photoCaptured": "Đã chụp ảnh",
-      "photoSelected": "Đã chọn ảnh"
+      "photoSelected": "Đã chọn ảnh",
+      "photoSaveInProgress": "Đang lưu ảnh. Vui lòng chờ.",
+      "generationCooldown": "Vui lòng chờ {{seconds}} giây trước khi tạo câu trích dẫn khác."
     },
     "success": {
       "quoteGenerated": "Đã tạo câu trích dẫn",
@@ -22,6 +26,8 @@
       "finish": "Xong"
     },
     "saveButton": "Lưu kỷ niệm",
+    "todayLabel": "Hôm nay",
+    "switchCamera": "Đổi camera",
     "firstSaveReminder": {
       "title": "Giữ cảm xúc này thật gần?",
       "body": "Bật lời nhắc nhẹ nhàng mỗi ngày sau khi bạn lưu kỷ niệm đầu tiên.",
@@ -82,6 +88,7 @@
     "messagePlaceholder": "Gửi tin nhắn…",
     "messageSent": "Đã gửi tin nhắn",
     "savedToMemories": "Đã lưu vào kỷ niệm",
+    "feedRefreshError": "Không thể làm mới bảng tin. Vui lòng thử lại.",
     "generating": {
       "label": "Đang tạo câu trích dẫn...",
       "preparing": "Đang chuẩn bị khoảnh khắc...",

@@ -11,6 +11,7 @@ import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuar
 import { openPaywall } from "@/features/paywall/openPaywall";
 import { getQuoteValidationMessageKey } from "@/services/ai/rewriteReview";
 import i18n from "@/i18n";
+import { useCallback, useRef } from "react";
 
 const MAX_PERSONA_TRAITS = 8;
 const MAX_PERSONA_TRAIT_LENGTH = 40;
@@ -18,7 +19,9 @@ const COOLDOWN_MS = 10000;
 
 const localizeQuoteValidationReason = (reason: string): string => {
   const messageKey = getQuoteValidationMessageKey(reason);
-  return messageKey ? i18n.t(messageKey) : reason;
+  return messageKey
+    ? i18n.t(messageKey)
+    : i18n.t("camera.errors.failedToGenerateQuote");
 };
 
 const normalizePersonaTraits = (traits: string[] | undefined): string[] => {
@@ -46,12 +49,22 @@ export const useGenerateQuote = () => {
   const { customerInfo } = useSubscriptionStore();
   const planLimits = useSubscriptionConfigStore((s) => s.planLimits);
   const { resetIfNewDay, incrementAiUsage } = useUsageStore();
+  const latestRequestIdRef = useRef(0);
+
+  const cancelGeneration = useCallback(() => {
+    latestRequestIdRef.current += 1;
+    setIsGenerating(false);
+  }, [setIsGenerating]);
 
   const generate = async (
     base64Image?: string,
     enforceCooldown: boolean = true,
     momentContext?: string,
+    shouldCommit: () => boolean = () => true,
   ) => {
+    if (!shouldCommit()) {
+      return null;
+    }
     resetIfNewDay();
     const freshAiCount = useUsageStore.getState().dailyAiCount;
 
@@ -94,7 +107,9 @@ export const useGenerateQuote = () => {
       if (timeSinceLastRequest < COOLDOWN_MS) {
         const waitTime = COOLDOWN_MS - timeSinceLastRequest;
         showToast(
-          `Please wait ${Math.ceil(waitTime / 1000)} seconds before generating another quote`,
+          i18n.t("camera.info.generationCooldown", {
+            seconds: Math.ceil(waitTime / 1000),
+          }),
           "info",
         );
         return null;
@@ -104,6 +119,9 @@ export const useGenerateQuote = () => {
     const effectivePersonaId = persona?.id ?? "guest";
     const effectiveTraits = normalizePersonaTraits(persona?.traits);
 
+    const requestId = ++latestRequestIdRef.current;
+    const isCurrentRequest = () =>
+      requestId === latestRequestIdRef.current && shouldCommit();
     setIsGenerating(true);
 
     try {
@@ -114,6 +132,14 @@ export const useGenerateQuote = () => {
         momentContext,
         language: quoteLanguage ?? "en",
       });
+
+      if (!isCurrentRequest()) {
+        if (response.isValid) {
+          incrementAiUsage();
+          setLastGeneratedAt(Date.now());
+        }
+        return null;
+      }
 
       if (!response.isValid) {
         if (response.reason === "ai_limit") {
@@ -126,7 +152,7 @@ export const useGenerateQuote = () => {
           showToast(
             response.reason
               ? localizeQuoteValidationReason(response.reason)
-              : "Failed to generate quote",
+              : i18n.t("camera.errors.failedToGenerateQuote"),
             "error",
           );
         }
@@ -149,15 +175,16 @@ export const useGenerateQuote = () => {
       return quote;
     } catch (error) {
       console.error("AI generate error", error);
-      showToast(
-        error instanceof Error ? error.message : "Failed to generate quote",
-        "error",
-      );
+      if (isCurrentRequest()) {
+        showToast(i18n.t("camera.errors.failedToGenerateQuote"), "error");
+      }
       return null;
     } finally {
-      setIsGenerating(false);
+      if (requestId === latestRequestIdRef.current) {
+        setIsGenerating(false);
+      }
     }
   };
 
-  return { generate };
+  return { generate, cancelGeneration };
 };

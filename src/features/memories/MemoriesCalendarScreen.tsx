@@ -15,7 +15,9 @@ import {
   formatLocalDateKey,
   formatLocalMonthKey,
   getTodayLocalDateKey,
+  parseLocalDateKey,
 } from "@/utils/dateKey";
+import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
 
 type DaySummary = {
   date: string;
@@ -23,6 +25,7 @@ type DaySummary = {
   hasFavorite: boolean;
   isStreak: boolean;
   thumbnailUri: string | null;
+  thumbnailStoragePath: string | null;
 };
 
 type CalendarDayProps = {
@@ -51,7 +54,7 @@ function buildMonthDays(
   monthIndex: number,
   summaries: Record<string, MonthSummaryWithoutStreak>,
   streakDates: Set<string>,
-  thumbnails: Record<string, string>,
+  thumbnails: Record<string, { uri: string | null; storagePath: string | null }>,
 ): DaySummary[] {
   const days: DaySummary[] = [];
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
@@ -64,13 +67,19 @@ function buildMonthDays(
       hasMine: base?.hasMine ?? false,
       hasFavorite: base?.hasFavorite ?? false,
       isStreak: streakDates.has(dateKey),
-      thumbnailUri: thumbnails[dateKey] ?? null,
+      thumbnailUri: thumbnails[dateKey]?.uri ?? null,
+      thumbnailStoragePath: thumbnails[dateKey]?.storagePath ?? null,
     });
   }
   return days;
 }
 
 function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
+  const thumbnailUrl = useSignedStorageUrl(
+    "user-photos",
+    summary?.thumbnailStoragePath,
+    summary?.thumbnailUri ?? null,
+  );
   if (!summary) {
     return (
       <View className="h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 opacity-30" />
@@ -79,8 +88,8 @@ function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
   const hasMine = summary.hasMine;
   const hasFavorite = summary.hasFavorite;
   const isStreak = summary.isStreak;
-  const hasThumb = Boolean(summary.thumbnailUri);
-  const dayNumber = new Date(summary.date).getDate();
+  const hasThumb = Boolean(thumbnailUrl);
+  const dayNumber = parseLocalDateKey(summary.date).getDate();
   return (
     <Pressable
       onPress={() => {
@@ -91,10 +100,10 @@ function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
       style={({ pressed }) => ({
         opacity: pressed ? 0.85 : 1,
       })}>
-      {hasThumb && summary.thumbnailUri ? (
+      {hasThumb && thumbnailUrl ? (
         <>
           <Image
-            source={{ uri: summary.thumbnailUri }}
+            source={{ uri: thumbnailUrl }}
             className="absolute inset-0 h-full w-full"
             contentFit="cover"
           />
@@ -146,14 +155,27 @@ type Props = {
 const MONTH_KEY_LEN = 7;
 
 function getThumbnailsForMonth(
-  memories: { date: string; photoBackgroundUri: string | null }[],
+  memories: {
+    date: string;
+    photoBackgroundUri: string | null;
+    photoStoragePath?: string | null;
+  }[],
   monthKey: string,
-): Record<string, string> {
-  const out: Record<string, string> = {};
+): Record<string, { uri: string | null; storagePath: string | null }> {
+  const out: Record<string, { uri: string | null; storagePath: string | null }> = {};
   memories.forEach((m) => {
-    if (m.date.slice(0, MONTH_KEY_LEN) !== monthKey || !m.photoBackgroundUri)
+    if (
+      m.date.slice(0, MONTH_KEY_LEN) !== monthKey ||
+      (!m.photoBackgroundUri && !m.photoStoragePath)
+    ) {
       return;
-    if (!out[m.date]) out[m.date] = m.photoBackgroundUri;
+    }
+    if (!out[m.date]) {
+      out[m.date] = {
+        uri: m.photoBackgroundUri,
+        storagePath: m.photoStoragePath ?? null,
+      };
+    }
   });
   return out;
 }
