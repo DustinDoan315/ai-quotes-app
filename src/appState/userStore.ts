@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
+import i18n, { getDeviceUiLanguage } from '@/i18n';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -85,8 +85,8 @@ const initialState: Omit<
     guestId: null,
     guestDisplayName: null,
     inviteNudgeDismissed: false,
-    quoteLanguage: "en",
-    uiLanguage: "en",
+    quoteLanguage: getDeviceUiLanguage(),
+    uiLanguage: getDeviceUiLanguage(),
   };
 
 const createGuestId = () =>
@@ -122,10 +122,9 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: "user-storage",
-      // Reset the old device/Vietnamese defaults once so existing installs
-      // also open in English. Future explicit language changes remain persisted
-      // and can still switch both UI and quote output.
-      version: 2,
+      // Pick up the device language for existing installs once. Later explicit
+      // choices in Profile remain persisted and override the device default.
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         profile: state.profile,
@@ -144,8 +143,8 @@ export const useUserStore = create<UserState>()(
           onboardingCompleted:
             state.onboardingCompleted ??
             Boolean(state.persona || state.profile || state.guestId),
-          quoteLanguage: "en",
-          uiLanguage: "en",
+          quoteLanguage: getDeviceUiLanguage(),
+          uiLanguage: getDeviceUiLanguage(),
         };
       },
     },

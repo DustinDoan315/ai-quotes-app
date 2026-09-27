@@ -9,11 +9,17 @@ import { useUsageStore } from "@/appState/usageStore";
 import { ADVANCED_PERSONA_IDS } from "@/domain/subscription/subscriptionConstants";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { openPaywall } from "@/features/paywall/openPaywall";
+import { getQuoteValidationMessageKey } from "@/services/ai/rewriteReview";
 import i18n from "@/i18n";
 
 const MAX_PERSONA_TRAITS = 8;
 const MAX_PERSONA_TRAIT_LENGTH = 40;
 const COOLDOWN_MS = 10000;
+
+const localizeQuoteValidationReason = (reason: string): string => {
+  const messageKey = getQuoteValidationMessageKey(reason);
+  return messageKey ? i18n.t(messageKey) : reason;
+};
 
 const normalizePersonaTraits = (traits: string[] | undefined): string[] => {
   if (!traits || traits.length === 0) {
@@ -117,7 +123,12 @@ export const useGenerateQuote = () => {
           );
           openPaywall({ reason: "ai_limit", source: "ai_generate" });
         } else {
-          showToast(response.reason || "Failed to generate quote", "error");
+          showToast(
+            response.reason
+              ? localizeQuoteValidationReason(response.reason)
+              : "Failed to generate quote",
+            "error",
+          );
         }
         return null;
       }

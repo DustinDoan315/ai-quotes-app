@@ -9,6 +9,7 @@ import {
 } from "@/features/home/generationStage";
 import {
   MAX_REWRITE_REVIEW_CHARACTERS,
+  getQuoteValidationMessageKey,
   validateEditableQuote,
   validateRewriteReviewQuote,
 } from "@/services/ai/rewriteReview";
@@ -151,6 +152,14 @@ export const HomeCameraSection = ({
   onCancelPendingQuote,
 }: HomeCameraSectionProps) => {
   const { t } = useTranslation();
+  const getValidationMessage = (reason?: string) => {
+    if (!reason) {
+      return undefined;
+    }
+
+    const messageKey = getQuoteValidationMessageKey(reason);
+    return messageKey ? t(messageKey) : reason;
+  };
   const generationStageLabelKey = getGenerationStageLabelKey(generationStage);
   const [shellSize, setShellSize] = useState<{
     width: number;
@@ -266,7 +275,10 @@ export const HomeCameraSection = ({
       return;
     }
     if (!quoteEditValidation.isValid) {
-      onInvalidQuoteEdit(quoteEditValidation.reason ?? "Invalid quote");
+      onInvalidQuoteEdit(
+        getValidationMessage(quoteEditValidation.reason) ??
+          t("home.aiTools.validation.quoteEmpty"),
+      );
       return;
     }
     onSubmitQuoteEdit(quoteEditValidation.sanitizedQuote);
@@ -540,7 +552,9 @@ export const HomeCameraSection = ({
                               >
                                 {quoteEditValidation.isValid
                                   ? t("home.aiTools.editQuoteReady")
-                                  : quoteEditValidation.reason}
+                                  : getValidationMessage(
+                                      quoteEditValidation.reason,
+                                    )}
                               </Text>
                               <Text className="text-xs font-semibold text-white/70">
                                 {quoteEditValidation.characterCount}/
@@ -611,7 +625,9 @@ export const HomeCameraSection = ({
                               >
                                 {pendingValidation.isValid
                                   ? t("home.aiTools.rewriteReady")
-                                  : pendingValidation.reason}
+                                  : getValidationMessage(
+                                      pendingValidation.reason,
+                                    )}
                               </Text>
                               <Text className="text-[11px] font-semibold text-white/60">
                                 {pendingValidation.characterCount}/

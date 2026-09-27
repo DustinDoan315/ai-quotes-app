@@ -123,7 +123,20 @@
       "editQuoteGuidance": "Keep it to one sentence, under 180 characters, and safe to use.",
       "editQuoteSave": "Save",
       "editQuoteCancel": "Cancel",
-      "editQuoteReady": "Looks good to use."
+      "editQuoteReady": "Looks good to use.",
+      "validation": {
+        "quoteEmpty": "Quote can't be empty.",
+        "quoteAtLeastOneWord": "Quote must include at least one word.",
+        "quoteOneSentence": "Quote must stay as one sentence.",
+        "quoteTooLong": "Quote exceeds 180 characters.",
+        "quoteForbiddenContent": "Quote contains content that can't be used.",
+        "rewriteEmpty": "Rewrite can't be empty.",
+        "rewriteAtLeastOneWord": "Rewrite must include at least one word.",
+        "rewriteOneSentence": "Rewrite must stay as one sentence.",
+        "rewriteTooLong": "Rewrite exceeds 180 characters.",
+        "rewriteForbiddenContent": "Rewrite contains content that can't be used.",
+        "rewriteMustDiffer": "Rewrite must be meaningfully different from the original."
+      }
     },
     "luckLabel": "Luck",
     "vibes": {

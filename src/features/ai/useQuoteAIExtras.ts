@@ -1,12 +1,20 @@
 import { useCallback, useState } from "react";
 import { explainQuote, generateFutureQuote, rewriteQuote } from "@/services/ai/client";
-import { validateRewriteReviewQuote } from "@/services/ai/rewriteReview";
+import {
+  getQuoteValidationMessageKey,
+  validateRewriteReviewQuote,
+} from "@/services/ai/rewriteReview";
 import type { RewriteTone } from "@/services/ai/types";
 import { useUserStore } from "@/appState/userStore";
 import { useQuoteStore } from "@/appState/quoteStore";
 import { useUIStore } from "@/appState/uiStore";
 import { openPaywall } from "@/features/paywall/openPaywall";
 import i18n from "@/i18n";
+
+const localizeQuoteValidationReason = (reason: string): string => {
+  const messageKey = getQuoteValidationMessageKey(reason);
+  return messageKey ? i18n.t(messageKey) : reason;
+};
 
 export const useExplainQuote = (quoteText: string | null) => {
   const persona = useUserStore((s) => s.persona);
@@ -36,7 +44,7 @@ export const useExplainQuote = (quoteText: string | null) => {
           );
           openPaywall({ reason: "ai_limit", source: "ai_generate" });
         } else if (response.reason) {
-          showToast(response.reason, "error");
+          showToast(localizeQuoteValidationReason(response.reason), "error");
         }
         return null;
       }
@@ -82,7 +90,7 @@ export const useRewriteQuote = () => {
             );
             openPaywall({ reason: "ai_limit", source: "ai_generate" });
           } else if (response.reason) {
-            showToast(response.reason, "error");
+            showToast(localizeQuoteValidationReason(response.reason), "error");
           }
           return null;
         }
@@ -91,7 +99,12 @@ export const useRewriteQuote = () => {
           dailyQuote.text,
         );
         if (!validation.isValid) {
-          showToast(validation.reason ?? "Invalid rewrite", "error");
+          showToast(
+            validation.reason
+              ? localizeQuoteValidationReason(validation.reason)
+              : i18n.t("home.aiTools.validation.rewriteAtLeastOneWord"),
+            "error",
+          );
           return null;
         }
         return validation.sanitizedQuote;
@@ -154,7 +167,10 @@ export const useFutureQuote = () => {
             );
             openPaywall({ reason: "ai_limit", source: "ai_generate" });
           } else if (response.reason) {
-            showToast(response.reason, "error");
+            showToast(
+              localizeQuoteValidationReason(response.reason),
+              "error",
+            );
           }
           return null;
         }

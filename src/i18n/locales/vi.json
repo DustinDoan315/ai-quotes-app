@@ -122,7 +122,20 @@
       "editQuoteGuidance": "Giữ một câu, dưới 180 ký tự và an toàn để dùng.",
       "editQuoteSave": "Lưu",
       "editQuoteCancel": "Hủy",
-      "editQuoteReady": "Trông ổn rồi."
+      "editQuoteReady": "Trông ổn rồi.",
+      "validation": {
+        "quoteEmpty": "Câu trích dẫn không được để trống.",
+        "quoteAtLeastOneWord": "Câu trích dẫn cần có ít nhất một từ.",
+        "quoteOneSentence": "Câu trích dẫn chỉ được có một câu.",
+        "quoteTooLong": "Câu trích dẫn vượt quá 180 ký tự.",
+        "quoteForbiddenContent": "Câu trích dẫn có nội dung không được phép sử dụng.",
+        "rewriteEmpty": "Bản viết lại không được để trống.",
+        "rewriteAtLeastOneWord": "Bản viết lại cần có ít nhất một từ.",
+        "rewriteOneSentence": "Bản viết lại chỉ được có một câu.",
+        "rewriteTooLong": "Bản viết lại vượt quá 180 ký tự.",
+        "rewriteForbiddenContent": "Bản viết lại có nội dung không được phép sử dụng.",
+        "rewriteMustDiffer": "Bản viết lại cần khác biệt rõ ràng so với câu ban đầu."
+      }
     },
     "luckLabel": "May mắn",
     "vibes": {

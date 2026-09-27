@@ -1,5 +1,6 @@
 import {
   MAX_REWRITE_REVIEW_CHARACTERS,
+  getQuoteValidationMessageKey,
   validateRewriteReviewQuote,
 } from "@/services/ai/rewriteReview";
 import { useTranslation } from "react-i18next";
@@ -40,6 +41,14 @@ export function RewriteQuoteReviewModal({
 }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const getValidationMessage = (reason?: string) => {
+    if (!reason) {
+      return undefined;
+    }
+
+    const messageKey = getQuoteValidationMessageKey(reason);
+    return messageKey ? t(messageKey) : reason;
+  };
   const [text, setText] = useState(initialText);
   const validation = useMemo(
     () => validateRewriteReviewQuote(text, sourceText),
@@ -121,7 +130,7 @@ export function RewriteQuoteReviewModal({
               style={{ color: validation.isValid ? "rgba(255,255,255,0.6)" : "#FCA5A5" }}>
               {validation.isValid
                 ? t("home.aiTools.rewriteReady")
-                : validation.reason}
+                : getValidationMessage(validation.reason)}
             </Text>
             <Text
               className="text-sm font-semibold"
