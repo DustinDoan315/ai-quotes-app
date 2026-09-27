@@ -21,6 +21,10 @@ import { useReminderStore } from "@/appState/reminderStore";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import type { QuoteOrientation } from "@/constants/quoteImageSize";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
+import {
+  getQuoteValidationMessageKey,
+  validateEditableQuote,
+} from "@/services/ai/rewriteReview";
 import { compressImageForUpload } from "@/utils/imageProcessor";
 import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
@@ -118,10 +122,11 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const generationStageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const generationRequestIdRef = useRef(0);
   const { dailyQuote, clearDailyQuote } = useQuoteStore();
   const { profile, authUserId, persona, ensureGuestId } = useUserStore();
   const { showToast } = useUIStore();
-  const { generate } = useGenerateQuote();
+  const { generate, cancelGeneration } = useGenerateQuote();
   const { isGenerating } = useAIStore();
   const addMemory = useMemoryStore((state) => state.addMemory);
   const customerInfo = useSubscriptionStore((state) => state.customerInfo);
@@ -136,6 +141,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   useEffect(() => {
     return () => {
+      generationRequestIdRef.current += 1;
+      cancelGeneration();
       if (generationIntervalRef.current) {
         clearInterval(generationIntervalRef.current);
         generationIntervalRef.current = null;
@@ -145,7 +152,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         generationStageTimeoutRef.current = null;
       }
     };
-  }, []);
+  }, [cancelGeneration]);
 
   useEffect(() => {
     if (!canCreatePhotoStack) {
@@ -213,13 +220,35 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   function handleCameraMountError(event: CameraMountError) {
     console.error("Failed to start camera preview", event);
     setCameraReady(false);
-    setCameraError(
-      event.message || i18n.t("camera.errors.failedToStartPreview"),
-    );
+    setCameraError(i18n.t("camera.errors.failedToStartPreview"));
     showToast(i18n.t("camera.errors.failedToStartPreview"), "error");
   }
 
+  function clearGenerationTimers() {
+    if (generationIntervalRef.current) {
+      clearInterval(generationIntervalRef.current);
+      generationIntervalRef.current = null;
+    }
+    if (generationStageTimeoutRef.current) {
+      clearTimeout(generationStageTimeoutRef.current);
+      generationStageTimeoutRef.current = null;
+    }
+  }
+
+  function invalidateGeneration() {
+    generationRequestIdRef.current += 1;
+    cancelGeneration();
+    clearGenerationTimers();
+    setGenerationProgress(0);
+    setGenerationStage("idle");
+  }
+
   function clearSelectedImage() {
+    if (isSavingPhotoRef.current) {
+      showToast(i18n.t("camera.info.photoSaveInProgress"), "info");
+      return;
+    }
+    invalidateGeneration();
     setSelectedImageUri(null);
     setSelectedImageBase64(null);
     setPhotoOrientation("portrait");
@@ -240,17 +269,15 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     enforceCooldown: boolean,
     sourceBase64?: string | null,
   ) {
-    if (generationIntervalRef.current) {
-      clearInterval(generationIntervalRef.current);
-      generationIntervalRef.current = null;
-    }
-    if (generationStageTimeoutRef.current) {
-      clearTimeout(generationStageTimeoutRef.current);
-      generationStageTimeoutRef.current = null;
-    }
+    const requestId = ++generationRequestIdRef.current;
+    const isCurrentRequest = () =>
+      generationRequestIdRef.current === requestId;
+    cancelGeneration();
+    clearGenerationTimers();
     setGenerationStage("preparing");
     setGenerationProgress(0.08);
     generationIntervalRef.current = setInterval(() => {
+      if (!isCurrentRequest()) return;
       setGenerationProgress((current) => {
         if (current >= 0.92) {
           return current;
@@ -263,32 +290,28 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       try {
         base64 = await compressImageForUpload(sourceUri);
       } catch (err) {
-        if (generationIntervalRef.current) {
-          clearInterval(generationIntervalRef.current);
-          generationIntervalRef.current = null;
-        }
+        if (!isCurrentRequest()) return;
+        clearGenerationTimers();
         setGenerationProgress(0);
         setGenerationStage("idle");
-        showToast(
-          err instanceof Error ? err.message : "Failed to process image",
-          "error",
-        );
+        console.error("Failed to process photo before quote generation", err);
+        showToast(i18n.t("camera.errors.failedToProcessImage"), "error");
         return;
       }
     }
+    if (!isCurrentRequest()) return;
     setGenerationStage("matching");
     generationStageTimeoutRef.current = setTimeout(() => {
-      setGenerationStage("writing");
+      if (isCurrentRequest()) setGenerationStage("writing");
     }, 550);
-    const quote = await generate(base64, enforceCooldown);
-    if (generationIntervalRef.current) {
-      clearInterval(generationIntervalRef.current);
-      generationIntervalRef.current = null;
-    }
-    if (generationStageTimeoutRef.current) {
-      clearTimeout(generationStageTimeoutRef.current);
-      generationStageTimeoutRef.current = null;
-    }
+    const quote = await generate(
+      base64,
+      enforceCooldown,
+      undefined,
+      isCurrentRequest,
+    );
+    if (!isCurrentRequest()) return;
+    clearGenerationTimers();
     const resultStage = getGenerationResultStage(Boolean(quote));
     setGenerationStage(resultStage);
     if (!quote) {
@@ -300,13 +323,14 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     await new Promise<void>((resolve) => {
       setTimeout(resolve, INK_BLOOM_SETTLE_MS);
     });
+    if (!isCurrentRequest()) return;
     setGenerationProgress(0);
     setGenerationStage("idle");
-    showToast("Quote generated", "success");
+    showToast(i18n.t("camera.success.quoteGenerated"), "success");
   }
 
   async function handleCapture() {
-    if (isCapturingRef.current) {
+    if (isCapturingRef.current || isSavingPhotoRef.current) {
       return;
     }
 
@@ -341,6 +365,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
         return;
       }
+      invalidateGeneration();
       setSelectedImageUri(photo.uri);
       setSelectedImageBase64(null);
       setPhotoOrientation("portrait");
@@ -358,18 +383,21 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   }
 
   async function handleRetryGeneration() {
+    if (isSavingPhotoRef.current) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await generateForImage(selectedImageUri ?? null, true, selectedImageBase64);
   }
 
   function handleClearQuote() {
+    if (isSavingPhotoRef.current) return;
+    invalidateGeneration();
     clearDailyQuote();
     setHideQuote(true);
     setGenerationProgress(0);
     setGenerationStage("idle");
   }
 
-  async function handleSavePhoto() {
+  async function handleSavePhoto(quoteDraft?: string | null) {
     if (!selectedImageUri) {
       showToast(i18n.t("camera.errors.noPhotoToSave"), "error");
       return;
@@ -381,11 +409,33 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       showToast(i18n.t("camera.info.photoAlreadySaved"), "info");
       return;
     }
-    const quoteText = dailyQuote?.text?.trim() ?? "";
+    let quoteText = useQuoteStore.getState().dailyQuote?.text?.trim() ?? "";
+    if (quoteDraft != null) {
+      const validation = validateEditableQuote(quoteDraft);
+      if (!validation.isValid) {
+        const messageKey = getQuoteValidationMessageKey(validation.reason ?? "");
+        showToast(
+          messageKey
+            ? i18n.t(messageKey)
+            : i18n.t("camera.errors.quoteRequiredToSave"),
+          "error",
+        );
+        return;
+      }
+      quoteText = validation.sanitizedQuote;
+      const currentQuote = useQuoteStore.getState().dailyQuote;
+      if (currentQuote && currentQuote.text.trim() !== quoteText) {
+        useQuoteStore.getState().setDailyQuote({
+          ...currentQuote,
+          text: quoteText,
+        });
+      }
+    }
     if (!quoteText) {
       showToast(i18n.t("camera.errors.quoteRequiredToSave"), "info");
       return;
     }
+    invalidateGeneration();
     isSavingPhotoRef.current = true;
     setIsSavingPhoto(true);
     try {
@@ -496,6 +546,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   }
 
   async function handleOpenGallery() {
+    if (isSavingPhotoRef.current) {
+      showToast(i18n.t("camera.info.photoSaveInProgress"), "info");
+      return;
+    }
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -508,6 +562,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       if (!picked) {
         return;
       }
+      invalidateGeneration();
       setSelectedImageUri(picked.uri);
       setSelectedImageBase64(null);
       setPhotoOrientation(orientationForImage(picked.width, picked.height));

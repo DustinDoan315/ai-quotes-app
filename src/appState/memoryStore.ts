@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { formatLocalDateKey } from "@/utils/dateKey";
+import { formatLocalDateKey, parseLocalDateKey } from "@/utils/dateKey";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { QuoteMemory, QuoteVisibility, QuoteImageOrientation } from "../types/memory";
@@ -130,12 +130,12 @@ export const useMemoryStore = create<MemoryState>()(
         return summary;
       },
       getMemoriesOnSameDayPastYears: (date) => {
-        const target = new Date(date);
+        const target = parseLocalDateKey(date);
         const day = target.getDate();
         const month = target.getMonth();
         return get()
           .memories.filter((m) => {
-            const d = new Date(m.date);
+            const d = parseLocalDateKey(m.date);
             return d.getDate() === day && d.getMonth() === month && m.date !== date;
           })
           .sort(byCreatedAtDesc);

@@ -4,6 +4,8 @@
       "noPhotoToSave": "No photo to save",
       "quoteRequiredToSave": "Generate a quote before saving this reflection.",
       "failedToSavePhoto": "Failed to save photo",
+      "failedToGenerateQuote": "Couldn't create a quote. Try again.",
+      "failedToProcessImage": "Couldn't process this photo. Try another one.",
       "galleryPermissionRequired": "We need gallery access to pick photos.",
       "failedToStartPreview": "Camera preview couldn't start. Close and reopen the screen.",
       "permissionRequired": "Allow camera access to capture a photo."
@@ -11,7 +13,9 @@
     "info": {
       "photoAlreadySaved": "Photo already saved",
       "photoCaptured": "Photo captured",
-      "photoSelected": "Photo selected"
+      "photoSelected": "Photo selected",
+      "photoSaveInProgress": "Saving this photo. Please wait.",
+      "generationCooldown": "Please wait {{seconds}} seconds before creating another quote."
     },
     "success": {
       "quoteGenerated": "Quote generated",
@@ -23,6 +27,8 @@
       "finish": "Done"
     },
     "saveButton": "Save memory",
+    "todayLabel": "Today",
+    "switchCamera": "Switch camera",
     "firstSaveReminder": {
       "title": "Keep this feeling close?",
       "body": "Turn on a gentle daily reminder after your first saved memory.",
@@ -83,6 +89,7 @@
     "messagePlaceholder": "Send a message…",
     "messageSent": "Message sent",
     "savedToMemories": "Saved to your memories",
+    "feedRefreshError": "Couldn't refresh your feed. Try again.",
     "generating": {
       "label": "Crafting your vibe...",
       "preparing": "Preparing your moment...",

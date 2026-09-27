@@ -17,6 +17,7 @@ const quotePhotoRowSchema = z.object({
   style_color_scheme_id: z.string().nullable().optional(),
   home_vibe_key: z.string().nullable().optional(),
   photo_stack_id: z.string().uuid().nullable().optional(),
+  photo_orientation: z.enum(["portrait", "landscape"]).nullable().optional(),
   visibility: z.enum(["private", "friends", "public"]).default("private"),
   is_favorite: z.boolean().default(false),
 });
@@ -35,16 +36,19 @@ export type QuotePhotoCard = {
   styleColorSchemeId: "light" | "amber" | "pink";
   homeVibeKey: HomeVibeKey | null;
   photoStackId: string | null;
+  photoOrientation: "portrait" | "landscape";
   visibility: QuoteVisibility;
   isFavorite: boolean;
 };
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
+export const SIGNED_URL_REFRESH_INTERVAL_MS =
+  (SIGNED_URL_TTL_SECONDS - 5 * 60) * 1000;
 
 async function getSignedPhotoUrlMap(
-  rows: { storage_path: string; image_url: string }[],
+  pathsToSign: string[],
 ): Promise<Map<string, string>> {
-  const paths = [...new Set(rows.map((row) => row.storage_path))];
+  const paths = [...new Set(pathsToSign)];
   const results = await Promise.all(
     paths.map(async (path) => {
       const { data, error } = await supabase.storage
@@ -63,7 +67,12 @@ type ListQuotePhotoCardsParams = {
   userId?: string | null;
   feedUserIds?: string[];
   limit?: number;
+  offset?: number;
+  signPhotoUrls?: boolean;
 };
+
+const QUOTE_PHOTO_COLUMNS =
+  "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, photo_orientation, visibility, is_favorite";
 
 export const listQuotePhotoCards = async (
   params: ListQuotePhotoCardsParams,
@@ -74,10 +83,9 @@ export const listQuotePhotoCards = async (
 
   let query = supabase
     .from("user_photos")
-    .select(
-      "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, visibility, is_favorite",
-    )
-    .order("created_at", { ascending: false });
+    .select(QUOTE_PHOTO_COLUMNS)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   if (params.feedUserIds && params.feedUserIds.length > 0) {
     query = query.in("user_id", params.feedUserIds);
@@ -87,7 +95,9 @@ export const listQuotePhotoCards = async (
     query = query.eq("guest_id", params.guestId);
   }
 
-  if (params.limit) {
+  if (params.limit && params.offset != null) {
+    query = query.range(params.offset, params.offset + params.limit - 1);
+  } else if (params.limit) {
     query = query.limit(params.limit);
   }
 
@@ -110,7 +120,9 @@ export const listQuotePhotoCards = async (
     throw new Error("Invalid quote photo feed response");
   }
 
-  const signedPhotoUrls = await getSignedPhotoUrlMap(parsed.data);
+  const signedPhotoUrls = params.signPhotoUrls === false
+    ? new Map<string, string>()
+    : await getSignedPhotoUrlMap(parsed.data.map((row) => row.storage_path));
 
   const userIds = [
     ...new Set(
@@ -157,6 +169,7 @@ export const listQuotePhotoCards = async (
         ? getHomeBackgroundPaletteByKey(row.home_vibe_key).vibeKey
         : null,
       photoStackId: row.photo_stack_id ?? null,
+      photoOrientation: row.photo_orientation ?? "portrait",
       visibility: row.visibility,
       isFavorite: row.is_favorite,
     };
@@ -170,10 +183,22 @@ type ListQuotePhotoCardsForDayParams = {
   limit?: number;
 };
 
-function getUtcDayRange(dateKey: string): { startIso: string; endIso: string } {
-  const start = new Date(`${dateKey}T00:00:00.000Z`);
+function getLocalDayRange(dateKey: string): { startIso: string; endIso: string } {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+  if (!match) {
+    throw new RangeError(`Invalid local date key: ${dateKey}`);
+  }
+  const [, year, month, day] = match;
+  const start = new Date(Number(year), Number(month) - 1, Number(day));
+  if (
+    start.getFullYear() !== Number(year) ||
+    start.getMonth() !== Number(month) - 1 ||
+    start.getDate() !== Number(day)
+  ) {
+    throw new RangeError(`Invalid local date key: ${dateKey}`);
+  }
   const end = new Date(start);
-  end.setUTCDate(end.getUTCDate() + 1);
+  end.setDate(end.getDate() + 1);
   return { startIso: start.toISOString(), endIso: end.toISOString() };
 }
 
@@ -185,14 +210,13 @@ export const listQuotePhotoCardsForDay = async (
     return [];
   }
 
-  const { startIso, endIso } = getUtcDayRange(dateKey);
+  const { startIso, endIso } = getLocalDayRange(dateKey);
 
   let query = supabase
     .from("user_photos")
-    .select(
-      "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, visibility, is_favorite",
-    )
+    .select(QUOTE_PHOTO_COLUMNS)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .gte("created_at", startIso)
     .lt("created_at", endIso);
 
@@ -225,7 +249,9 @@ export const listQuotePhotoCardsForDay = async (
     throw new Error("Invalid quote photo cards for day response");
   }
 
-  const signedPhotoUrls = await getSignedPhotoUrlMap(parsed.data);
+  const signedPhotoUrls = await getSignedPhotoUrlMap(
+    parsed.data.map((row) => row.storage_path),
+  );
 
   const userIds = [
     ...new Set(
@@ -275,6 +301,7 @@ export const listQuotePhotoCardsForDay = async (
         ? getHomeBackgroundPaletteByKey(row.home_vibe_key).vibeKey
         : null,
       photoStackId: row.photo_stack_id ?? null,
+      photoOrientation: row.photo_orientation ?? "portrait",
       visibility: row.visibility,
       isFavorite: row.is_favorite,
     };
@@ -293,12 +320,29 @@ export function quotePhotoCardToMemory(card: QuotePhotoCard): QuoteMemory {
     personaId: null,
     photoBackgroundUri: card.imageUrl || null,
     photoStoragePath: card.storagePath,
-    photoOrientation: "portrait",
+    photoOrientation: card.photoOrientation,
     styleFontId: card.styleFontId,
     styleColorSchemeId: card.styleColorSchemeId,
     createdAt: card.createdAt,
     visibility: card.visibility,
     isFavorite: card.isFavorite,
+  };
+}
+
+export async function refreshQuotePhotoCardUrls(
+  cards: QuotePhotoCard[],
+): Promise<{ cards: QuotePhotoCard[]; complete: boolean }> {
+  if (cards.length === 0) {
+    return { cards, complete: true };
+  }
+  const paths = [...new Set(cards.map((card) => card.storagePath))];
+  const signedUrls = await getSignedPhotoUrlMap(paths);
+  return {
+    cards: cards.map((card) => ({
+      ...card,
+      imageUrl: signedUrls.get(card.storagePath) ?? card.imageUrl,
+    })),
+    complete: signedUrls.size === paths.length,
   };
 }
 

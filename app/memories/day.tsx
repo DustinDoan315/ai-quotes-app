@@ -15,7 +15,11 @@ import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
 import { MemoryCard } from "@/components/MemoryCard";
 import { useTranslation } from "react-i18next";
-import { formatLocalDateKey, getTodayLocalDateKey } from "@/utils/dateKey";
+import {
+  formatLocalDateKey,
+  getTodayLocalDateKey,
+  parseLocalDateKey,
+} from "@/utils/dateKey";
 import { goBackOrReplace } from "@/utils/goBackOrReplace";
 import { useFriendsMemoriesForDay } from "@/features/memories/useFriendsMemoriesForDay";
 import {
@@ -50,13 +54,13 @@ export default function MemoriesDayScreen() {
   const isToday = dateKey === todayKey;
 
   const prevDateKey = useMemo(() => {
-    const d = new Date(`${dateKey}T12:00:00`);
+    const d = parseLocalDateKey(dateKey);
     d.setDate(d.getDate() - 1);
     return formatLocalDateKey(d);
   }, [dateKey]);
 
   const nextDateKey = useMemo(() => {
-    const d = new Date(`${dateKey}T12:00:00`);
+    const d = parseLocalDateKey(dateKey);
     d.setDate(d.getDate() + 1);
     return formatLocalDateKey(d);
   }, [dateKey]);
@@ -112,12 +116,12 @@ export default function MemoriesDayScreen() {
     } as never);
   }
 
-  const title = new Date(dateKey).toLocaleDateString(i18n.language, {
+  const title = parseLocalDateKey(dateKey).toLocaleDateString(i18n.language, {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
-  const weekday = new Date(dateKey).toLocaleDateString(i18n.language, {
+  const weekday = parseLocalDateKey(dateKey).toLocaleDateString(i18n.language, {
     weekday: "long",
   });
 

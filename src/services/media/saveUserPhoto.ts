@@ -145,6 +145,7 @@ async function saveUserPhotoInternal(
       quote: quote ?? "",
       style_font_id: styleFontId,
       style_color_scheme_id: styleColorSchemeId,
+      photo_orientation: orientation,
       home_vibe_key: homeVibeKey,
       photo_stack_id: photoStackId,
       visibility,
@@ -154,7 +155,20 @@ async function saveUserPhotoInternal(
     .single<{ id: string }>();
 
   if (insertError || !insertedPhoto) {
-    console.error("Failed to insert user_photos row", insertError);
+    let cleanupError: unknown = null;
+    try {
+      const { error } = await supabase.storage
+        .from("user-photos")
+        .remove([path]);
+      cleanupError = error;
+    } catch (error) {
+      cleanupError = error;
+    }
+    console.error("Failed to insert user_photos row after photo upload", {
+      insertError: insertError ?? new Error("Photo insert returned no row"),
+      cleanupError,
+      storagePath: path,
+    });
     return null;
   }
 

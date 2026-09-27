@@ -153,6 +153,7 @@ export type Database = {
           is_favorite: boolean;
           home_vibe_key: string | null;
           photo_stack_id: string | null;
+          photo_orientation: "portrait" | "landscape";
           created_at: string;
         };
         Insert: {
@@ -168,6 +169,7 @@ export type Database = {
           is_favorite?: boolean;
           home_vibe_key?: string | null;
           photo_stack_id?: string | null;
+          photo_orientation?: "portrait" | "landscape";
           created_at?: string;
         };
         Update: {
@@ -183,6 +185,7 @@ export type Database = {
           is_favorite?: boolean;
           home_vibe_key?: string | null;
           photo_stack_id?: string | null;
+          photo_orientation?: "portrait" | "landscape";
           created_at?: string;
         };
       };
