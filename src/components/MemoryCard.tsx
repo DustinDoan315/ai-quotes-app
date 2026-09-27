@@ -1,9 +1,15 @@
-import { QUOTE_ASPECT } from "@/constants/quoteImageSize";
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
-import { Dimensions, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
 import { Ionicons } from "@expo/vector-icons";
+import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
+import {
+  DEFAULT_QUOTE_POSITION,
+  type QuotePosition,
+} from "@/features/quotes/quotePosition";
 
 import type { QuoteImageOrientation, QuoteVisibility } from "@/types/memory";
 
@@ -13,6 +19,7 @@ type Props = {
   photoBackgroundUri: string | null;
   photoStoragePath?: string | null;
   photoOrientation?: QuoteImageOrientation;
+  quotePosition?: QuotePosition;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
   visibility?: QuoteVisibility;
@@ -23,19 +30,12 @@ type Props = {
   styleColorSchemeId?: "light" | "amber" | "pink";
 };
 
-const MAX_WIDTH = Dimensions.get("window").width - 32;
-
-function getCardAspect(orientation: QuoteImageOrientation): number {
-  const a = QUOTE_ASPECT[orientation];
-  return a.width / a.height;
-}
-
 export function MemoryCard({
   quote,
   author,
   photoBackgroundUri,
   photoStoragePath,
-  photoOrientation = "portrait",
+  quotePosition = DEFAULT_QUOTE_POSITION,
   isFavorite = false,
   onToggleFavorite,
   visibility = "private",
@@ -46,14 +46,15 @@ export function MemoryCard({
   styleColorSchemeId = "light",
 }: Props) {
   const { i18n, t } = useTranslation();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const resolvedPhotoUri = useSignedStorageUrl(
     "user-photos",
     photoStoragePath,
     photoBackgroundUri,
   );
-  const aspect = getCardAspect(photoOrientation);
-  const cardWidth = MAX_WIDTH;
-  const cardHeight = cardWidth / aspect;
+  const frame = getQuoteFrameSize(windowWidth, windowHeight);
+  const cardWidth = frame.width;
+  const cardHeight = cardWidth / QUOTE_DISPLAY_ASPECT;
   const createdDateLabel = new Date(createdAt).toLocaleDateString(
     i18n.language,
     { month: "short", day: "numeric" },
@@ -93,6 +94,23 @@ export function MemoryCard({
         className="absolute inset-0 z-[2]"
         style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
       />
+
+      {quote ? (
+        <QuotePositionLayer position={quotePosition}>
+          <View
+            className="rounded-2xl border border-white/25 bg-black/55 px-4 py-3"
+            style={{ maxWidth: "88%" }}
+          >
+            <Text
+              className="font-semibold leading-snug"
+              style={{ fontSize, color: textColor }}
+              numberOfLines={4}
+            >
+              {quote}
+            </Text>
+          </View>
+        </QuotePositionLayer>
+      ) : null}
 
       {onToggleFavorite ? (
         <Pressable
@@ -134,13 +152,7 @@ export function MemoryCard({
       ) : null}
 
       <View className="absolute inset-x-0 bottom-0 z-10 rounded-t-2xl bg-black/60 px-5 pb-4 pt-3">
-        <Text
-          className="mt-1 font-semibold leading-snug"
-          style={{ fontSize, color: textColor }}
-          numberOfLines={4}>
-          {quote}
-        </Text>
-        <View className="mt-2 flex-row items-center justify-between">
+        <View className="flex-row items-center justify-between">
           {author ? (
             <Text className="text-[11px] text-white/80" numberOfLines={1}>
               — {author}

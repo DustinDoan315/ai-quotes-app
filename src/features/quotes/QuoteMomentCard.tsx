@@ -2,12 +2,13 @@ import { QuoteMomentCardMedia } from "@/features/quotes/QuoteMomentCardMedia";
 import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import type { ReactNode } from "react";
-import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
+import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
 import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import { useUserStore } from "@/appState";
 
 export interface QuoteMomentCardProps {
@@ -19,8 +20,6 @@ export interface QuoteMomentCardProps {
   dotsContent?: ReactNode;
 }
 
-const PORTRAIT_CARD_ASPECT = getQuoteAspectRatio("portrait");
-
 export const QuoteMomentCard = ({
   item,
   screenHeight,
@@ -30,6 +29,8 @@ export const QuoteMomentCard = ({
   dotsContent,
 }: QuoteMomentCardProps) => {
   const { t } = useTranslation();
+  const { width: windowWidth } = useWindowDimensions();
+  const frame = getQuoteFrameSize(windowWidth, screenHeight - 48);
   const authUserId = useUserStore((s) => s.authUserId);
   const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =
@@ -70,7 +71,7 @@ export const QuoteMomentCard = ({
     <QuoteMomentCardMedia
       item={item}
       chrome={chrome}
-      aspectRatio={PORTRAIT_CARD_ASPECT}
+      aspectRatio={QUOTE_DISPLAY_ASPECT}
       watermarkForExport={watermarkForExport}
       displayName={displayName}
       avatarFallbackName={baseDisplayName}
@@ -85,8 +86,8 @@ export const QuoteMomentCard = ({
   const cardInner =
     chrome && bgPalette ? (
       <View
-        className="w-full max-w-md overflow-hidden rounded-[28px]"
-        style={chrome.outerShell}
+        className="w-full overflow-hidden rounded-[28px]"
+        style={[chrome.outerShell, { width: frame.width }]}
       >
         <View className="relative overflow-hidden rounded-[28px] bg-black">
           <View pointerEvents="none" style={chrome.hairline} />
@@ -94,7 +95,7 @@ export const QuoteMomentCard = ({
         </View>
       </View>
     ) : (
-      <View className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50">
+      <View style={{ width: frame.width }} className="overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50">
         {mediaBlock}
       </View>
     );
@@ -104,7 +105,7 @@ export const QuoteMomentCard = ({
       style={{ height: screenHeight }}
       className="items-center justify-center py-6"
     >
-      <View className="relative w-full max-w-md items-center">
+      <View className="relative items-center" style={{ width: frame.width }}>
         <View ref={captureRefView} collapsable={false} className="w-full">
           {cardInner}
         </View>

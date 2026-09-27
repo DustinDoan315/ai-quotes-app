@@ -1,6 +1,6 @@
 import type { QuoteStack } from "./types";
 import { QuoteMomentCard } from "@/features/quotes/QuoteMomentCard";
-import { getFeedCardWidth } from "@/features/quotes/feedCardSizing";
+import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
 import { useMemo, useEffect, useState, useCallback } from "react";
 import { useWindowDimensions, View, StyleSheet } from "react-native";
 import Animated, {
@@ -64,8 +64,8 @@ export function QuoteStackEntry({
   const { width: windowWidth } = useWindowDimensions();
 
   const itemWidth = useMemo(() => {
-    return getFeedCardWidth(windowWidth);
-  }, [windowWidth]);
+    return getQuoteFrameSize(windowWidth, screenHeight - 48).width;
+  }, [screenHeight, windowWidth]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const quoteCount = stack.quotes.length;

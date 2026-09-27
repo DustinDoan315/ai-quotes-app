@@ -2,6 +2,7 @@ import { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { Text, View } from "react-native";
+import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
 
 import type { HomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 
@@ -100,7 +101,7 @@ export const QuoteMomentCardMedia = ({
           </View>
         </View>
       ) : null}
-      <View className="absolute inset-x-0 bottom-0 z-10 px-5 pb-4 pt-12">
+      <View className="absolute inset-x-0 bottom-0 z-10 px-5 pb-4 pt-3">
         <View className="mb-2 flex-row items-center justify-between">
           <View className="flex-1 flex-row items-center pr-2">
             <View className="h-9 w-9 overflow-hidden rounded-full border border-white/25 bg-white/15">
@@ -176,16 +177,23 @@ export const QuoteMomentCardMedia = ({
             </View>
           ) : null}
         </View>
-        {item.quote ? (
-          <Text
-            className="mt-1 font-semibold leading-snug"
-            style={{ fontSize, color: textColor }}
-            numberOfLines={4}
-          >
-            {item.quote}
-          </Text>
-        ) : null}
       </View>
+      {item.quote ? (
+        <QuotePositionLayer position={item.quotePosition}>
+          <View
+            className="rounded-2xl border border-white/25 bg-black/55 px-4 py-3"
+            style={{ maxWidth: "88%" }}
+          >
+            <Text
+              className="font-semibold leading-snug"
+              style={{ fontSize, color: textColor }}
+              numberOfLines={4}
+            >
+              {item.quote}
+            </Text>
+          </View>
+        </QuotePositionLayer>
+      ) : null}
     </View>
   );
 };
