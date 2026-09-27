@@ -20,6 +20,7 @@ import { useSubscriptionStore } from "@/appState/subscriptionStore";
 import { useReminderStore } from "@/appState/reminderStore";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import type { QuoteOrientation } from "@/constants/quoteImageSize";
+import { DEFAULT_QUOTE_POSITION, type QuotePosition } from "@/features/quotes/quotePosition";
 import { saveUserPhoto } from "@/services/media/saveUserPhoto";
 import {
   getQuoteValidationMessageKey,
@@ -95,6 +96,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   );
   const [photoOrientation, setPhotoOrientation] =
     useState<QuoteOrientation>("portrait");
+  const [quotePosition, setQuotePosition] = useState<QuotePosition>(
+    DEFAULT_QUOTE_POSITION,
+  );
   const [hideQuote, setHideQuote] = useState(false);
   const [hasSavedCurrentPhoto, setHasSavedCurrentPhoto] = useState(false);
   const [photoStackCount, setPhotoStackCount] = useState(0);
@@ -252,6 +256,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     setSelectedImageUri(null);
     setSelectedImageBase64(null);
     setPhotoOrientation("portrait");
+    setQuotePosition(DEFAULT_QUOTE_POSITION);
     setHideQuote(true);
     setHasSavedCurrentPhoto(false);
     setGenerationProgress(0);
@@ -369,6 +374,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setSelectedImageUri(photo.uri);
       setSelectedImageBase64(null);
       setPhotoOrientation("portrait");
+      setQuotePosition(DEFAULT_QUOTE_POSITION);
       clearDailyQuote();
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
@@ -451,6 +457,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         guestId,
         quote: quoteText,
         orientation: photoOrientation,
+        quotePosition,
         styleFontId: quoteFontSize,
         styleColorSchemeId: quoteColorScheme,
         homeVibeKey: homeVibeKey ?? null,
@@ -477,6 +484,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
           photoBackgroundUri: result.publicUrl,
           photoStoragePath: result.storagePath,
           photoOrientation: result.orientation,
+          quotePosition,
           styleFontId: quoteFontSize,
           styleColorSchemeId: quoteColorScheme,
           createdAt: now,
@@ -499,6 +507,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setSelectedImageUri(null);
       setSelectedImageBase64(null);
       setPhotoOrientation("portrait");
+      setQuotePosition(DEFAULT_QUOTE_POSITION);
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       setGenerationProgress(0);
@@ -566,6 +575,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setSelectedImageUri(picked.uri);
       setSelectedImageBase64(null);
       setPhotoOrientation(orientationForImage(picked.width, picked.height));
+      setQuotePosition(DEFAULT_QUOTE_POSITION);
       clearDailyQuote();
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
@@ -614,6 +624,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     isSavingPhoto,
     selectedImageUri,
     photoOrientation,
+    quotePosition,
+    setQuotePosition,
     hideQuote,
     hasSavedCurrentPhoto,
     canCreatePhotoStack,

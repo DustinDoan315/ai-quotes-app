@@ -1,3 +1,5 @@
+import type { QuotePosition } from "@/features/quotes/quotePosition";
+
 export type QuoteVisibility = "private" | "friends" | "public";
 
 export type QuoteImageOrientation = "portrait" | "landscape";
@@ -14,6 +16,7 @@ export type QuoteMemory = {
   photoBackgroundUri: string | null;
   photoStoragePath?: string | null;
   photoOrientation?: QuoteImageOrientation;
+  quotePosition?: QuotePosition;
   styleFontId: string;
   styleColorSchemeId: string;
   createdAt: string;

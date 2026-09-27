@@ -4,6 +4,7 @@ import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import type { HomeVibeKey } from "@/types/homeBackground";
 import type { QuoteMemory, QuoteVisibility } from "@/types/memory";
 import { formatLocalDateKey } from "@/utils/dateKey";
+import { parseQuotePosition, type QuotePosition } from "@/features/quotes/quotePosition";
 
 const quotePhotoRowSchema = z.object({
   id: z.string(),
@@ -18,6 +19,8 @@ const quotePhotoRowSchema = z.object({
   home_vibe_key: z.string().nullable().optional(),
   photo_stack_id: z.string().uuid().nullable().optional(),
   photo_orientation: z.enum(["portrait", "landscape"]).nullable().optional(),
+  quote_position_x: z.number().nullable().optional(),
+  quote_position_y: z.number().nullable().optional(),
   visibility: z.enum(["private", "friends", "public"]).default("private"),
   is_favorite: z.boolean().default(false),
 });
@@ -37,6 +40,7 @@ export type QuotePhotoCard = {
   homeVibeKey: HomeVibeKey | null;
   photoStackId: string | null;
   photoOrientation: "portrait" | "landscape";
+  quotePosition: QuotePosition;
   visibility: QuoteVisibility;
   isFavorite: boolean;
 };
@@ -72,7 +76,7 @@ type ListQuotePhotoCardsParams = {
 };
 
 const QUOTE_PHOTO_COLUMNS =
-  "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, photo_orientation, visibility, is_favorite";
+  "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, photo_orientation, quote_position_x, quote_position_y, visibility, is_favorite";
 
 export const listQuotePhotoCards = async (
   params: ListQuotePhotoCardsParams,
@@ -170,6 +174,7 @@ export const listQuotePhotoCards = async (
         : null,
       photoStackId: row.photo_stack_id ?? null,
       photoOrientation: row.photo_orientation ?? "portrait",
+      quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y),
       visibility: row.visibility,
       isFavorite: row.is_favorite,
     };
@@ -302,6 +307,7 @@ export const listQuotePhotoCardsForDay = async (
         : null,
       photoStackId: row.photo_stack_id ?? null,
       photoOrientation: row.photo_orientation ?? "portrait",
+      quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y),
       visibility: row.visibility,
       isFavorite: row.is_favorite,
     };
@@ -321,6 +327,7 @@ export function quotePhotoCardToMemory(card: QuotePhotoCard): QuoteMemory {
     photoBackgroundUri: card.imageUrl || null,
     photoStoragePath: card.storagePath,
     photoOrientation: card.photoOrientation,
+    quotePosition: card.quotePosition,
     styleFontId: card.styleFontId,
     styleColorSchemeId: card.styleColorSchemeId,
     createdAt: card.createdAt,
