@@ -185,9 +185,9 @@ export default function LoginScreen() {
     } catch (err: unknown) {
       const e = err as { code?: string };
       const googleSigninModule = await cachedGoogleSigninModulePromise?.catch(() => null);
-      if (e?.code === googleSigninModule?.statusCodes.SIGN_IN_CANCELLED) {
+      if (e?.code && e.code === googleSigninModule?.statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled — no error shown
-      } else if (e?.code === googleSigninModule?.statusCodes.IN_PROGRESS) {
+      } else if (e?.code && e.code === googleSigninModule?.statusCodes.IN_PROGRESS) {
         // already in progress — ignore
       } else if (err instanceof Error && err.message.includes("RNGoogleSignin")) {
         setError("Google Sign-In requires a development build or production app.");
