@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import QRCode from "react-native-qrcode-svg";
+import { goBackOrReplace } from "@/utils/goBackOrReplace";
 
 export default function FriendsScreen() {
   const { t } = useTranslation();
@@ -108,22 +109,36 @@ export default function FriendsScreen() {
   if (!userId) {
     return (
       <View
-        className="flex-1 items-center justify-center bg-transparent px-6"
-        style={{ paddingTop: insets.top }}>
-        <Text className="mb-6 text-center text-white/80">
-          {t("friends.signInPrompt")}
-        </Text>
-        <Pressable
-          onPress={() =>
-            router.push({
-              pathname: "/login",
-              params: { returnTo: "/(tabs)/friends?autoShare=1" },
-            } as never)
-          }
-          className="rounded-xl bg-white px-8 py-3"
-          style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
-          <Text className="text-base font-semibold text-black">{t("friends.signInButton")}</Text>
-        </Pressable>
+        className="flex-1 bg-transparent"
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+        <View className="flex-row items-center justify-between border-b border-white/10 px-4 py-3">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("auth.login.back")}
+            onPress={() => goBackOrReplace(router, "/(tabs)")}
+            className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
+            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </Pressable>
+          <Text className="text-lg font-semibold text-white">{t("friends.title")}</Text>
+          <View className="h-10 w-10" />
+        </View>
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="mb-6 text-center text-white/80">
+            {t("friends.signInPrompt")}
+          </Text>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/login",
+                params: { returnTo: "/(tabs)/friends?autoShare=1" },
+              } as never)
+            }
+            className="rounded-xl bg-white px-8 py-3"
+            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
+            <Text className="text-base font-semibold text-black">{t("friends.signInButton")}</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
