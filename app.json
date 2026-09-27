@@ -2,7 +2,7 @@
   "expo": {
     "name": "Inkly",
     "slug": "inkly-daily-vibes",
-    "version": "1.1",
+    "version": "1.2",
     "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -12,7 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dustindoan.inkly",
-      "buildNumber": "11",
+      "buildNumber": "1",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -26,6 +26,7 @@
       }
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
