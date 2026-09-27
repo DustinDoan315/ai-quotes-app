@@ -26,6 +26,10 @@ import { useEffect } from "react";
 export const AUTH_UNAVAILABLE_MESSAGE =
   "Inkly can't connect to its service right now. Check your connection and try again.";
 
+if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
+  initSentry(process.env.EXPO_PUBLIC_SENTRY_DSN);
+}
+
 function syncUiLanguageOnBoot(): (() => void) | undefined {
   const applyLanguageSync = () => {
     const { uiLanguage } = useUserStore.getState();
@@ -116,9 +120,6 @@ function bootstrapTelemetry(): void {
     );
   }
 
-  if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
-    initSentry(process.env.EXPO_PUBLIC_SENTRY_DSN);
-  }
 }
 
 export function useAppBootstrap(): void {
