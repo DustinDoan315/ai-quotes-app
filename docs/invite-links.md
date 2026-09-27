@@ -13,13 +13,13 @@ listing.
 
 ## Deployment requirements
 
-Deploy the web export from this repository to the Vercel project that owns
-`inkly-web-taupe.vercel.app`. The export includes:
+Deploy the separate `inkly-web` repository to the Vercel project that owns
+`inkly-web-taupe.vercel.app`. This app repository does not serve that hostname.
+The web deployment must include:
 
 - `/.well-known/apple-app-site-association`
 - `/.well-known/assetlinks.json`
-- `/invite.html`
-- `vercel.json`, which rewrites `/invite/<code>` to `/invite.html`
+- `/invite/<code>` as a working browser landing route
 
 The iOS association file uses Team ID `6SXWS6JV43` and bundle ID
 `com.dustindoan.inkly`.
