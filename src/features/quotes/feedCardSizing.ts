@@ -1,4 +1,6 @@
-const PHONE_CARD_HORIZONTAL_MARGIN = 32;
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
+
+const PHONE_CARD_HORIZONTAL_MARGIN = 24;
 const PHONE_CARD_MAX_WIDTH = 448;
 const TABLET_BREAKPOINT = 768;
 const TABLET_CARD_HORIZONTAL_MARGIN = 96;
@@ -14,4 +16,13 @@ export function getFeedCardWidth(windowWidth: number) {
   const ideal = windowWidth - horizontalMargin;
   const capped = Math.min(maxWidth, ideal);
   return Math.max(FEED_CARD_MIN_WIDTH, capped);
+}
+
+export function getQuoteFrameSize(viewportWidth: number, availableHeight: number) {
+  const width = Math.min(
+    getFeedCardWidth(viewportWidth),
+    Math.max(0, availableHeight) * QUOTE_DISPLAY_ASPECT,
+  );
+
+  return { width, height: width / QUOTE_DISPLAY_ASPECT };
 }
