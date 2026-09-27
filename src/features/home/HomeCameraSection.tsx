@@ -155,7 +155,7 @@ export const HomeCameraSection = ({
   onApprovePendingQuote,
   onCancelPendingQuote,
 }: HomeCameraSectionProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const getValidationMessage = (reason?: string) => {
     if (!reason) {
       return undefined;
