@@ -36,6 +36,7 @@
 | `app/(onboarding)/index.tsx` | Onboarding progression | Change to two steps and wire completion, Back, and Skip handlers. |
 | `src/features/onboarding/steps/WelcomeStep.tsx` | First impression | Animate the illustrative photo-to-quote reveal; preserve sign-in. |
 | `src/features/onboarding/steps/HowItWorksSaveStep.tsx` | Second screen | Combine personalization/save/share messaging; add Back and Skip. |
+| `src/features/onboarding/components/OnboardingQuotePreview.tsx` | Shared illustration | Show the sample quote in the current 3:5 photo-card style, with a noninteractive translucent quote overlay. |
 | `src/features/onboarding/steps/HowItWorksToneStep.tsx` | Former middle screen | Delete after removing its only route reference. |
 | `src/i18n/locales/en.json` | English localization | Update two-screen progress and copy; remove strings used only by the deleted screen. |
 | `src/i18n/locales/vi.json` | Vietnamese localization | Mirror the English updates. |
@@ -66,8 +67,10 @@
 **Files:**
 - Modify: `src/features/onboarding/steps/WelcomeStep.tsx`
 - Modify: `src/features/onboarding/steps/HowItWorksSaveStep.tsx`
+- Create: `src/features/onboarding/components/OnboardingQuotePreview.tsx`
 
 - [ ] Replace the static quote preview with a brief Moti sequence that visually moves from a moment/photo card to a sample quote reveal.
+- [ ] Match the current 3:5 portrait photo card and its translucent, repositioned quote overlay in both screens.
 - [ ] Combine the second screen's explanation into one short illustrative quote-card interaction for editing, saving, and sharing.
 - [ ] Keep the illustration non-interactive and clearly sample content; do not write it to quote or memory state.
 - [ ] Use `useReducedMotionPreference` on both screens; render the completed visual state immediately when reduced motion is enabled.

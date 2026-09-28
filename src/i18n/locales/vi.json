@@ -422,24 +422,11 @@
       "subheadline": "Lưu một khoảnh khắc để Inkly tự tìm cảm xúc, rồi giữ lại câu phản chiếu chạm đến bạn.",
       "previewQuote": "\"Một điều nhỏ bé, thật— được mang nhẹ nhàng— là đủ.\"",
       "previewAttribution": "MỘT KHOẢNH KHẮC ĐƯỢC GIỮ LẠI",
-      "progress": "1/3",
+      "progress": "BƯỚC 1/2",
       "cta": "Xem cách hoạt động",
       "alreadyHaveAccount": "Tôi đã có tài khoản"
     },
     "howItWorks": {
-      "tone": {
-        "sectionLabel": "BƯỚC 2/3",
-        "title": "Bắt đầu bằng một khoảnh khắc",
-        "subtitle": "Chụp ảnh hoặc chọn một ảnh trong thư viện. Chúng tôi chỉ xin quyền khi bạn chọn.",
-        "cta": "Tiếp theo",
-        "preview": {
-          "camera": "Camera",
-          "library": "Thư viện ảnh",
-          "pause": "Cứ từ từ",
-          "notice": "Cảm nhận khoảnh khắc",
-          "yours": "Tạo dấu ấn riêng"
-        }
-      },
       "compose": {
         "sectionLabel": "CÁCH HOẠT ĐỘNG · 2/3",
         "title": "Inkly sáng tác cho bạn",
@@ -450,15 +437,20 @@
         "previewVibeKey": "BÌNH MINH"
       },
       "save": {
-        "sectionLabel": "BƯỚC 3/3",
+        "sectionLabel": "BƯỚC 2/2",
         "title": "Tạo dấu ấn của riêng bạn",
-        "subtitle": "Inkly sẽ tự tìm tâm trạng đầu tiên. Chỉnh sửa hoặc viết lại câu phản chiếu, rồi lưu kỷ niệm hoặc chia sẻ hình ảnh.",
-        "cta": "Bắt đầu tạo",
+        "subtitle": "Tùy chỉnh câu trích dẫn, rồi lưu khoảnh khắc hoặc chia sẻ hình ảnh.",
+        "cta": "Tạo câu trích dẫn đầu tiên",
         "line1": "Bắt đầu với tâm trạng Inkly tìm thấy.",
         "line2": "Viết lại câu phản chiếu cho đúng với bạn.",
         "line3": "Lưu kỷ niệm hoặc chia sẻ hình ảnh."
       }
     },
+    "navigation": {
+      "back": "Quay lại",
+      "skip": "Bỏ qua"
+    },
+    "previewLabel": "BẢN MẪU",
     "persona": {
       "sectionLabel": "VỀ BẠN · 1/2",
       "title": "Gần đây bạn là ai?",
