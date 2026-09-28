@@ -3,10 +3,11 @@ import {
   sendUserPhotoReaction,
   type UserPhotoReactionType,
 } from "@/services/media/userPhotoReactions";
+import type { QuoteVisibility } from "@/types/memory";
 import { useEffect, useRef, useState } from "react";
 
 type QuoteStackLike = {
-  quotes: { id: string; userId: string | null }[];
+  quotes: { id: string; userId: string | null; visibility: QuoteVisibility }[];
 };
 
 export type EmojiBurst = {
@@ -26,9 +27,13 @@ type UseHomeFeedStateOptions = {
 export function canReactToQuotePhoto(
   actorUserId: string | null,
   quoteOwnerUserId: string | null,
+  visibility: QuoteVisibility,
 ): boolean {
   return Boolean(
-    actorUserId && quoteOwnerUserId && actorUserId !== quoteOwnerUserId,
+    actorUserId &&
+      quoteOwnerUserId &&
+      actorUserId !== quoteOwnerUserId &&
+      visibility !== "private",
   );
 }
 
@@ -38,14 +43,18 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
   const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
   const [isOnFeed, setIsOnFeed] = useState(false);
-  const activeQuoteOwnerId =
+  const activeQuote =
     quoteStacks
       .flatMap((stack) => stack.quotes)
-      .find((quote) => quote.id === activeQuoteId)?.userId ?? null;
+      .find((quote) => quote.id === activeQuoteId);
   const shouldShowReactions =
     isOnFeed &&
     Boolean(activeQuoteId) &&
-    canReactToQuotePhoto(userId, activeQuoteOwnerId);
+    canReactToQuotePhoto(
+      userId,
+      activeQuote?.userId ?? null,
+      activeQuote?.visibility ?? "private",
+    );
 
   useEffect(() => {
     if (!isOnFeed) {
