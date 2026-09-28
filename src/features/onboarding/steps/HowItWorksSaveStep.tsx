@@ -5,31 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function HowItWorksDots({ active }: { active: 1 | 2 | 3 }) {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 6,
-        justifyContent: "center",
-        marginVertical: 16,
-      }}
-    >
-      {[1, 2, 3].map((i) => (
-        <View
-          key={i}
-          style={{
-            width: i === active ? 20 : 6,
-            height: 6,
-            borderRadius: 3,
-            backgroundColor: i === active ? "#c2410c" : "rgba(255,255,255,0.2)",
-          }}
-        />
-      ))}
-    </View>
-  );
-}
-
 const QUOTE_LINES = [
   { key: "line1", opacity: 0.6 },
   { key: "line2", opacity: 0.8 },
@@ -37,10 +12,12 @@ const QUOTE_LINES = [
 ] as const;
 
 type Props = {
-  onContinue: () => void;
+  onBack: () => void;
+  onSkip: () => void;
+  onComplete: () => void;
 };
 
-export function HowItWorksSaveStep({ onContinue }: Props) {
+export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
@@ -53,24 +30,38 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        {/* Section label */}
-        <MotiView
-          from={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ type: "timing", duration: 300, delay: 60 }}
-        >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: "700",
-              letterSpacing: 1.2,
-              color: "#c2410c",
-              marginBottom: 20,
-            }}
+        <View className="mb-4 flex-row items-center justify-between">
+          <Pressable
+            onPress={onBack}
+            accessibilityRole="button"
+            className="min-h-11 min-w-14 flex-row items-center justify-start"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            {t("onboarding.howItWorks.save.sectionLabel")}
-          </Text>
-        </MotiView>
+            <Ionicons name="arrow-back" size={18} color="rgba(255,255,255,0.7)" />
+            <Text className="ml-1 text-sm font-medium text-white/70">
+              {t("onboarding.navigation.back")}
+            </Text>
+          </Pressable>
+          <MotiView
+            from={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ type: "timing", duration: 300, delay: 60 }}
+          >
+            <Text className="text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
+              {t("onboarding.howItWorks.save.sectionLabel")}
+            </Text>
+          </MotiView>
+          <Pressable
+            onPress={onSkip}
+            accessibilityRole="button"
+            className="min-h-11 min-w-14 items-end justify-center"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text className="text-sm font-medium text-white/60">
+              {t("onboarding.navigation.skip")}
+            </Text>
+          </Pressable>
+        </View>
 
         {/* Stacked quote snippets */}
         <View style={{ gap: 10, marginBottom: 28 }}>
@@ -149,9 +140,6 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
           </Text>
         </MotiView>
 
-        {/* Mini progress dots */}
-        <HowItWorksDots active={3} />
-
         <View className="flex-1" />
 
         {/* CTA */}
@@ -161,7 +149,7 @@ export function HowItWorksSaveStep({ onContinue }: Props) {
           transition={{ type: "timing", duration: 340, delay: 440 }}
         >
           <Pressable
-            onPress={onContinue}
+            onPress={onComplete}
             className="rounded-2xl bg-white py-4"
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
           >

@@ -14,9 +14,10 @@ const DAWN_PALETTE = HOME_BACKGROUNDS[0]; // dawn — purple/orange
 
 type Props = {
   onContinue: () => void;
+  onSkip: () => void;
 };
 
-export function WelcomeStep({ onContinue }: Props) {
+export function WelcomeStep({ onContinue, onSkip }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
@@ -53,9 +54,21 @@ export function WelcomeStep({ onContinue }: Props) {
           </Text>
         </MotiView>
 
-        <Text className="mb-4 text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
-          {t("onboarding.welcome.progress")}
-        </Text>
+        <View className="mb-4 flex-row items-center justify-between">
+          <Text className="text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
+            {t("onboarding.welcome.progress")}
+          </Text>
+          <Pressable
+            onPress={onSkip}
+            accessibilityRole="button"
+            className="min-h-11 justify-center px-2"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text className="text-sm font-medium text-white/60">
+              {t("onboarding.navigation.skip")}
+            </Text>
+          </Pressable>
+        </View>
 
         {/* Quote card — yesterday's vibe */}
         <MotiView
