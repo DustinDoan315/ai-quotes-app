@@ -560,8 +560,8 @@ export const HomeCameraSection = ({
                             backgroundColor: "rgba(0,0,0,0.58)",
                             borderWidth: 1,
                             borderColor: "rgba(255,255,255,0.34)",
-                            maxWidth: "88%",
-                            paddingTop: canMoveQuote ? 36 : 12,
+                            maxWidth: "100%",
+                            paddingTop: 12,
                           }}
                           disabled={
                             isEditingQuote ||

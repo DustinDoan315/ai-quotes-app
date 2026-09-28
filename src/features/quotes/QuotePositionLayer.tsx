@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   clampQuotePosition,
   type QuoteBoxSize,
@@ -107,36 +106,25 @@ export function QuotePositionLayer({
         );
       }}
     >
-      <Animated.View
-        onLayout={({ nativeEvent }) => {
-          const { width, height } = nativeEvent.layout;
-          setQuote((current) =>
-            current.width === width && current.height === height
-              ? current
-              : { width, height },
-          );
-        }}
-        style={[
-          styles.positionedQuote,
-          frame.width > 0 ? { maxWidth: frame.width } : null,
-          positionedStyle,
-        ]}
-      >
-        {children}
-        {onPositionChange ? (
-          <GestureDetector gesture={panGesture}>
-            <View
-              accessible
-              accessibilityRole="adjustable"
-              accessibilityLabel="Move quote"
-              accessibilityHint="Drag this handle to reposition the quote"
-              style={styles.moveHandle}
-            >
-              <Ionicons name="move-outline" size={18} color="#FFFFFF" />
-            </View>
-          </GestureDetector>
-        ) : null}
-      </Animated.View>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View
+          onLayout={({ nativeEvent }) => {
+            const { width, height } = nativeEvent.layout;
+            setQuote((current) =>
+              current.width === width && current.height === height
+                ? current
+                : { width, height },
+            );
+          }}
+          style={[
+            styles.positionedQuote,
+            frame.width > 0 ? { maxWidth: frame.width } : null,
+            positionedStyle,
+          ]}
+        >
+          {children}
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }
@@ -146,18 +134,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: 0,
-  },
-  moveHandle: {
-    position: "absolute",
-    top: 3,
-    right: 3,
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 17,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
-    backgroundColor: "rgba(0,0,0,0.78)",
   },
 });
