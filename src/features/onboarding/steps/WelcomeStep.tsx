@@ -1,32 +1,47 @@
 import { AppIcon } from "@/components/AppIcon";
-import { HomeBackground } from "@/features/home/HomeBackground";
+import { OnboardingQuotePreview } from "@/features/onboarding/components/OnboardingQuotePreview";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { APP_BRAND_MARK } from "@/theme/appBrand";
-import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
-const DAWN_PALETTE = HOME_BACKGROUNDS[0]; // dawn — purple/orange
-
 type Props = {
   onContinue: () => void;
+  onSkip: () => void;
 };
 
-export function WelcomeStep({ onContinue }: Props) {
+export function WelcomeStep({ onContinue, onSkip }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const router = useRouter();
   const reduceMotion = useReducedMotionPreference();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const availableHeight =
+    windowHeight - Math.max(insets.top, 24) - Math.max(insets.bottom, 24);
+  const previewWidth = Math.min(
+    windowWidth - 48,
+    Math.max(120, (availableHeight - 360) * (3 / 5)),
+  );
 
   return (
     <OnboardingStepShell>
-      <View
-        className="flex-1 px-6"
-        style={{
+      <ScrollView
+        className="flex-1"
+        contentInsetAdjustmentBehavior="never"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
           paddingTop: Math.max(insets.top, 24),
           paddingBottom: Math.max(insets.bottom, 24),
         }}
@@ -39,9 +54,13 @@ export function WelcomeStep({ onContinue }: Props) {
               : { opacity: 0, translateY: 8 }
           }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 380, delay: 60 }}
+          transition={{
+            type: "timing",
+            duration: reduceMotion ? 0 : 380,
+            delay: reduceMotion ? 0 : 60,
+          }}
           style={{
-            marginBottom: 32,
+            marginBottom: 20,
             flexDirection: "row",
             alignItems: "center",
             gap: 12,
@@ -53,11 +72,23 @@ export function WelcomeStep({ onContinue }: Props) {
           </Text>
         </MotiView>
 
-        <Text className="mb-4 text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
-          {t("onboarding.welcome.progress")}
-        </Text>
+        <View className="mb-1 flex-row items-center justify-between">
+          <Text className="text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
+            {t("onboarding.welcome.progress")}
+          </Text>
+          <Pressable
+            onPress={onSkip}
+            accessibilityRole="button"
+            className="min-h-11 justify-center px-2"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text className="text-sm font-medium text-white/60">
+              {t("onboarding.navigation.skip")}
+            </Text>
+          </Pressable>
+        </View>
 
-        {/* Quote card — yesterday's vibe */}
+        {/* The photo card arrives before its sample quote. */}
         <MotiView
           from={
             reduceMotion
@@ -65,65 +96,26 @@ export function WelcomeStep({ onContinue }: Props) {
               : { opacity: 0, scale: 0.94 }
           }
           animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            type: "spring",
-            delay: 120,
-            damping: 18,
-            stiffness: 120,
-          }}
+          transition={
+            reduceMotion
+              ? { type: "timing", duration: 0 }
+              : {
+                  type: "spring",
+                  delay: 120,
+                  damping: 18,
+                  stiffness: 120,
+                }
+          }
+          style={{ alignItems: "center", marginBottom: 18 }}
         >
-          <View
-            style={{
-              height: 220,
-              borderRadius: 24,
-              overflow: "hidden",
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.12)",
-              marginBottom: 36,
-            }}
-          >
-            <HomeBackground palette={DAWN_PALETTE} />
-            <View
-              style={[
-                StyleSheet.absoluteFillObject,
-                { backgroundColor: "rgba(0,0,0,0.18)" },
-              ]}
-              pointerEvents="none"
-            />
-            {/* Quote text */}
-            <View className="absolute inset-0 justify-center p-6">
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: "600",
-                  fontStyle: "italic",
-                  lineHeight: 28,
-                  color: "#fff",
-                }}
-              >
-                {t("onboarding.welcome.previewQuote")}
-              </Text>
-            </View>
-            {/* Attribution label — bottom left */}
-            <View
-              style={{
-                position: "absolute",
-                bottom: 14,
-                left: 16,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: "700",
-                  letterSpacing: 1.2,
-                  color: "rgba(255,255,255,0.55)",
-                }}
-              >
-                {t("onboarding.welcome.previewAttribution")}
-              </Text>
-            </View>
-          </View>
+          <OnboardingQuotePreview
+            width={previewWidth}
+            quote={t("onboarding.welcome.previewQuote")}
+            attribution={t("onboarding.welcome.previewAttribution")}
+            sampleLabel={t("onboarding.previewLabel")}
+            quotePositionY={47}
+            reduceMotion={reduceMotion}
+          />
         </MotiView>
 
         {/* Headline */}
@@ -134,15 +126,19 @@ export function WelcomeStep({ onContinue }: Props) {
               : { opacity: 0, translateY: 14 }
           }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 400, delay: 260 }}
+          transition={{
+            type: "timing",
+            duration: reduceMotion ? 0 : 400,
+            delay: reduceMotion ? 0 : 260,
+          }}
         >
           <Text
             style={{
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: "800",
-              lineHeight: 38,
+              lineHeight: 34,
               color: "#fff",
-              marginBottom: 12,
+              marginBottom: 8,
             }}
           >
             {t("onboarding.welcome.headline")}
@@ -157,7 +153,11 @@ export function WelcomeStep({ onContinue }: Props) {
               : { opacity: 0, translateY: 14 }
           }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 400, delay: 340 }}
+          transition={{
+            type: "timing",
+            duration: reduceMotion ? 0 : 400,
+            delay: reduceMotion ? 0 : 340,
+          }}
         >
           <Text
             style={{
@@ -181,10 +181,15 @@ export function WelcomeStep({ onContinue }: Props) {
               : { opacity: 0, translateY: 20 }
           }
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 380, delay: 460 }}
+          transition={{
+            type: "timing",
+            duration: reduceMotion ? 0 : 380,
+            delay: reduceMotion ? 0 : 460,
+          }}
         >
           <Pressable
             onPress={onContinue}
+            accessibilityRole="button"
             className="rounded-2xl bg-white py-4"
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
           >
@@ -203,6 +208,7 @@ export function WelcomeStep({ onContinue }: Props) {
                 },
               } as never)
             }
+            accessibilityRole="button"
             style={({ pressed }) => ({
               opacity: pressed ? 0.6 : 1,
               paddingVertical: 14,
@@ -220,7 +226,7 @@ export function WelcomeStep({ onContinue }: Props) {
             </Text>
           </Pressable>
         </MotiView>
-      </View>
+      </ScrollView>
     </OnboardingStepShell>
   );
 }

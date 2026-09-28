@@ -432,24 +432,11 @@
       "subheadline": "Capture a moment and let Inkly find the feeling, then keep the reflection that lands.",
       "previewQuote": "\"A small, true thing— carried gently— is enough.\"",
       "previewAttribution": "A MOMENT, KEPT",
-      "progress": "1 OF 3",
+      "progress": "1 OF 2",
       "cta": "See how it works",
       "alreadyHaveAccount": "I already have an account"
     },
     "howItWorks": {
-      "tone": {
-        "sectionLabel": "STEP 2 OF 3",
-        "title": "Start with a moment",
-        "subtitle": "Take a photo or choose one from your library. We only ask for access when you choose.",
-        "cta": "Next",
-        "preview": {
-          "camera": "Camera",
-          "library": "Photo library",
-          "pause": "Take your time",
-          "notice": "Notice the feeling",
-          "yours": "Make it yours"
-        }
-      },
       "compose": {
         "sectionLabel": "HOW IT WORKS · 2 OF 3",
         "title": "Inkly composes for you",
@@ -460,15 +447,20 @@
         "previewVibeKey": "DAWN"
       },
       "save": {
-        "sectionLabel": "STEP 3 OF 3",
+        "sectionLabel": "STEP 2 OF 2",
         "title": "Make it yours",
-        "subtitle": "Inkly finds the first mood for you. Edit or rewrite the reflection, then save the memory or share the image.",
-        "cta": "Start creating",
+        "subtitle": "Personalize the quote, then save your moment or share the image.",
+        "cta": "Create your first quote",
         "line1": "Start with the mood Inkly finds.",
         "line2": "Rewrite the reflection until it sounds like you.",
         "line3": "Save the memory or share the image."
       }
     },
+    "navigation": {
+      "back": "Back",
+      "skip": "Skip"
+    },
+    "previewLabel": "SAMPLE",
     "persona": {
       "sectionLabel": "ABOUT YOU · 1 OF 2",
       "title": "Who are you, lately?",

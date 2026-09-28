@@ -19,6 +19,7 @@ const createCard = (
   styleFontId: "medium",
   styleColorSchemeId: "light",
   homeVibeKey: null,
+  photoOrientation: "portrait",
   photoStackId,
   photoOrientation: "portrait",
   quotePosition: DEFAULT_QUOTE_POSITION,
