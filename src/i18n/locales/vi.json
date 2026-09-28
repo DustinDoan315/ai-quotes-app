@@ -85,6 +85,15 @@
     "inviteFriendsTitle": "Mời bạn bè trên Inkly",
     "inviteSkip": "Bỏ qua",
     "inviteCta": "Mời",
+    "reactions": {
+      "love": "Thả tim",
+      "fire": "Thả biểu tượng lửa",
+      "clap": "Thả biểu tượng vỗ tay",
+      "withEmoji": "Thả biểu tượng {{emoji}}",
+      "sendHint": "Gửi phản ứng bằng biểu tượng",
+      "more": "Thêm biểu tượng",
+      "moreHint": "Mở thêm các biểu tượng phản ứng"
+    },
     "messagePlaceholder": "Gửi tin nhắn…",
     "messageSent": "Đã gửi tin nhắn",
     "savedToMemories": "Đã lưu vào kỷ niệm",

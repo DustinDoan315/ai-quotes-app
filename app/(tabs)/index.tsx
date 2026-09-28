@@ -239,25 +239,16 @@ export default function HomeScreen() {
   } = useHomeAiReview(dailyQuoteText);
   const {
     currentFeedIndex,
-    activeQuoteId,
     isOnFeed,
     emojiBursts,
-    composerText,
-    isComposerOpen,
-    isSendingMessage,
-    lastSentLabel,
     setActiveQuoteId,
-    setComposerText,
-    setIsComposerOpen,
     handleReact,
-    handleSendMessage,
     viewabilityConfig,
     onViewableItemsChanged,
-    shouldShowMessageBar,
+    shouldShowReactions,
   } = useHomeFeedState({
     quoteStacks,
-    userId: profile?.user_id ?? authUserId,
-    guestId: guestId ?? null,
+    userId: profile?.user_id ?? null,
   });
   const flatListExtraData = useMemo(
     () =>
@@ -410,17 +401,8 @@ export default function HomeScreen() {
         }
       />
       <HomeActionBar
-        isComposerOpen={isComposerOpen}
-        shouldShowMessageBar={shouldShowMessageBar}
-        canSendMessage={isOnFeed && Boolean(activeQuoteId)}
-        composerText={composerText}
-        isSendingMessage={isSendingMessage}
-        lastSentLabel={lastSentLabel}
+        shouldShowReactions={shouldShowReactions}
         bottomInset={actionBarBottomPadding}
-        onOpenComposer={() => setIsComposerOpen(true)}
-        onCloseComposer={() => setIsComposerOpen(false)}
-        onChangeComposerText={setComposerText}
-        onSendMessage={handleSendMessage}
         onOpenMemories={handleOpenMemories}
         onCameraPress={handleCameraButtonPress}
         onOpenGallery={handleOpenGalleryPress}

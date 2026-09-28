@@ -1,31 +1,21 @@
 import { CameraActionsBar } from "@/components/CameraActionsBar";
-import { useTranslation } from "react-i18next";
 import {
-  KeyboardAvoidingView,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+  PHOTO_REACTION_EMOJIS,
+  type UserPhotoReactionType,
+} from "@/services/media/userPhotoReactions";
+import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 
 type Props = {
-  isComposerOpen: boolean;
-  shouldShowMessageBar: boolean;
-  canSendMessage: boolean;
-  composerText: string;
-  isSendingMessage: boolean;
-  lastSentLabel: string | null;
+  shouldShowReactions: boolean;
   bottomInset: number;
-  onOpenComposer: () => void;
-  onCloseComposer: () => void;
-  onChangeComposerText: (value: string) => void;
-  onSendMessage: () => void;
   onOpenMemories: () => void;
   onCameraPress: () => void;
   onOpenGallery: () => void;
   onSavePhoto: () => void;
   onShareImage: () => void;
-  onReact: (type: "love" | "fire" | "clap") => void;
+  onReact: (type: UserPhotoReactionType) => void;
   isGenerating: boolean;
   isCapturing: boolean;
   cameraReady: boolean;
@@ -37,17 +27,8 @@ type Props = {
 };
 
 export function HomeActionBar({
-  isComposerOpen,
-  shouldShowMessageBar,
-  canSendMessage,
-  composerText,
-  isSendingMessage,
-  lastSentLabel,
+  shouldShowReactions,
   bottomInset,
-  onOpenComposer,
-  onCloseComposer,
-  onChangeComposerText,
-  onSendMessage,
   onOpenMemories,
   onCameraPress,
   onOpenGallery,
@@ -64,121 +45,109 @@ export function HomeActionBar({
   isSaving,
 }: Props) {
   const { t } = useTranslation();
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!shouldShowReactions) setIsEmojiPickerOpen(false);
+  }, [shouldShowReactions]);
+
   return (
-    <>
-      {!isComposerOpen ? (
-        <View
-          className="border-t border-white/10 bg-black/20 px-4 pt-2"
-          style={{ paddingBottom: bottomInset }}
-          pointerEvents="box-none"
-        >
-          {shouldShowMessageBar ? (
-            <View className="mb-2 flex-row items-center justify-between rounded-full bg-white/10 px-3 py-2">
-              <Pressable onPress={onOpenComposer} className="flex-1">
-                <Text className="text-xs text-white/70">
-                  {t("home.messagePlaceholder")}
-                </Text>
-              </Pressable>
-              <View className="ml-2 flex-row items-center gap-2">
+    <View
+      className="border-t border-white/10 bg-black/20 px-4 pt-2"
+      style={{ paddingBottom: bottomInset }}
+      pointerEvents="box-none"
+    >
+      {shouldShowReactions ? (
+        <>
+          {isEmojiPickerOpen ? (
+            <View
+              className="flex-row flex-wrap justify-end gap-2 rounded-2xl bg-black/75 p-2"
+              style={{
+                position: "absolute",
+                right: 16,
+                bottom: 48,
+                maxWidth: 300,
+                zIndex: 20,
+              }}
+            >
+              {(Object.entries(PHOTO_REACTION_EMOJIS) as [
+                UserPhotoReactionType,
+                string,
+              ][]).map(([type, emoji]) => (
                 <Pressable
-                  onPress={() => onReact("love")}
-                  className="rounded-full bg-white/15 px-3 py-1"
+                  key={type}
+                  onPress={() => {
+                    setIsEmojiPickerOpen(false);
+                    onReact(type);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("home.reactions.withEmoji", { emoji })}
+                  accessibilityHint={t("home.reactions.sendHint")}
+                  className="h-10 min-w-10 items-center justify-center rounded-full bg-white/10 px-2"
                 >
-                  <Text className="text-base">❤️</Text>
+                  <Text className="text-xl">{emoji}</Text>
                 </Pressable>
-                <Pressable
-                  onPress={() => onReact("fire")}
-                  className="rounded-full bg-white/15 px-3 py-1"
-                >
-                  <Text className="text-base">🔥</Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => onReact("clap")}
-                  className="rounded-full bg-white/15 px-3 py-1"
-                >
-                  <Text className="text-base">👏</Text>
-                </Pressable>
-              </View>
+              ))}
             </View>
           ) : null}
-          <CameraActionsBar
-            onGenerate={onOpenMemories}
-            onCapture={onCameraPress}
-            onOpenGallery={onOpenGallery}
-            onSave={onSavePhoto}
-            onShare={onShareImage}
-            isGenerating={isGenerating}
-            isCapturing={isCapturing}
-            cameraReady={cameraReady}
-            cameraPermissionGranted={cameraPermissionGranted}
-            hasImage={hasImage}
-            canSave={canSave}
-            canShare={canShare}
-            isSaving={isSaving}
-          />
-        </View>
-      ) : null}
-      {isComposerOpen ? (
-        <>
-          <Pressable
-            className="absolute inset-0 bg-black/60"
-            onPress={onCloseComposer}
-          />
-          <KeyboardAvoidingView
-            behavior="padding"
-            keyboardVerticalOffset={bottomInset}
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          >
-            <View
-              className="px-4 pt-2"
-              style={{ paddingBottom: bottomInset }}
-              pointerEvents="box-none"
+          <View className="mb-2 flex-row items-center justify-end gap-2 rounded-full bg-white/10 px-3 py-2">
+            <Pressable
+              onPress={() => onReact("love")}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.reactions.love")}
+              accessibilityHint={t("home.reactions.sendHint")}
+              className="rounded-full bg-white/15 px-3 py-1"
             >
-              {canSendMessage ? (
-                <View className="flex-row items-center justify-between rounded-full bg-gray-500/90 px-3 py-2">
-                  <TextInput
-                    autoFocus
-                    placeholder={t("home.replyPlaceholder")}
-                    placeholderTextColor="rgba(255,255,255,0.6)"
-                    value={composerText}
-                    onChangeText={onChangeComposerText}
-                    onSubmitEditing={onSendMessage}
-                    onBlur={onCloseComposer}
-                    className="flex-1 text-xs text-white"
-                    returnKeyType="send"
-                  />
-                  <Pressable
-                    onPress={onSendMessage}
-                    disabled={isSendingMessage}
-                    className="ml-2 rounded-full bg-white px-3 py-1"
-                    style={{ opacity: isSendingMessage ? 0.6 : 1 }}
-                  >
-                    <Text className="text-xs font-semibold text-black">
-                      {isSendingMessage
-                        ? t("home.sendingButton")
-                        : t("home.sendButton")}
-                    </Text>
-                  </Pressable>
-                </View>
-              ) : null}
-            </View>
-          </KeyboardAvoidingView>
+              <Text className="text-base">❤️</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onReact("fire")}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.reactions.fire")}
+              accessibilityHint={t("home.reactions.sendHint")}
+              className="rounded-full bg-white/15 px-3 py-1"
+            >
+              <Text className="text-base">🔥</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => onReact("clap")}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.reactions.clap")}
+              accessibilityHint={t("home.reactions.sendHint")}
+              className="rounded-full bg-white/15 px-3 py-1"
+            >
+              <Text className="text-base">👏</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setIsEmojiPickerOpen((open) => !open)}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.reactions.more")}
+              accessibilityHint={t("home.reactions.moreHint")}
+              accessibilityState={{ expanded: isEmojiPickerOpen }}
+              className="h-8 w-8 items-center justify-center rounded-full bg-white/15"
+            >
+              <Text className="text-lg font-medium text-white">
+                {isEmojiPickerOpen ? "×" : "+"}
+              </Text>
+            </Pressable>
+          </View>
         </>
       ) : null}
-      {lastSentLabel !== null && !isComposerOpen ? (
-        <View className="absolute inset-x-0 bottom-[72px] items-center">
-          <View className="rounded-full bg-black/80 px-3 py-1">
-            <Text className="text-[10px] font-medium text-white/80">
-              {lastSentLabel}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-    </>
+      <CameraActionsBar
+        onGenerate={onOpenMemories}
+        onCapture={onCameraPress}
+        onOpenGallery={onOpenGallery}
+        onSave={onSavePhoto}
+        onShare={onShareImage}
+        isGenerating={isGenerating}
+        isCapturing={isCapturing}
+        cameraReady={cameraReady}
+        cameraPermissionGranted={cameraPermissionGranted}
+        hasImage={hasImage}
+        canSave={canSave}
+        canShare={canShare}
+        isSaving={isSaving}
+      />
+    </View>
   );
 }
