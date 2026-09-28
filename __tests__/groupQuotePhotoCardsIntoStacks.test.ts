@@ -1,5 +1,6 @@
 import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/groupQuotePhotoCardsIntoStacks";
 import type { QuotePhotoCard } from "@/services/media/userPhotosApi";
+import { DEFAULT_QUOTE_POSITION } from "@/features/quotes/quotePosition";
 
 const createCard = (
   id: string,
@@ -19,6 +20,8 @@ const createCard = (
   styleColorSchemeId: "light",
   homeVibeKey: null,
   photoStackId,
+  photoOrientation: "portrait",
+  quotePosition: DEFAULT_QUOTE_POSITION,
   visibility: "private",
   isFavorite: false,
 });

@@ -1,9 +1,13 @@
-import { sendUserPhotoReaction } from "@/services/media/userPhotoReactions";
-import i18n from "@/i18n";
+import {
+  PHOTO_REACTION_EMOJIS,
+  sendUserPhotoReaction,
+  type UserPhotoReactionType,
+} from "@/services/media/userPhotoReactions";
+import type { QuoteVisibility } from "@/types/memory";
 import { useEffect, useRef, useState } from "react";
 
 type QuoteStackLike = {
-  quotes: { id: string }[];
+  quotes: { id: string; userId: string | null; visibility: QuoteVisibility }[];
 };
 
 export type EmojiBurst = {
@@ -15,27 +19,42 @@ export type EmojiBurst = {
   driftDir: 1 | -1;
 };
 
-type FeedReactionType = "love" | "clap" | "fire";
-
 type UseHomeFeedStateOptions = {
   quoteStacks: QuoteStackLike[];
   userId: string | null;
-  guestId: string | null;
 };
 
+export function canReactToQuotePhoto(
+  actorUserId: string | null,
+  quoteOwnerUserId: string | null,
+  visibility: QuoteVisibility,
+): boolean {
+  return Boolean(
+    actorUserId &&
+      quoteOwnerUserId &&
+      actorUserId !== quoteOwnerUserId &&
+      visibility !== "private",
+  );
+}
+
 export function useHomeFeedState(options: UseHomeFeedStateOptions) {
-  const { quoteStacks, userId, guestId } = options;
+  const { quoteStacks, userId } = options;
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
   const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
   const [isOnFeed, setIsOnFeed] = useState(false);
-  const [composerText, setComposerText] = useState("");
-  const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [lastSentLabel, setLastSentLabel] = useState<string | null>(null);
-  // Reactions and replies are intentionally deferred from V1 until their
-  // tables and RLS policies are shipped with the production schema.
-  const socialInteractionsEnabled = false;
+  const activeQuote =
+    quoteStacks
+      .flatMap((stack) => stack.quotes)
+      .find((quote) => quote.id === activeQuoteId);
+  const shouldShowReactions =
+    isOnFeed &&
+    Boolean(activeQuoteId) &&
+    canReactToQuotePhoto(
+      userId,
+      activeQuote?.userId ?? null,
+      activeQuote?.visibility ?? "private",
+    );
 
   useEffect(() => {
     if (!isOnFeed) {
@@ -68,27 +87,21 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
     },
   ).current;
 
-  async function handleReact(type: FeedReactionType) {
-    if (!activeQuoteId) {
+  async function handleReact(type: UserPhotoReactionType) {
+    if (!shouldShowReactions || !activeQuoteId || !userId) {
       return;
     }
 
     const success = await sendUserPhotoReaction({
       photoId: activeQuoteId,
       userId,
-      guestId: userId ? null : guestId,
       type,
     });
     if (!success) {
       return;
     }
 
-    const emojiByType: Record<FeedReactionType, string> = {
-      love: "❤️",
-      clap: "👏",
-      fire: "🔥",
-    };
-    const emoji = emojiByType[type];
+    const emoji = PHOTO_REACTION_EMOJIS[type];
     const bursts: EmojiBurst[] = [];
     const count = 24;
     const baseId = Date.now().toString();
@@ -116,52 +129,15 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
     }, durationMs + (count - 1) * delayStepMs + 100);
   }
 
-  async function handleSendMessage() {
-    const trimmed = composerText.trim();
-    if (!activeQuoteId || !trimmed || isSendingMessage) {
-      return;
-    }
-
-    setIsSendingMessage(true);
-    const success = await sendUserPhotoReaction({
-      photoId: activeQuoteId,
-      userId,
-      guestId: userId ? null : guestId,
-      type: "love",
-      comment: trimmed,
-    });
-    setIsSendingMessage(false);
-
-    if (!success) {
-      return;
-    }
-
-    setComposerText("");
-    setIsComposerOpen(false);
-    setLastSentLabel(i18n.t("home.messageSent"));
-    setTimeout(() => {
-      setLastSentLabel((label) =>
-        label === i18n.t("home.messageSent") ? null : label,
-      );
-    }, 1200);
-  }
-
   return {
     currentFeedIndex,
     activeQuoteId,
     isOnFeed,
     emojiBursts,
-    composerText,
-    isComposerOpen,
-    isSendingMessage,
-    lastSentLabel,
     setActiveQuoteId,
-    setComposerText,
-    setIsComposerOpen,
     handleReact,
-    handleSendMessage,
     viewabilityConfig,
     onViewableItemsChanged,
-    shouldShowMessageBar: socialInteractionsEnabled && Boolean(isOnFeed && activeQuoteId),
+    shouldShowReactions,
   };
 }

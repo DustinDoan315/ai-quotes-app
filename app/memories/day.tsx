@@ -241,7 +241,7 @@ export default function MemoriesDayScreen() {
       {/* Two persistent ScrollViews — toggled with display to preserve scroll position per tab */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}
         style={{ flex: 1, display: layer === "mine" ? "flex" : "none" }}>
         {mineMemories.length === 0 ? (
           <View className="mt-16 items-center px-6">
@@ -273,6 +273,7 @@ export default function MemoriesDayScreen() {
                 photoBackgroundUri={memory.photoBackgroundUri}
                 photoStoragePath={memory.photoStoragePath}
                 photoOrientation={memory.photoOrientation}
+                quotePosition={memory.quotePosition}
                 isFavorite={memory.isFavorite}
                 onToggleFavorite={() => handleToggleFavorite(memory)}
                 visibility={memory.visibility}
@@ -305,6 +306,7 @@ export default function MemoriesDayScreen() {
                 photoBackgroundUri={memory.photoBackgroundUri}
                 photoStoragePath={memory.photoStoragePath}
                   photoOrientation={memory.photoOrientation}
+                  quotePosition={memory.quotePosition}
                   isFavorite={memory.isFavorite}
                   createdAt={memory.createdAt}
                   styleFontId={memory.styleFontId as "small" | "medium" | "large"}
@@ -318,7 +320,7 @@ export default function MemoriesDayScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}
         style={{ flex: 1, display: layer === "friends" ? "flex" : "none" }}>
         {friendsLoading ? (
           <View className="mt-16 items-center">
@@ -374,6 +376,9 @@ export default function MemoriesDayScreen() {
                 quote={card.quote}
                 author={card.authorDisplayName}
                 photoBackgroundUri={card.imageUrl}
+                photoStoragePath={card.storagePath}
+                photoOrientation={card.photoOrientation}
+                quotePosition={card.quotePosition}
                 isFavorite={false}
                 createdAt={card.createdAt}
                 styleFontId={card.styleFontId}

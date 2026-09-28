@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { QuoteMemory, QuoteVisibility, QuoteImageOrientation } from "../types/memory";
 import type { Quote } from "./quoteStore";
+import { DEFAULT_QUOTE_POSITION, type QuotePosition } from "@/features/quotes/quotePosition";
 
 export type MemoryState = {
   _hasHydrated: boolean;
@@ -15,6 +16,7 @@ export type MemoryState = {
     photoBackgroundUri: string | null;
     photoStoragePath?: string | null;
     photoOrientation?: QuoteImageOrientation;
+    quotePosition?: QuotePosition;
     styleFontId: "small" | "medium" | "large";
     styleColorSchemeId: "light" | "amber" | "pink";
   }) => QuoteMemory;
@@ -47,6 +49,7 @@ export const useMemoryStore = create<MemoryState>()(
         photoBackgroundUri,
         photoStoragePath,
         photoOrientation,
+        quotePosition,
         styleFontId,
         styleColorSchemeId,
       }) => {
@@ -64,6 +67,7 @@ export const useMemoryStore = create<MemoryState>()(
           photoBackgroundUri,
           photoStoragePath,
           photoOrientation,
+          quotePosition: quotePosition ?? DEFAULT_QUOTE_POSITION,
           styleFontId,
           styleColorSchemeId,
           createdAt: createdAtIso,

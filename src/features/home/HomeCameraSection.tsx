@@ -1,7 +1,9 @@
 import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { QuoteStyleControls } from "@/features/home/QuoteStyleControls";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
-import { getFeedCardWidth } from "@/features/quotes/feedCardSizing";
+import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
+import type { QuotePosition } from "@/features/quotes/quotePosition";
 import { PinchGesture } from "@/features/home/useHomeCamera";
 import {
   getGenerationStageLabelKey,
@@ -13,7 +15,7 @@ import {
   validateEditableQuote,
   validateRewriteReviewQuote,
 } from "@/services/ai/rewriteReview";
-import { getQuoteAspectRatio } from "@/constants/quoteImageSize";
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
 import type { HomeBackgroundPalette } from "@/types/homeBackground";
@@ -46,7 +48,6 @@ import type {
   QuoteColor,
   QuoteFontSize,
 } from "@/features/home/QuoteStyleControls";
-import type { QuoteOrientation } from "@/constants/quoteImageSize";
 
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
@@ -56,7 +57,8 @@ export type HomeCameraSectionProps = {
   cameraPermissionGranted: boolean;
   selectedImageUri: string | null;
   isSavingPhoto: boolean;
-  photoOrientation: QuoteOrientation;
+  quotePosition: QuotePosition;
+  onQuotePositionChange: (position: QuotePosition) => void;
   canDeleteImage: boolean;
   canCreatePhotoStack: boolean;
   photoStackCount: number;
@@ -110,7 +112,8 @@ export const HomeCameraSection = ({
   cameraPermissionGranted,
   selectedImageUri,
   isSavingPhoto,
-  photoOrientation,
+  quotePosition,
+  onQuotePositionChange,
   canDeleteImage,
   canCreatePhotoStack,
   photoStackCount,
@@ -169,9 +172,12 @@ export const HomeCameraSection = ({
     width: number;
     height: number;
   } | null>(null);
-  const cardAspect = getQuoteAspectRatio(photoOrientation);
-  const { width: windowWidth } = useWindowDimensions();
-  const cardWidth = useMemo(() => getFeedCardWidth(windowWidth), [windowWidth]);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const [availableCardHeight, setAvailableCardHeight] = useState(windowHeight);
+  const cardFrame = useMemo(
+    () => getQuoteFrameSize(windowWidth, availableCardHeight),
+    [availableCardHeight, windowWidth],
+  );
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const previousImageUriRef = useRef(selectedImageUri);
   const [showAdvancedControls, setShowAdvancedControls] = useState(false);
@@ -222,6 +228,7 @@ export const HomeCameraSection = ({
   const showQuoteOverlay = Boolean(
     !hideQuote && dailyQuoteText && !isGenerating && selectedImageUri,
   );
+  const canMoveQuote = !isEditingQuote && !pendingQuoteText && !isSavingPhoto;
   const quoteEditValidation = useMemo(
     () => validateEditableQuote(quoteDraft),
     [quoteDraft],
@@ -312,7 +319,13 @@ export const HomeCameraSection = ({
 
   return (
     <View className="flex-1 w-full flex-col px-2 py-6">
-      <View className="min-h-0 flex-1 items-center justify-center">
+      <View
+        className="min-h-0 flex-1 items-center justify-center"
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          if (height > 0) setAvailableCardHeight(height);
+        }}
+      >
         <View ref={captureRefView} collapsable={false}>
           <GestureDetector gesture={pinchGesture}>
             <View
@@ -320,8 +333,8 @@ export const HomeCameraSection = ({
               style={[
                 chrome.outerShell,
                 {
-                  aspectRatio: cardAspect,
-                  width: cardWidth,
+                  aspectRatio: QUOTE_DISPLAY_ASPECT,
+                  width: cardFrame.width,
                 },
               ]}
               onLayout={(e) => {
@@ -488,115 +501,125 @@ export const HomeCameraSection = ({
                 ) : null}
                 {showQuoteOverlay ? (
                   <View className="absolute inset-0 z-[5]">
-                    <View className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-3">
-                      <View className="mb-2 flex-row items-center justify-between">
-                        <View className="flex-row items-center">
-                          <View
-                            className="overflow-hidden rounded-full bg-white/20"
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderWidth: 1.5,
-                              borderColor: "rgba(255,255,255,0.25)",
-                            }}
-                          >
-                            {authorAvatarUrl ? (
-                              <Image
-                                source={{ uri: authorAvatarUrl }}
-                                style={{ width: "100%", height: "100%" }}
-                                contentFit="cover"
-                              />
-                            ) : (
-                              <View className="h-full w-full items-center justify-center">
-                                <Text className="text-xs font-semibold text-white/85">
-                                  {authorName.trim().slice(0, 1).toUpperCase()}
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                          <View className="ml-2">
-                            <Text
-                              className="text-xs font-semibold text-white"
-                              numberOfLines={1}
-                            >
-                              {authorName}
-                            </Text>
-                            <Text className="text-[11px] text-white/70">
-                              {createdTimeLabel}
-                            </Text>
-                          </View>
-                        </View>
-                        <View className="rounded-full border border-white/25 px-2.5 py-1">
-                          <Text className="text-[11px] font-medium text-white/85">
-                            {t("camera.todayLabel")}
-                          </Text>
-                        </View>
-                      </View>
-                      <Pressable
-                        onPress={openQuoteEditor}
-                        className="rounded-2xl px-4 py-3"
-                        style={{
-                          backgroundColor: "rgba(0,0,0,0.58)",
-                          borderWidth: 1,
-                          borderColor: "rgba(255,255,255,0.34)",
-                        }}
-                        disabled={
-                          isEditingQuote ||
-                          Boolean(pendingQuoteText) ||
-                          isSavingPhoto
-                        }
-                      >
-                        {isEditingQuote ? (
-                          <View>
-                            <TextInput
-                              autoFocus
-                              value={quoteDraft}
-                              editable={!isSavingPhoto}
-                              onChangeText={(text) => {
-                                setQuoteDraft(text);
-                                onQuoteDraftChange(text);
-                              }}
-                              multiline
-                              textAlignVertical="top"
-                              className="min-h-[96px] font-semibold text-white"
+                    <View className="absolute inset-0">
+                      <View className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-3">
+                        <View className="flex-row items-center justify-between">
+                          <View className="flex-row items-center">
+                            <View
+                              className="overflow-hidden rounded-full bg-white/20"
                               style={{
-                                fontSize: fontSizeValue,
-                                color: quoteTextColor,
+                                width: 36,
+                                height: 36,
+                                borderWidth: 1.5,
+                                borderColor: "rgba(255,255,255,0.25)",
                               }}
-                            />
-                            <View className="mt-3 flex-row items-center justify-between gap-3">
+                            >
+                              {authorAvatarUrl ? (
+                                <Image
+                                  source={{ uri: authorAvatarUrl }}
+                                  style={{ width: "100%", height: "100%" }}
+                                  contentFit="cover"
+                                />
+                              ) : (
+                                <View className="h-full w-full items-center justify-center">
+                                  <Text className="text-xs font-semibold text-white/85">
+                                    {authorName.trim().slice(0, 1).toUpperCase()}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                            <View className="ml-2">
                               <Text
-                                className="flex-1 text-xs leading-4"
-                                style={{
-                                  color: quoteEditValidation.isValid
-                                    ? "rgba(255,255,255,0.7)"
-                                    : "#FCA5A5",
-                                }}
+                                className="text-xs font-semibold text-white"
+                                numberOfLines={1}
                               >
-                                {quoteEditValidation.isValid
-                                  ? t("home.aiTools.editQuoteReady")
-                                  : getValidationMessage(
-                                      quoteEditValidation.reason,
-                                    )}
+                                {authorName}
                               </Text>
-                              <Text className="text-xs font-semibold text-white/70">
-                                {quoteEditValidation.characterCount}/
-                                {MAX_REWRITE_REVIEW_CHARACTERS}
+                              <Text className="text-[11px] text-white/70">
+                                {createdTimeLabel}
                               </Text>
                             </View>
-                            <View className="mt-3 flex-row justify-end gap-2">
-                              <Pressable
-                                onPress={handleCancelQuoteEdit}
-                                disabled={isSavingPhoto}
-                                className="rounded-full border border-white/20 px-3 py-2"
-                                style={({ pressed }) => ({
-                                  opacity: pressed ? 0.85 : 1,
-                                })}
-                              >
-                                <Text className="text-xs font-semibold text-white">
-                                  {t("home.aiTools.editQuoteCancel")}
+                          </View>
+                          <View className="rounded-full border border-white/25 px-2.5 py-1">
+                            <Text className="text-[11px] font-medium text-white/85">
+                              {t("camera.todayLabel")}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                      <QuotePositionLayer
+                        position={quotePosition}
+                        onPositionChange={
+                          canMoveQuote ? onQuotePositionChange : undefined
+                        }
+                      >
+                        <Pressable
+                          onPress={openQuoteEditor}
+                          className="rounded-2xl px-4 py-3"
+                          style={{
+                            backgroundColor: "rgba(0,0,0,0.58)",
+                            borderWidth: 1,
+                            borderColor: "rgba(255,255,255,0.34)",
+                            maxWidth: "88%",
+                            paddingTop: canMoveQuote ? 36 : 12,
+                          }}
+                          disabled={
+                            isEditingQuote ||
+                            Boolean(pendingQuoteText) ||
+                            isSavingPhoto
+                          }
+                        >
+                          {isEditingQuote ? (
+                            <View>
+                              <TextInput
+                                autoFocus
+                                value={quoteDraft}
+                                editable={!isSavingPhoto}
+                                onChangeText={(text) => {
+                                  setQuoteDraft(text);
+                                  onQuoteDraftChange(text);
+                                }}
+                                multiline
+                                textAlignVertical="top"
+                                className="min-h-[96px] font-semibold text-white"
+                                style={{
+                                  fontSize: fontSizeValue,
+                                  color: quoteTextColor,
+                                }}
+                              />
+                              <View className="mt-3 flex-row items-center justify-between gap-3">
+                                <Text
+                                  className="flex-1 text-xs leading-4"
+                                  style={{
+                                    color: quoteEditValidation.isValid
+                                      ? "rgba(255,255,255,0.7)"
+                                      : "#FCA5A5",
+                                  }}
+                                >
+                                  {quoteEditValidation.isValid
+                                    ? t("home.aiTools.editQuoteReady")
+                                    : getValidationMessage(
+                                        quoteEditValidation.reason,
+                                      )}
                                 </Text>
-                              </Pressable>
+                                <Text className="text-xs font-semibold text-white/70">
+                                  {quoteEditValidation.characterCount}/
+                                  {MAX_REWRITE_REVIEW_CHARACTERS}
+                                </Text>
+                              </View>
+                              <View className="mt-3 flex-row justify-end gap-2">
+                                <Pressable
+                                  onPress={handleCancelQuoteEdit}
+                                  disabled={isSavingPhoto}
+                                  className="rounded-full border border-white/20 px-3 py-2"
+                                  style={({ pressed }) => ({
+                                    opacity: pressed ? 0.85 : 1,
+                                  })}
+                                >
+                                  <Text className="text-xs font-semibold text-white">
+                                    {t("home.aiTools.editQuoteCancel")}
+                                  </Text>
+                                </Pressable>
                               <Pressable
                                 onPress={handleSaveQuoteEdit}
                                 disabled={isSavingPhoto}
@@ -718,6 +741,7 @@ export const HomeCameraSection = ({
                           </>
                         )}
                       </Pressable>
+                      </QuotePositionLayer>
                     </View>
                   </View>
                 ) : null}

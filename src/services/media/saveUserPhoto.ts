@@ -4,6 +4,7 @@ import {
 } from "@/constants/quoteImageSize";
 import { supabase } from "@/config/supabase";
 import { signInAnonymously } from "@/services/supabase-auth";
+import type { QuotePosition } from "@/features/quotes/quotePosition";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { getImageDimensions } from "@/utils/imageCrop";
 
@@ -15,6 +16,7 @@ type SaveUserPhotoParams = {
   orientation?: QuoteOrientation;
   styleFontId?: "small" | "medium" | "large";
   styleColorSchemeId?: "light" | "amber" | "pink";
+  quotePosition: QuotePosition;
   homeVibeKey?: string | null;
   photoStackId?: string | null;
   visibility?: "private" | "friends" | "public";
@@ -48,6 +50,7 @@ async function saveUserPhotoInternal(
     orientation = "portrait",
     styleFontId = "medium",
     styleColorSchemeId = "light",
+    quotePosition,
     homeVibeKey = null,
     photoStackId = null,
     visibility = "private",
@@ -145,6 +148,8 @@ async function saveUserPhotoInternal(
       quote: quote ?? "",
       style_font_id: styleFontId,
       style_color_scheme_id: styleColorSchemeId,
+      quote_position_x: quotePosition.x,
+      quote_position_y: quotePosition.y,
       photo_orientation: orientation,
       home_vibe_key: homeVibeKey,
       photo_stack_id: photoStackId,

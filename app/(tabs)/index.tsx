@@ -27,11 +27,11 @@ import {
 import { getTodayLocalDateKey, parseLocalDateKey } from "@/utils/dateKey";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,7 +39,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { MemoryState } from "@/appState/memoryStore";
 import type { QuoteMemory } from "@/types/memory";
 
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 const MEMORY_PAGE_SIZE = 500;
 
 export default function HomeScreen() {
@@ -49,6 +48,8 @@ export default function HomeScreen() {
   const [streakModalVisible, setStreakModalVisible] = useState(false);
   const [quoteDraftForSave, setQuoteDraftForSave] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
+  const [measuredFeedViewportHeight, setMeasuredFeedViewportHeight] = useState(0);
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
   const bootstrapReady = useBootstrapStore(selectBootstrapReady);
@@ -83,7 +84,8 @@ export default function HomeScreen() {
     isCapturing,
     isSavingPhoto,
     selectedImageUri,
-    photoOrientation,
+    quotePosition,
+    setQuotePosition,
     hideQuote,
     hasSavedCurrentPhoto,
     canCreatePhotoStack,
@@ -198,7 +200,14 @@ export default function HomeScreen() {
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
   const actionBarBottomPadding = insets.bottom;
-  const viewportHeight = SCREEN_HEIGHT - insets.top - actionBarBottomPadding;
+  const estimatedViewportHeight =
+    screenHeight - insets.top - actionBarBottomPadding;
+  const viewportHeight = measuredFeedViewportHeight || estimatedViewportHeight;
+  const onFeedViewportHeightChange = useCallback((height: number) => {
+    setMeasuredFeedViewportHeight((current) =>
+      Math.abs(current - height) < 1 ? current : height,
+    );
+  }, []);
   const getItemLayout = useMemo(
     () => (_: ArrayLike<QuoteStack> | null | undefined, index: number) => ({
       length: viewportHeight,
@@ -238,25 +247,16 @@ export default function HomeScreen() {
   } = useHomeAiReview(dailyQuoteText);
   const {
     currentFeedIndex,
-    activeQuoteId,
     isOnFeed,
     emojiBursts,
-    composerText,
-    isComposerOpen,
-    isSendingMessage,
-    lastSentLabel,
     setActiveQuoteId,
-    setComposerText,
-    setIsComposerOpen,
     handleReact,
-    handleSendMessage,
     viewabilityConfig,
     onViewableItemsChanged,
-    shouldShowMessageBar,
+    shouldShowReactions,
   } = useHomeFeedState({
     quoteStacks,
-    userId: profile?.user_id ?? authUserId,
-    guestId: guestId ?? null,
+    userId: profile?.user_id ?? null,
   });
   const flatListExtraData = useMemo(
     () =>
@@ -318,6 +318,7 @@ export default function HomeScreen() {
         refreshFeed={refreshFeed}
         viewabilityConfig={viewabilityConfig}
         onViewableItemsChanged={onViewableItemsChanged}
+        onViewportHeightChange={onFeedViewportHeightChange}
         viewportHeight={viewportHeight}
         authorName={authorName}
         authorAvatarUrl={authorAvatarUrl}
@@ -352,7 +353,8 @@ export default function HomeScreen() {
               isCameraActive,
               cameraPermissionGranted,
               selectedImageUri,
-              photoOrientation,
+              quotePosition,
+              onQuotePositionChange: setQuotePosition,
               canDeleteImage: !hasSavedCurrentPhoto && !isSavingPhoto,
               isSavingPhoto,
               canCreatePhotoStack,
@@ -408,17 +410,8 @@ export default function HomeScreen() {
         }
       />
       <HomeActionBar
-        isComposerOpen={isComposerOpen}
-        shouldShowMessageBar={shouldShowMessageBar}
-        canSendMessage={isOnFeed && Boolean(activeQuoteId)}
-        composerText={composerText}
-        isSendingMessage={isSendingMessage}
-        lastSentLabel={lastSentLabel}
+        shouldShowReactions={shouldShowReactions}
         bottomInset={actionBarBottomPadding}
-        onOpenComposer={() => setIsComposerOpen(true)}
-        onCloseComposer={() => setIsComposerOpen(false)}
-        onChangeComposerText={setComposerText}
-        onSendMessage={handleSendMessage}
         onOpenMemories={handleOpenMemories}
         onCameraPress={handleCameraButtonPress}
         onOpenGallery={handleOpenGalleryPress}
@@ -436,7 +429,7 @@ export default function HomeScreen() {
         canShare={Boolean(dailyQuoteText && selectedImageUri && !hideQuote)}
         isSaving={isSavingPhoto}
       />
-      <HomeEmojiOverlay bursts={emojiBursts} screenHeight={SCREEN_HEIGHT} />
+      <HomeEmojiOverlay bursts={emojiBursts} screenHeight={screenHeight} />
       <StreakModal
         visible={streakModalVisible}
         onClose={() => setStreakModalVisible(false)}

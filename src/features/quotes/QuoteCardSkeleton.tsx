@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
+import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -10,6 +12,8 @@ import Animated, {
 type Props = { screenHeight: number };
 
 export function QuoteCardSkeleton({ screenHeight }: Props) {
+  const { width: windowWidth } = useWindowDimensions();
+  const frame = getQuoteFrameSize(windowWidth, screenHeight - 48);
   const shimmerOpacity = useSharedValue(0.4);
 
   useEffect(() => {
@@ -25,9 +29,9 @@ export function QuoteCardSkeleton({ screenHeight }: Props) {
       style={{ height: screenHeight }}
       className="items-center justify-center py-6">
       <Animated.View
-        style={shimmerStyle}
-        className="w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black/50">
-        <View style={{ aspectRatio: 3 / 4 }} className="relative bg-white/5">
+        style={[shimmerStyle, { width: frame.width }]}
+        className="overflow-hidden rounded-3xl border border-white/10 bg-black/50">
+        <View style={{ aspectRatio: QUOTE_DISPLAY_ASPECT }} className="relative bg-white/5">
           <View className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-3">
             <View className="mb-2 flex-row items-center">
               <View className="h-9 w-9 rounded-full border border-white/25 bg-white/15" />

@@ -5,7 +5,7 @@ import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { MotiView } from "moti";
 import type { ComponentProps, ReactElement, RefObject } from "react";
-import { Dimensions, FlatList, RefreshControl, View } from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 
 type Props = {
   listRef: RefObject<FlatList<QuoteStack> | null>;
@@ -23,6 +23,7 @@ type Props = {
   onViewableItemsChanged: ComponentProps<
     typeof FlatList<QuoteStack>
   >["onViewableItemsChanged"];
+  onViewportHeightChange: (height: number) => void;
   header: ReactElement;
   viewportHeight: number;
   authorName: string;
@@ -31,8 +32,6 @@ type Props = {
   isOnFeed: boolean;
   onActiveQuoteIdChange: (quoteId: string | null) => void;
 };
-
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export function HomeFeedFlow({
   listRef,
@@ -46,6 +45,7 @@ export function HomeFeedFlow({
   refreshFeed,
   viewabilityConfig,
   onViewableItemsChanged,
+  onViewportHeightChange,
   header,
   viewportHeight,
   authorName,
@@ -59,6 +59,9 @@ export function HomeFeedFlow({
   return (
     <FlatList
       ref={listRef}
+      onLayout={(event) =>
+        onViewportHeightChange(event.nativeEvent.layout.height)
+      }
       className="flex-1 bg-transparent"
       showsVerticalScrollIndicator={false}
       scrollEnabled={!isCaptureFlowActive}
@@ -91,7 +94,7 @@ export function HomeFeedFlow({
         ) : (
           <QuoteMomentsFeed
             items={[]}
-            screenHeight={SCREEN_HEIGHT}
+            screenHeight={viewportHeight}
             onFeedLayoutYChange={() => {}}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
