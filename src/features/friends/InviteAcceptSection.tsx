@@ -16,6 +16,14 @@ type Props = {
 type Busy = "clipboard" | "manual" | null;
 
 /**
+ * iOS 16+ exposes `UIPasteControl`, which hands the clipboard over without the
+ * "Allow Paste?" system prompt that `getStringAsync` triggers. Expo surfaces it
+ * as `ClipboardPasteButton`. It is `false` on every other platform, where the
+ * prompt is either absent (Android) or unsupported.
+ */
+const PASTE_BUTTON_AVAILABLE = Clipboard.isPasteButtonAvailable;
+
+/**
  * Deferred invite handoff.
  *
  * A friend's invite link carries its code through the web landing page onto
@@ -84,6 +92,21 @@ export function InviteAcceptSection({ userId, onConnected }: Props) {
     }
   }, [connect, t]);
 
+  /**
+   * `UIPasteControl` delivers the clipboard contents straight to us on tap, so
+   * this path never calls `getStringAsync` and never shows a paste prompt.
+   */
+  const handleNativePaste = useCallback(
+    (data: Clipboard.PasteEventPayload) => {
+      if (data.type !== "text") {
+        setError(t("friends.inviteCodeClipboardEmpty"));
+        return;
+      }
+      void connect(data.text, "clipboard");
+    },
+    [connect, t],
+  );
+
   const isBusy = busy !== null;
 
   return (
@@ -101,24 +124,33 @@ export function InviteAcceptSection({ userId, onConnected }: Props) {
       </View>
 
       <View className="px-4 pb-4 pt-4">
-        <Pressable
-          onPress={handlePasteFromClipboard}
-          disabled={isBusy}
-          className="flex-row items-center justify-center rounded-2xl border border-white/20 bg-white/5 py-3"
-          style={({ pressed }) => ({
-            opacity: isBusy ? 0.5 : pressed ? 0.8 : 1,
-          })}>
-          {busy === "clipboard" ? (
+        {isBusy ? (
+          <View className="h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/5">
             <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="clipboard-outline" size={18} color="#fff" />
-              <Text className="ml-2 text-sm font-semibold text-white">
-                {t("friends.inviteCodePasteButton")}
-              </Text>
-            </>
-          )}
-        </Pressable>
+          </View>
+        ) : PASTE_BUTTON_AVAILABLE ? (
+          // Apple restricts customisation of this control, so it keeps the
+          // system look and needs an explicit width and height to render.
+          <Clipboard.ClipboardPasteButton
+            acceptedContentTypes={["plain-text", "url"]}
+            cornerStyle="capsule"
+            displayMode="iconAndLabel"
+            style={{ width: "100%", height: 48 }}
+            onPress={handleNativePaste}
+          />
+        ) : (
+          <Pressable
+            onPress={handlePasteFromClipboard}
+            className="flex-row items-center justify-center rounded-2xl border border-white/20 bg-white/5 py-3"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            <Ionicons name="clipboard-outline" size={18} color="#fff" />
+            <Text className="ml-2 text-sm font-semibold text-white">
+              {t("friends.inviteCodePasteButton")}
+            </Text>
+          </Pressable>
+        )}
 
         <Text className="my-3 text-center text-xs uppercase tracking-widest text-white/40">
           {t("friends.inviteCodeOr")}
