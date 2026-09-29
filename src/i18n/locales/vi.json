@@ -184,7 +184,11 @@
       "watermarkBrand": "Inkly",
       "watermarkTagline": "Cảm xúc mỗi ngày",
       "momentEyebrow": "Khoảnh khắc",
-      "shareMomentA11y": "Chia sẻ khoảnh khắc này với thương hiệu"
+      "shareMomentA11y": "Chia sẻ khoảnh khắc này với thương hiệu",
+      "swipeCue": "Vuốt lên để xem Khoảnh khắc ↑",
+      "emptyTitle": "Khoảnh khắc của bạn ở đây",
+      "emptyBody": "Câu trích dẫn bạn đã lưu và khoảnh khắc bạn bè chia sẻ sẽ xuất hiện ở đây.",
+      "emptyHint": "Bắt đầu với một bức ảnh ở camera phía trên. Dùng nút lịch phía dưới để xem lại Kỷ niệm đã lưu."
     },
     "replyPlaceholder": "Trả lời…",
     "sendButton": "Gửi",

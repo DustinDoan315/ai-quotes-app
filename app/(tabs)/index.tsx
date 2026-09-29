@@ -219,10 +219,14 @@ export default function HomeScreen() {
   const snapOffsets = useMemo(
     () =>
       Array.from(
-        { length: quoteStacks.length + 1 },
+        {
+          length: quoteStacks.length > 0
+            ? quoteStacks.length + 1
+            : isFeedLoading ? 3 : 2,
+        },
         (_, i) => i * viewportHeight,
       ),
-    [quoteStacks.length, viewportHeight],
+    [quoteStacks.length, isFeedLoading, viewportHeight],
   );
   const isCaptureFlowActive =
     isCapturing ||
@@ -315,6 +319,13 @@ export default function HomeScreen() {
         getItemLayout={getItemLayout}
         isFeedRefreshing={isFeedRefreshing}
         isFeedLoading={isFeedLoading}
+        showEmptyFeedCue={
+          quoteStacks.length === 0 &&
+          !isFeedLoading &&
+          !selectedImageUri &&
+          pastMemories.length === 0
+        }
+        emptyFeedCueTop={insets.top + 62}
         refreshFeed={refreshFeed}
         viewabilityConfig={viewabilityConfig}
         onViewableItemsChanged={onViewableItemsChanged}

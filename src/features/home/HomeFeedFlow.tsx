@@ -5,7 +5,8 @@ import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { MotiView } from "moti";
 import type { ComponentProps, ReactElement, RefObject } from "react";
-import { FlatList, RefreshControl, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { FlatList, RefreshControl, Text, View } from "react-native";
 
 type Props = {
   listRef: RefObject<FlatList<QuoteStack> | null>;
@@ -16,6 +17,8 @@ type Props = {
   getItemLayout: ComponentProps<typeof FlatList<QuoteStack>>["getItemLayout"];
   isFeedRefreshing: boolean;
   isFeedLoading: boolean;
+  showEmptyFeedCue: boolean;
+  emptyFeedCueTop: number;
   refreshFeed: () => Promise<void>;
   viewabilityConfig: ComponentProps<
     typeof FlatList<QuoteStack>
@@ -42,6 +45,8 @@ export function HomeFeedFlow({
   getItemLayout,
   isFeedRefreshing,
   isFeedLoading,
+  showEmptyFeedCue,
+  emptyFeedCueTop,
   refreshFeed,
   viewabilityConfig,
   onViewableItemsChanged,
@@ -55,6 +60,7 @@ export function HomeFeedFlow({
   onActiveQuoteIdChange,
 }: Props) {
   const reduceMotion = useReducedMotionPreference();
+  const { t } = useTranslation();
 
   return (
     <FlatList
@@ -84,7 +90,22 @@ export function HomeFeedFlow({
       windowSize={9}
       viewabilityConfig={viewabilityConfig}
       onViewableItemsChanged={onViewableItemsChanged}
-      ListHeaderComponent={header}
+      ListHeaderComponent={
+        <View style={{ height: viewportHeight }}>
+          {header}
+          {showEmptyFeedCue ? (
+            <View
+              pointerEvents="none"
+              className="absolute inset-x-0 items-center"
+              style={{ top: emptyFeedCueTop }}
+            >
+              <Text className="rounded-full border border-white/20 bg-black/50 px-3 py-1.5 text-xs font-medium text-white">
+                {t("home.momentsFeed.swipeCue")}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      }
       ListEmptyComponent={
         isFeedLoading ? (
           <View>

@@ -185,7 +185,11 @@
       "watermarkBrand": "Inkly",
       "watermarkTagline": "Daily vibes",
       "momentEyebrow": "Moment",
-      "shareMomentA11y": "Share this moment with branding"
+      "shareMomentA11y": "Share this moment with branding",
+      "swipeCue": "Swipe up for Moments ↑",
+      "emptyTitle": "Your Moments live here",
+      "emptyBody": "Your saved quotes and moments friends share will appear here.",
+      "emptyHint": "Start with a photo in the camera above. Use the calendar button below to revisit saved Memories."
     },
     "replyPlaceholder": "Reply…",
     "sendButton": "Send",
