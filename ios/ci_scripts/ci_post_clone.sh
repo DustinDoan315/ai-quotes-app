@@ -7,6 +7,44 @@ REPOSITORY_ROOT="$(cd -- "$IOS_DIRECTORY/.." && pwd)"
 BUN_VERSION="1.3.6"
 NODE_TARBALL_SERIES="latest-v22.x"
 
+# An Xcode Cloud workflow can track "Latest Release" or "Latest Beta", which moves
+# the archive onto a newer toolchain without any commit to review. Xcode 27 beta
+# broke this workflow twice: the iOS deployment target floor moved to 15.0, and
+# RevenueCat 5.56.0 then failed to compile (PaywallColor.swift: "Invalid
+# redeclaration of synthesized memberwise init(stringRepresentation:)"). Nothing in
+# this dependency graph (Expo SDK 54 / React Native 0.81.5) supports it, so the
+# workflow is pinned to a stable Xcode 26.x release. Raise this only once the
+# dependencies are known to build on the newer toolchain.
+MAX_SUPPORTED_XCODE_MAJOR=26
+
+# Report the toolchain up front, and name the likely cause when the archive is
+# running on something newer than this graph supports, rather than leaving the
+# next failure to be diagnosed from a dependency's source file.
+report_xcode_version() {
+  local version build major
+
+  version="$(xcodebuild -version 2>/dev/null | awk '/^Xcode/ { print $2; exit }' || true)"
+  build="$(xcodebuild -version 2>/dev/null | awk '/^Build version/ { print $3; exit }' || true)"
+
+  if [[ -z "$version" ]]; then
+    echo "warning: could not determine the Xcode version." >&2
+    return 0
+  fi
+
+  echo "Building with Xcode $version (${build:-unknown build})."
+
+  major="${version%%.*}"
+  if [[ "$major" =~ ^[0-9]+$ ]] && (( major > MAX_SUPPORTED_XCODE_MAJOR )); then
+    echo "warning: Xcode $version is newer than the Xcode ${MAX_SUPPORTED_XCODE_MAJOR}.x this" >&2
+    echo "warning: dependency graph is known to build with. A beta toolchain has already" >&2
+    echo "warning: broken this workflow, and may again. If the archive fails below, pin the" >&2
+    echo "warning: workflow to a stable Xcode ${MAX_SUPPORTED_XCODE_MAJOR}.x in App Store Connect:" >&2
+    echo "warning: Xcode Cloud > Manage Workflows > Environment > Xcode Version." >&2
+  fi
+}
+
+report_xcode_version
+
 if ! command -v brew >/dev/null 2>&1; then
   for BREW_PATH in /opt/homebrew/bin/brew /usr/local/bin/brew; do
     if [[ -x "$BREW_PATH" ]]; then
