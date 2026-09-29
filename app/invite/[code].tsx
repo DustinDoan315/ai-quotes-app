@@ -1,7 +1,6 @@
 import { useUserStore } from "@/appState/userStore";
 import { APP_STORE_URL } from "@/config/appLinks";
-import { addFriend, resolveInviteCode } from "@/services/inviteApi";
-import { captureMessage } from "@/services/analytics/sentry";
+import { acceptInviteCode } from "@/services/inviteApi";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,32 +8,6 @@ import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type InviteStatus = "loading" | "success" | "error" | "invalid" | "need_login" | "self";
-
-async function processInviteCode(
-  rawCode: string,
-  myUserId: string
-): Promise<InviteStatus> {
-  const inviterId = await resolveInviteCode(rawCode);
-  if (!inviterId) {
-    captureMessage("Invite resolve returned no inviter", "warning", {
-      feature: "invite",
-      codePrefix: rawCode?.slice(0, 8),
-    });
-    return "invalid";
-  }
-  if (inviterId === myUserId) return "self";
-  const ok = await addFriend(myUserId, inviterId);
-  if (!ok) {
-    captureMessage("addFriend failed after resolve", "error", {
-      feature: "invite",
-      codePrefix: rawCode?.slice(0, 8),
-      myUserId,
-      inviterId,
-    });
-    return "error";
-  }
-  return "success";
-}
 
 export default function InviteByCodeScreen() {
   const { t } = useTranslation();
@@ -62,7 +35,7 @@ export default function InviteByCodeScreen() {
       setStatus("need_login");
       return;
     }
-    processInviteCode(rawCode, myUserId).then((result) => {
+    acceptInviteCode(rawCode, myUserId).then((result) => {
       if (!cancelled) setStatus(result);
     });
     return () => {

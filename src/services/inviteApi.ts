@@ -1,6 +1,6 @@
 import { supabase } from "@/config/supabase";
 import { buildPublicInviteUrl } from "@/config/appLinks";
-import { captureException } from "@/services/analytics/sentry";
+import { captureException, captureMessage } from "@/services/analytics/sentry";
 
 const CODE_LENGTH = 8;
 const CODE_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -118,6 +118,40 @@ export async function addFriend(myUserId: string, friendUserId: string): Promise
     return false;
   }
   return true;
+}
+
+export type InviteAcceptStatus = "success" | "error" | "invalid" | "self";
+
+/**
+ * Resolve an invite code and connect both users.
+ *
+ * Shared by the `/invite/[code]` deep link route, the deferred clipboard
+ * handoff, and manual code entry so all three behave identically.
+ */
+export async function acceptInviteCode(
+  rawCode: string,
+  myUserId: string,
+): Promise<InviteAcceptStatus> {
+  const inviterId = await resolveInviteCode(rawCode);
+  if (!inviterId) {
+    captureMessage("Invite resolve returned no inviter", "warning", {
+      feature: "invite",
+      codePrefix: rawCode?.slice(0, 8),
+    });
+    return "invalid";
+  }
+  if (inviterId === myUserId) return "self";
+  const ok = await addFriend(myUserId, inviterId);
+  if (!ok) {
+    captureMessage("addFriend failed after resolve", "error", {
+      feature: "invite",
+      codePrefix: rawCode?.slice(0, 8),
+      myUserId,
+      inviterId,
+    });
+    return "error";
+  }
+  return "success";
 }
 
 export async function removeFriend(myUserId: string, friendUserId: string): Promise<boolean> {

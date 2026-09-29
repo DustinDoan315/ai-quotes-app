@@ -2,6 +2,7 @@ import { useUserStore } from "@/appState/userStore";
 import { APP_DISPLAY_NAME } from "@/theme/appBrand";
 import { analyticsEvents } from "@/services/analytics/events";
 import { useTranslation } from "react-i18next";
+import { InviteAcceptSection } from "@/features/friends/InviteAcceptSection";
 import {
   getOrCreateMyInvite,
   listMyFriends,
@@ -169,6 +170,8 @@ export default function FriendsScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4 py-4">
+        <InviteAcceptSection userId={userId} onConnected={load} />
+
         <View className="mb-6 overflow-hidden rounded-2xl border border-white/20 bg-white/5">
           <View className="px-4 pt-4">
             <Text className="text-base font-semibold text-white">{t("friends.inviteSectionTitle")}</Text>
