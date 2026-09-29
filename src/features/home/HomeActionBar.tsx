@@ -83,7 +83,7 @@ export function HomeActionBar({
                   accessibilityRole="button"
                   accessibilityLabel={t("home.reactions.withEmoji", { emoji })}
                   accessibilityHint={t("home.reactions.sendHint")}
-                  className="h-10 min-w-10 items-center justify-center rounded-full bg-white/10 px-2"
+                  className="h-12 min-w-12 items-center justify-center rounded-full bg-white/10 px-2"
                 >
                   <Text className="text-xl">{emoji}</Text>
                 </Pressable>
@@ -96,7 +96,7 @@ export function HomeActionBar({
               accessibilityRole="button"
               accessibilityLabel={t("home.reactions.love")}
               accessibilityHint={t("home.reactions.sendHint")}
-              className="rounded-full bg-white/15 px-3 py-1"
+              className="h-12 min-w-12 items-center justify-center rounded-full bg-white/15 px-3 py-1"
             >
               <Text className="text-base">❤️</Text>
             </Pressable>
@@ -105,7 +105,7 @@ export function HomeActionBar({
               accessibilityRole="button"
               accessibilityLabel={t("home.reactions.fire")}
               accessibilityHint={t("home.reactions.sendHint")}
-              className="rounded-full bg-white/15 px-3 py-1"
+              className="h-12 min-w-12 items-center justify-center rounded-full bg-white/15 px-3 py-1"
             >
               <Text className="text-base">🔥</Text>
             </Pressable>
@@ -114,7 +114,7 @@ export function HomeActionBar({
               accessibilityRole="button"
               accessibilityLabel={t("home.reactions.clap")}
               accessibilityHint={t("home.reactions.sendHint")}
-              className="rounded-full bg-white/15 px-3 py-1"
+              className="h-12 min-w-12 items-center justify-center rounded-full bg-white/15 px-3 py-1"
             >
               <Text className="text-base">👏</Text>
             </Pressable>
@@ -124,7 +124,7 @@ export function HomeActionBar({
               accessibilityLabel={t("home.reactions.more")}
               accessibilityHint={t("home.reactions.moreHint")}
               accessibilityState={{ expanded: isEmojiPickerOpen }}
-              className="h-8 w-8 items-center justify-center rounded-full bg-white/15"
+              className="h-12 w-12 items-center justify-center rounded-full bg-white/15"
             >
               <Text className="text-lg font-medium text-white">
                 {isEmojiPickerOpen ? "×" : "+"}
