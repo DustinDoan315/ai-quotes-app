@@ -70,9 +70,11 @@ export default function FriendsScreen() {
     if (!inviteUrl) return;
     setSharing(true);
     try {
+      // The invite URL is already inside `message`, which is the only field
+      // Android reads. Passing `url` as well would hand iOS a second, separate
+      // activity item and share the link twice.
       const result = await Share.share({
         message: t("friends.inviteMessage", { appName: APP_DISPLAY_NAME, url: inviteUrl }),
-        url: inviteUrl,
         title: t("friends.inviteSectionTitle"),
       });
       if (result.action === Share.sharedAction) {
