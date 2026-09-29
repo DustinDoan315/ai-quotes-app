@@ -16,7 +16,11 @@ ENV['RCT_NEW_ARCH_ENABLED'] ||= '0' if podfile_properties['newArchEnabled'] == '
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] ||= podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 ENV['RCT_USE_RN_DEP'] ||= '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
 ENV['RCT_USE_PREBUILT_RNCORE'] ||= '1' if podfile_properties['ios.buildReactNativeFromSource'] != 'true' && podfile_properties['newArchEnabled'] != 'false'
-platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
+# The app's own minimum, shared by the target and the pod overrides below so the
+# two can never drift apart.
+IOS_DEPLOYMENT_TARGET = podfile_properties['ios.deploymentTarget'] || '15.1'
+
+platform :ios, IOS_DEPLOYMENT_TARGET
 
 prepare_react_native_project!
 
@@ -67,6 +71,25 @@ target 'InklyDailyVibes' do
 
       target.build_configurations.each do |build_configuration|
         build_configuration.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
+
+    # Several pods still advertise deployment targets far below what current
+    # Xcode SDKs accept: GoogleSignIn and AppAuth declare 12.0, and the project
+    # also carries 9.0-13.4 targets. Recent Xcode rejects those outright with
+    #   The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 12.0,
+    #   but the range of supported deployment target versions is 15.0 to 27.0.x.
+    # which fails the archive before it starts. Raise every pod that sits below
+    # the app's minimum, and never lower one, so a pod that legitimately needs a
+    # newer SDK keeps it.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |build_configuration|
+        current = build_configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_s
+        # Skip unset and non-literal values such as '$(inherited)'.
+        next unless current =~ /\A\d+(\.\d+)*\z/
+        next unless Pod::Version.new(current) < Pod::Version.new(IOS_DEPLOYMENT_TARGET)
+
+        build_configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_DEPLOYMENT_TARGET
       end
     end
   end
