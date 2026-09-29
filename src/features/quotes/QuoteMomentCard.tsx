@@ -50,7 +50,7 @@ export const QuoteMomentCard = ({
   const isMine =
     (authUserId && item.userId && item.userId === authUserId) ||
     (guestId && item.guestId && item.guestId === guestId);
-  const displayName = isMine ? t("home.meAuthor") : baseDisplayName;
+  const displayName = isMine ? t("memories.meAuthor") : baseDisplayName;
   const displayAvatar = item.authorAvatarUrl ?? authorAvatarUrl;
 
   const createdTimeLabel = new Date(item.createdAt).toLocaleTimeString(
