@@ -8,38 +8,48 @@ BUN_VERSION="1.3.6"
 NODE_TARBALL_SERIES="latest-v22.x"
 
 # An Xcode Cloud workflow can track "Latest Release" or "Latest Beta", which moves
-# the archive onto a newer toolchain without any commit to review. Xcode 27 beta
-# broke this workflow twice: the iOS deployment target floor moved to 15.0, and
-# RevenueCat 5.56.0 then failed to compile (PaywallColor.swift: "Invalid
-# redeclaration of synthesized memberwise init(stringRepresentation:)"). Nothing in
-# this dependency graph (Expo SDK 54 / React Native 0.81.5) supports it, so the
-# workflow is pinned to a stable Xcode 26.x release. Raise this only once the
-# dependencies are known to build on the newer toolchain.
+# the archive onto a newer toolchain without any commit to review. A toolchain newer
+# than this dependency graph (Expo SDK 54 / React Native 0.81.5) supports has broken
+# this workflow twice: the iOS deployment target floor moved to 15.0, and RevenueCat
+# 5.56.0 stopped compiling (PaywallColor.swift and CustomerCenterConfigData.swift both
+# report an ambiguous 'init(stringRepresentation:)', because newer Swift changed how
+# the memberwise initializer is synthesized). Xcode 26.0.1 / Swift 6.2 builds the
+# whole RevenueCat target cleanly, so the workflow is pinned to a stable Xcode 26.x
+# release. Raise these only once the dependencies are known to build on something
+# newer.
 MAX_SUPPORTED_XCODE_MAJOR=26
+MAX_SUPPORTED_SWIFT_VERSION="6.2"
 
 # Report the toolchain up front, and name the likely cause when the archive is
 # running on something newer than this graph supports, rather than leaving the
 # next failure to be diagnosed from a dependency's source file.
 report_xcode_version() {
-  local version build major
+  local version build swift major reason=""
 
   version="$(xcodebuild -version 2>/dev/null | awk '/^Xcode/ { print $2; exit }' || true)"
   build="$(xcodebuild -version 2>/dev/null | awk '/^Build version/ { print $3; exit }' || true)"
+  swift="$(xcrun swift --version 2>/dev/null | awk '/^Apple Swift version/ { print $4; exit }' || true)"
 
   if [[ -z "$version" ]]; then
     echo "warning: could not determine the Xcode version." >&2
     return 0
   fi
 
-  echo "Building with Xcode $version (${build:-unknown build})."
+  echo "Building with Xcode $version (${build:-unknown build}), Swift ${swift:-unknown}."
 
   major="${version%%.*}"
   if [[ "$major" =~ ^[0-9]+$ ]] && (( major > MAX_SUPPORTED_XCODE_MAJOR )); then
-    echo "warning: Xcode $version is newer than the Xcode ${MAX_SUPPORTED_XCODE_MAJOR}.x this" >&2
-    echo "warning: dependency graph is known to build with. A beta toolchain has already" >&2
-    echo "warning: broken this workflow, and may again. If the archive fails below, pin the" >&2
-    echo "warning: workflow to a stable Xcode ${MAX_SUPPORTED_XCODE_MAJOR}.x in App Store Connect:" >&2
+    reason="Xcode $version is newer than the Xcode ${MAX_SUPPORTED_XCODE_MAJOR}.x"
+  elif [[ -n "$swift" ]] &&
+    [[ "$(printf '%s\n%s\n' "$MAX_SUPPORTED_SWIFT_VERSION" "$swift" | sort -V | tail -n 1)" != "$MAX_SUPPORTED_SWIFT_VERSION" ]]; then
+    reason="Swift $swift is newer than the Swift $MAX_SUPPORTED_SWIFT_VERSION"
+  fi
+
+  if [[ -n "$reason" ]]; then
+    echo "warning: $reason this dependency graph is known to build with. If the archive" >&2
+    echo "warning: fails below, pin the workflow to a verified Xcode in App Store Connect:" >&2
     echo "warning: Xcode Cloud > Manage Workflows > Environment > Xcode Version." >&2
+    echo "warning: Xcode 26.0.1 / Swift 6.2 is known to build this project." >&2
   fi
 }
 
