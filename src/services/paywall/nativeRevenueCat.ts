@@ -1,4 +1,5 @@
 import { RevenueCatConfig } from "@/config/revenuecat";
+import { getDeviceUiLanguage } from "@/i18n";
 import Purchases, {
   CustomerInfo,
   LOG_LEVEL,
@@ -8,6 +9,21 @@ import Purchases, {
 
 let isInitialized = false;
 let initPromise: Promise<void> | null = null;
+
+/**
+ * RevenueCat renders hosted paywalls in the locale we hand it: the override
+ * wins over the SDK's own device-locale resolution, so the Vietnamese (or
+ * English) paywall copy added in the dashboard is used for this language.
+ *
+ * Never throws: a locale problem must not take down subscription init.
+ */
+async function applyPreferredLocale(locale: string): Promise<void> {
+  try {
+    await Purchases.overridePreferredLocale(locale);
+  } catch (error) {
+    console.warn("[RevenueCat] Failed to set the preferred paywall locale:", error);
+  }
+}
 
 function installRevenueCatLogHandler(): void {
   Purchases.setLogHandler((logLevel, message) => {
@@ -60,13 +76,18 @@ export async function initializeRevenueCat(appUserId?: string): Promise<void> {
   initPromise = (async () => {
     try {
       installRevenueCatLogHandler();
+      const preferredLocale = getDeviceUiLanguage();
       const alreadyConfigured = await Purchases.isConfigured();
       if (!alreadyConfigured) {
         Purchases.configure({
           apiKey,
           appUserID: appUserId?.trim() || undefined,
+          preferredUILocaleOverride: preferredLocale,
         });
       }
+      // configure() is skipped when Purchases is already set up (fast refresh,
+      // re-init), so apply the locale explicitly as well.
+      await applyPreferredLocale(preferredLocale);
       isInitialized = true;
     } catch (error) {
       initPromise = null;
