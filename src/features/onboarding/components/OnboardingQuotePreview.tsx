@@ -3,6 +3,7 @@ import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import { Text, View } from "react-native";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 type Props = {
   width: number;
@@ -17,6 +18,44 @@ type Props = {
 };
 
 const CARD_ASPECT_RATIO = 3 / 5;
+
+function IllustrativePhoto({
+  width,
+  reduceMotion,
+}: {
+  width: number;
+  reduceMotion: boolean;
+}) {
+  return (
+    <MotiView
+      from={reduceMotion ? { scale: 1 } : { scale: 0.62 }}
+      animate={{ scale: 1 }}
+      transition={{
+        type: "timing",
+        duration: reduceMotion ? 0 : 600,
+        delay: reduceMotion ? 0 : 100,
+      }}
+      style={{
+        position: "absolute",
+        width,
+        height: width / CARD_ASPECT_RATIO,
+        overflow: "hidden",
+        borderRadius: 26,
+        borderWidth: 2,
+        borderColor: "rgba(255,255,255,0.65)",
+      }}
+    >
+      <Svg width="100%" height="100%" viewBox="0 0 240 400">
+        <Rect width="240" height="400" fill="#5f82a3" />
+        <Circle cx="174" cy="104" r="44" fill="#f9d49b" />
+        <Path d="M0 265 L80 139 L147 254 L240 125 L240 400 L0 400 Z" fill="#324b72" />
+        <Path d="M0 309 L94 205 L178 312 L240 229 L240 400 L0 400 Z" fill="#233c59" />
+        <Rect y="318" width="240" height="82" fill="#315569" />
+        <Path d="M0 347 Q60 331 120 348 T240 346 L240 400 L0 400 Z" fill="#d38e6d" />
+      </Svg>
+    </MotiView>
+  );
+}
 
 export function OnboardingQuotePreview({
   width,
@@ -48,6 +87,9 @@ export function OnboardingQuotePreview({
         width={width}
         height={width / CARD_ASPECT_RATIO}
       />
+      {stage === "reveal" && (
+        <IllustrativePhoto width={width} reduceMotion={reduceMotion} />
+      )}
       <View
         style={{
           pointerEvents: "none",
@@ -79,15 +121,17 @@ export function OnboardingQuotePreview({
             top: stage === "reveal" ? "22%" : "20%",
             alignSelf: "center",
             alignItems: "center",
-            flexDirection: stage === "reveal" ? "column" : "row",
+            flexDirection: "row",
             gap: 7,
           }}
         >
-          <Ionicons
-            name={stage === "reveal" ? "image-outline" : "pencil-outline"}
-            size={stage === "reveal" ? 40 : 15}
-            color="rgba(255,255,255,0.85)"
-          />
+          {stage === "personalize" && (
+            <Ionicons
+              name="pencil-outline"
+              size={15}
+              color="rgba(255,255,255,0.85)"
+            />
+          )}
           <Text
             style={{
               color: "#fff",
@@ -111,7 +155,7 @@ export function OnboardingQuotePreview({
         transition={{
           type: "timing",
           duration: reduceMotion ? 0 : 320,
-          delay: reduceMotion ? 0 : stage === "reveal" ? 650 : 300,
+          delay: reduceMotion ? 0 : stage === "reveal" ? 800 : 300,
         }}
         style={{
           position: "absolute",
