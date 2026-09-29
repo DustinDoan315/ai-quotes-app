@@ -28,7 +28,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
     windowHeight - Math.max(insets.top, 24) - Math.max(insets.bottom, 24);
   const previewWidth = Math.min(
     windowWidth - 64,
-    Math.max(120, (availableHeight - 290) * (3 / 5)),
+    Math.max(180, (availableHeight - 290) * (3 / 5)),
   );
 
   return (
@@ -101,11 +101,14 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
         >
           <OnboardingQuotePreview
             width={previewWidth}
-            quote={t("onboarding.welcome.previewQuote")}
-            attribution={t("onboarding.welcome.previewAttribution")}
+            quote={t("onboarding.howItWorks.save.previewQuote")}
+            attribution={t("onboarding.howItWorks.save.previewAttribution")}
             sampleLabel={t("onboarding.previewLabel")}
             quotePositionY={38}
             reduceMotion={reduceMotion}
+            stage="personalize"
+            detailLabel={t("onboarding.howItWorks.save.previewEditedLabel")}
+            outcomeLabel={t("onboarding.howItWorks.save.previewOutcome")}
           />
         </MotiView>
 

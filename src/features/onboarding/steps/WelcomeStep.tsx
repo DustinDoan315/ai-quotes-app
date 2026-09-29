@@ -30,7 +30,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
     windowHeight - Math.max(insets.top, 24) - Math.max(insets.bottom, 24);
   const previewWidth = Math.min(
     windowWidth - 48,
-    Math.max(120, (availableHeight - 360) * (3 / 5)),
+    Math.max(180, (availableHeight - 360) * (3 / 5)),
   );
 
   return (
@@ -115,6 +115,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
             sampleLabel={t("onboarding.previewLabel")}
             quotePositionY={47}
             reduceMotion={reduceMotion}
+            detailLabel={t("onboarding.welcome.previewPhotoLabel")}
           />
         </MotiView>
 

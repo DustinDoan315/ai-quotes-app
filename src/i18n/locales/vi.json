@@ -427,10 +427,11 @@
   },
   "onboarding": {
     "welcome": {
-      "headline": "Biến một bức ảnh thành kỷ niệm.",
-      "subheadline": "Lưu một khoảnh khắc để Inkly tự tìm cảm xúc, rồi giữ lại câu phản chiếu chạm đến bạn.",
+      "headline": "Tìm lời cho bức ảnh của bạn.",
+      "subheadline": "Chọn một khoảnh khắc. Inkly biến cảm xúc trong ảnh thành câu trích dẫn mang dấu ấn của bạn.",
       "previewQuote": "\"Một điều nhỏ bé, thật— được mang nhẹ nhàng— là đủ.\"",
       "previewAttribution": "MỘT KHOẢNH KHẮC ĐƯỢC GIỮ LẠI",
+      "previewPhotoLabel": "ẢNH CỦA BẠN",
       "progress": "BƯỚC 1/2",
       "cta": "Xem cách hoạt động",
       "alreadyHaveAccount": "Tôi đã có tài khoản"
@@ -449,6 +450,10 @@
         "sectionLabel": "BƯỚC 2/2",
         "title": "Tạo dấu ấn của riêng bạn",
         "subtitle": "Tùy chỉnh câu trích dẫn, rồi lưu khoảnh khắc hoặc chia sẻ hình ảnh.",
+        "previewQuote": "\"Mình có thể bắt đầu lại, thật nhẹ nhàng.\"",
+        "previewAttribution": "LỜI CỦA BẠN",
+        "previewEditedLabel": "ĐÃ CÁ NHÂN HÓA",
+        "previewOutcome": "✓ ĐÃ LƯU · SẴN SÀNG CHIA SẺ",
         "cta": "Tạo câu trích dẫn đầu tiên",
         "line1": "Bắt đầu với tâm trạng Inkly tìm thấy.",
         "line2": "Viết lại câu phản chiếu cho đúng với bạn.",

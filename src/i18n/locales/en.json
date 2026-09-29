@@ -428,10 +428,11 @@
   },
   "onboarding": {
     "welcome": {
-      "headline": "Turn a photo into a memory.",
-      "subheadline": "Capture a moment and let Inkly find the feeling, then keep the reflection that lands.",
+      "headline": "Find the words in your photo.",
+      "subheadline": "Choose a moment. Inkly turns its feeling into a quote you can make your own.",
       "previewQuote": "\"A small, true thing— carried gently— is enough.\"",
       "previewAttribution": "A MOMENT, KEPT",
+      "previewPhotoLabel": "YOUR PHOTO",
       "progress": "1 OF 2",
       "cta": "See how it works",
       "alreadyHaveAccount": "I already have an account"
@@ -450,6 +451,10 @@
         "sectionLabel": "STEP 2 OF 2",
         "title": "Make it yours",
         "subtitle": "Personalize the quote, then save your moment or share the image.",
+        "previewQuote": "\"I can begin again, gently.\"",
+        "previewAttribution": "IN YOUR WORDS",
+        "previewEditedLabel": "PERSONALIZED",
+        "previewOutcome": "✓ SAVED · READY TO SHARE",
         "cta": "Create your first quote",
         "line1": "Start with the mood Inkly finds.",
         "line2": "Rewrite the reflection until it sounds like you.",
