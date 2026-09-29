@@ -39,6 +39,8 @@ export function CameraActionsBar({
       <View className="w-20 items-center">
         <Pressable
           onPress={onGenerate}
+          accessibilityRole="button"
+          accessibilityLabel={t("home.accessibility.memories")}
           className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
           style={({ pressed }) => ({
             opacity: pressed ? 0.8 : 1,
@@ -52,6 +54,9 @@ export function CameraActionsBar({
           <Pressable
             onPress={onSave}
             disabled={!canSave || isSaving}
+            accessibilityRole="button"
+            accessibilityLabel={t(isSaving ? "home.accessibility.saving" : "camera.saveButton")}
+            accessibilityState={{ disabled: !canSave || isSaving, busy: isSaving || isGenerating }}
             className="h-14 w-32 items-center justify-center rounded-full border-2 border-white/80 bg-white/10"
             style={({ pressed }) => ({
               opacity: pressed || !canSave || isSaving ? 0.7 : 1,
@@ -71,6 +76,9 @@ export function CameraActionsBar({
           <Pressable
             onPress={onCapture}
             disabled={(cameraPermissionGranted && !cameraReady) || isCapturing}
+            accessibilityRole="button"
+            accessibilityLabel={t(isCapturing ? "home.accessibility.capturing" : "home.accessibility.capture")}
+            accessibilityState={{ disabled: (cameraPermissionGranted && !cameraReady) || isCapturing, busy: isCapturing }}
             className="h-20 w-20 items-center justify-center rounded-full border-4 border-white/80 bg-white/10"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
@@ -89,7 +97,10 @@ export function CameraActionsBar({
           <Pressable
             onPress={onShare}
             disabled={!canShare}
-            className="w-20 items-center justify-center rounded-2xl bg-black/45 px-2 py-2"
+            accessibilityRole="button"
+            accessibilityLabel={t("home.accessibility.shareImage")}
+            accessibilityState={{ disabled: !canShare }}
+            className="h-12 w-20 items-center justify-center rounded-2xl bg-black/45 px-2"
             style={({ pressed }) => ({
               opacity: !canShare ? 0.45 : pressed ? 0.8 : 1,
             })}
@@ -99,6 +110,8 @@ export function CameraActionsBar({
         ) : (
           <Pressable
             onPress={onOpenGallery}
+            accessibilityRole="button"
+            accessibilityLabel={t("home.accessibility.gallery")}
             className="h-14 w-14 items-center justify-center rounded-full bg-black/40"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,

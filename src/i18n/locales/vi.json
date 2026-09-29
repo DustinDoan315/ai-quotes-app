@@ -85,6 +85,17 @@
     "inviteFriendsTitle": "Mời bạn bè trên Inkly",
     "inviteSkip": "Bỏ qua",
     "inviteCta": "Mời",
+    "accessibility": {
+      "memories": "Kỷ niệm",
+      "capture": "Chụp ảnh",
+      "capturing": "Đang chụp ảnh",
+      "saving": "Đang lưu kỷ niệm",
+      "gallery": "Chọn ảnh từ thư viện",
+      "shareImage": "Chia sẻ ảnh này",
+      "profile": "Mở hồ sơ",
+      "inviteFriends": "Mời bạn bè",
+      "streak": "Xem chuỗi ngày: {{count}} ngày"
+    },
     "reactions": {
       "love": "Thả tim",
       "fire": "Thả biểu tượng lửa",
@@ -185,6 +196,9 @@
       "watermarkTagline": "Cảm xúc mỗi ngày",
       "momentEyebrow": "Khoảnh khắc",
       "shareMomentA11y": "Chia sẻ khoảnh khắc này với thương hiệu",
+      "stackPhotoA11y": "Ảnh {{current}} trên {{total}} của {{author}}. {{quote}}",
+      "previousPhotoA11y": "Ảnh trước",
+      "nextPhotoA11y": "Ảnh tiếp theo",
       "swipeCue": "Vuốt lên để xem Khoảnh khắc ↑",
       "emptyTitle": "Khoảnh khắc của bạn ở đây",
       "emptyBody": "Câu trích dẫn bạn đã lưu và khoảnh khắc bạn bè chia sẻ sẽ xuất hiện ở đây.",

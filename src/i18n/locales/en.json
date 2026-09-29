@@ -86,6 +86,17 @@
     "inviteFriendsTitle": "Invite friends on Inkly",
     "inviteSkip": "Skip",
     "inviteCta": "Invite",
+    "accessibility": {
+      "memories": "Memories",
+      "capture": "Take a photo",
+      "capturing": "Taking a photo",
+      "saving": "Saving memory",
+      "gallery": "Choose a photo from your library",
+      "shareImage": "Share this image",
+      "profile": "Open profile",
+      "inviteFriends": "Invite friends",
+      "streak": "View streak: {{count}} days"
+    },
     "reactions": {
       "love": "React with love",
       "fire": "React with fire",
@@ -186,6 +197,9 @@
       "watermarkTagline": "Daily vibes",
       "momentEyebrow": "Moment",
       "shareMomentA11y": "Share this moment with branding",
+      "stackPhotoA11y": "Photo {{current}} of {{total}} by {{author}}. {{quote}}",
+      "previousPhotoA11y": "Previous photo",
+      "nextPhotoA11y": "Next photo",
       "swipeCue": "Swipe up for Moments ↑",
       "emptyTitle": "Your Moments live here",
       "emptyBody": "Your saved quotes and moments friends share will appear here.",

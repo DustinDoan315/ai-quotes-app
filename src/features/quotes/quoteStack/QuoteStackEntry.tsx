@@ -124,6 +124,7 @@ export function QuoteStackEntry({
 
   const advanceIndex = useCallback(() => {
     const next = currentIndexSV.value + 1;
+    if (next >= quoteCountSV.value) return;
     currentIndexSV.value = next;
     setCurrentIndex(next);
     notifyActive(next);
@@ -202,7 +203,9 @@ export function QuoteStackEntry({
         <Animated.View
           key={`previous-${previousItem.id}`}
           style={[StyleSheet.absoluteFill, previousCardStyle]}
-          pointerEvents="none">
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
           <QuoteMomentCard
             item={previousItem}
             screenHeight={screenHeight}
@@ -217,7 +220,9 @@ export function QuoteStackEntry({
         <Animated.View
           key={`next-${nextItem.id}`}
           style={[StyleSheet.absoluteFill, nextCardStyle]}
-          pointerEvents="none">
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants">
           <QuoteMomentCard
             item={nextItem}
             screenHeight={screenHeight}
@@ -232,13 +237,29 @@ export function QuoteStackEntry({
         <GestureDetector key={`top-gesture-${topItem.id}`} gesture={panGesture}>
           <Animated.View
             key={`top-${topItem.id}`}
-            style={[StyleSheet.absoluteFill, topCardStyle]}>
+            style={[StyleSheet.absoluteFill, topCardStyle]}
+            accessibilityElementsHidden={!isActive}
+            importantForAccessibility={isActive ? "auto" : "no-hide-descendants"}>
             <QuoteMomentCard
               item={topItem}
               screenHeight={screenHeight}
               authorName={authorName}
               authorAvatarUrl={authorAvatarUrl}
               counterLabel={quoteCount > 1 ? `${currentIndex + 1}/${quoteCount}` : null}
+              stackNavigation={
+                isActive && quoteCount > 1
+                  ? {
+                      index: currentIndex,
+                      count: quoteCount,
+                      onNext: () => {
+                        if (!isAnimatingOut.value) advanceIndex();
+                      },
+                      onPrevious: () => {
+                        if (!isAnimatingOut.value) decrementIndex();
+                      },
+                    }
+                  : undefined
+              }
               dotsContent={
                 quoteCount > 1 ? (
                   <View style={styles.dotsRow}>

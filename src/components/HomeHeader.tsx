@@ -32,7 +32,11 @@ export function HomeHeader({
         <View className="flex-row items-center gap-2">
           <Pressable
             onPress={handleProfilePress}
-            className="h-10 w-10 items-center justify-center rounded-full bg-black/30"
+            disabled={!handleProfilePress}
+            accessibilityRole="button"
+            accessibilityLabel={t(showSignInCta ? "friends.signInButton" : "home.accessibility.profile")}
+            accessibilityState={{ disabled: !handleProfilePress }}
+            className="h-12 w-12 items-center justify-center rounded-full bg-black/30"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
               borderWidth: 1.5,
@@ -50,7 +54,8 @@ export function HomeHeader({
           {showSignInCta ? (
             <Pressable
               onPress={onPressSignIn}
-              className="rounded-full bg-white/20 px-3 py-2"
+              accessibilityRole="button"
+              className="min-h-12 justify-center rounded-full bg-white/20 px-3 py-2"
               style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}>
               <Text className="text-sm font-semibold text-white">
                 {t("friends.signInButton")}
@@ -62,7 +67,10 @@ export function HomeHeader({
           <Pressable
             onPress={onPressFriends}
             disabled={!onPressFriends}
-            className="h-10 flex-row items-center rounded-full bg-black/40 px-3"
+            accessibilityRole="button"
+            accessibilityLabel={t("home.accessibility.inviteFriends")}
+            accessibilityState={{ disabled: !onPressFriends }}
+            className="h-12 flex-row items-center rounded-full bg-black/40 px-3"
             style={({ pressed }) => ({
               opacity: onPressFriends ? (pressed ? 0.8 : 1) : 0.5,
             })}>
@@ -74,7 +82,10 @@ export function HomeHeader({
           <Pressable
             onPress={onPressStreak}
             disabled={!onPressStreak}
-            className="flex-row items-center rounded-full px-3 py-1.5"
+            accessibilityRole="button"
+            accessibilityLabel={t("home.accessibility.streak", { count: currentStreak })}
+            accessibilityState={{ disabled: !onPressStreak }}
+            className="h-12 min-w-12 flex-row items-center rounded-full px-3 py-1.5"
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
               backgroundColor: `${tier.color}22`,

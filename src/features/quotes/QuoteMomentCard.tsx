@@ -18,6 +18,12 @@ export interface QuoteMomentCardProps {
   authorAvatarUrl: string | null;
   counterLabel?: string | null;
   dotsContent?: ReactNode;
+  stackNavigation?: {
+    index: number;
+    count: number;
+    onNext: () => void;
+    onPrevious: () => void;
+  };
 }
 
 export const QuoteMomentCard = ({
@@ -27,6 +33,7 @@ export const QuoteMomentCard = ({
   authorAvatarUrl,
   counterLabel,
   dotsContent,
+  stackNavigation,
 }: QuoteMomentCardProps) => {
   const { t } = useTranslation();
   const { width: windowWidth } = useWindowDimensions();
@@ -106,7 +113,44 @@ export const QuoteMomentCard = ({
       className="items-center justify-center py-6"
     >
       <View className="relative items-center" style={{ width: frame.width }}>
-        <View ref={captureRefView} collapsable={false} className="w-full">
+        <View
+          ref={captureRefView}
+          collapsable={false}
+          className="w-full"
+          accessible={Boolean(stackNavigation)}
+          accessibilityRole={stackNavigation ? "adjustable" : undefined}
+          accessibilityLabel={
+            stackNavigation
+              ? t("home.momentsFeed.stackPhotoA11y", {
+                  current: stackNavigation.index + 1,
+                  total: stackNavigation.count,
+                  author: displayName,
+                  quote: item.quote,
+                })
+              : undefined
+          }
+          accessibilityValue={
+            stackNavigation
+              ? { min: 1, max: stackNavigation.count, now: stackNavigation.index + 1 }
+              : undefined
+          }
+          accessibilityActions={
+            stackNavigation
+              ? [
+                  ...(stackNavigation.index > 0
+                    ? [{ name: "decrement", label: t("home.momentsFeed.previousPhotoA11y") }]
+                    : []),
+                  ...(stackNavigation.index < stackNavigation.count - 1
+                    ? [{ name: "increment", label: t("home.momentsFeed.nextPhotoA11y") }]
+                    : []),
+                ]
+              : undefined
+          }
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === "increment") stackNavigation?.onNext();
+            if (event.nativeEvent.actionName === "decrement") stackNavigation?.onPrevious();
+          }}
+        >
           {cardInner}
         </View>
         {watermarkForExport || !counterLabel ? null : (
@@ -120,11 +164,12 @@ export const QuoteMomentCard = ({
         )}
         {watermarkForExport ? null : (
           <Pressable
+            accessibilityRole="button"
             accessibilityLabel={t("home.momentsFeed.shareMomentA11y")}
             onPress={() => {
               void shareMoment(item.id);
             }}
-            className="absolute right-2 top-2 z-50 rounded-full bg-black/55 p-2.5"
+            className="absolute right-2 top-2 z-50 h-12 w-12 items-center justify-center rounded-full bg-black/55"
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
           >
             <Ionicons name="share-outline" size={22} color="#ffffff" />
