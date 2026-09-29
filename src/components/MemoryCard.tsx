@@ -1,24 +1,22 @@
-import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSignedStorageUrl } from "@/hooks/useSignedStorageUrl";
 import { Ionicons } from "@expo/vector-icons";
-import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
 import {
   DEFAULT_QUOTE_POSITION,
   type QuotePosition,
 } from "@/features/quotes/quotePosition";
 
-import type { QuoteImageOrientation, QuoteVisibility } from "@/types/memory";
+import type { QuoteVisibility } from "@/types/memory";
 
 type Props = {
   quote: string;
   author: string | null;
   photoBackgroundUri: string | null;
   photoStoragePath?: string | null;
-  photoOrientation?: QuoteImageOrientation;
   quotePosition?: QuotePosition;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -46,15 +44,13 @@ export function MemoryCard({
   styleColorSchemeId = "light",
 }: Props) {
   const { i18n, t } = useTranslation();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const resolvedPhotoUri = useSignedStorageUrl(
     "user-photos",
     photoStoragePath,
     photoBackgroundUri,
   );
-  const frame = getQuoteFrameSize(windowWidth, windowHeight);
-  const cardWidth = frame.width;
-  const cardHeight = cardWidth / QUOTE_DISPLAY_ASPECT;
+  // The same canonical frame the camera, feed, and onboarding render.
+  const { width: cardWidth, height: cardHeight } = useQuoteCardFrame();
   const createdDateLabel = new Date(createdAt).toLocaleDateString(
     i18n.language,
     { month: "short", day: "numeric" },

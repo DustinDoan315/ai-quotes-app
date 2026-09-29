@@ -272,7 +272,6 @@ export default function MemoriesDayScreen() {
                 author={t("memories.meAuthor")}
                 photoBackgroundUri={memory.photoBackgroundUri}
                 photoStoragePath={memory.photoStoragePath}
-                photoOrientation={memory.photoOrientation}
                 quotePosition={memory.quotePosition}
                 isFavorite={memory.isFavorite}
                 onToggleFavorite={() => handleToggleFavorite(memory)}
@@ -305,7 +304,6 @@ export default function MemoriesDayScreen() {
                   author={t("memories.meAuthor")}
                 photoBackgroundUri={memory.photoBackgroundUri}
                 photoStoragePath={memory.photoStoragePath}
-                  photoOrientation={memory.photoOrientation}
                   quotePosition={memory.quotePosition}
                   isFavorite={memory.isFavorite}
                   createdAt={memory.createdAt}
@@ -377,7 +375,6 @@ export default function MemoriesDayScreen() {
                 author={card.authorDisplayName}
                 photoBackgroundUri={card.imageUrl}
                 photoStoragePath={card.storagePath}
-                photoOrientation={card.photoOrientation}
                 quotePosition={card.quotePosition}
                 isFavorite={false}
                 createdAt={card.createdAt}

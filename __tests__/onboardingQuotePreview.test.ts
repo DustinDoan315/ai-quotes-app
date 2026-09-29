@@ -12,6 +12,7 @@ jest.mock("@/features/home/HomeBackground", () => ({
   HomeBackground: () => null,
 }));
 
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { OnboardingQuotePreview } from "@/features/onboarding/components/OnboardingQuotePreview";
 
 type TestElement = React.ReactElement<Record<string, unknown>>;
@@ -38,11 +39,11 @@ function createPreview(reduceMotion: boolean) {
 }
 
 describe("OnboardingQuotePreview", () => {
-  it("uses the 3:5 quote card and has no tappable sample controls", () => {
+  it("uses the shared quote card aspect and has no tappable sample controls", () => {
     const preview = createPreview(false);
     const elements = getElements(preview);
 
-    expect(preview.props.style.aspectRatio).toBe(3 / 5);
+    expect(preview.props.style.aspectRatio).toBe(QUOTE_DISPLAY_ASPECT);
     expect(preview.props.style.pointerEvents).toBe("none");
     expect(elements.some((element) => "onPress" in element.props)).toBe(false);
   });

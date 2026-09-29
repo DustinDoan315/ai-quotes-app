@@ -3,12 +3,12 @@ import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import type { ReactNode } from "react";
 import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
-import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useUserStore } from "@/appState";
 
 export interface QuoteMomentCardProps {
@@ -29,8 +29,7 @@ export const QuoteMomentCard = ({
   dotsContent,
 }: QuoteMomentCardProps) => {
   const { t } = useTranslation();
-  const { width: windowWidth } = useWindowDimensions();
-  const frame = getQuoteFrameSize(windowWidth, screenHeight - 48);
+  const frame = useQuoteCardFrame();
   const authUserId = useUserStore((s) => s.authUserId);
   const guestId = useUserStore((s) => s.guestId);
   const { captureRefView, watermarkForExport, shareMoment } =

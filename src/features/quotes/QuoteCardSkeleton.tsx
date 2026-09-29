@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { useWindowDimensions, View } from "react-native";
+import { View } from "react-native";
 import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
-import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -12,8 +12,7 @@ import Animated, {
 type Props = { screenHeight: number };
 
 export function QuoteCardSkeleton({ screenHeight }: Props) {
-  const { width: windowWidth } = useWindowDimensions();
-  const frame = getQuoteFrameSize(windowWidth, screenHeight - 48);
+  const frame = useQuoteCardFrame();
   const shimmerOpacity = useSharedValue(0.4);
 
   useEffect(() => {

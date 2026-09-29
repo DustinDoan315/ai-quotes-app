@@ -1,6 +1,6 @@
 import {
   getFeedCardWidth,
-  getQuoteFrameSize,
+  getQuoteCardFrame,
 } from "@/features/quotes/feedCardSizing";
 
 describe("getFeedCardWidth", () => {
@@ -15,19 +15,23 @@ describe("getFeedCardWidth", () => {
   });
 });
 
-describe("getQuoteFrameSize", () => {
+describe("getQuoteCardFrame", () => {
   it("usesTheLargerPhoneFrame", () => {
-    expect(getQuoteFrameSize(390, 796)).toEqual({ width: 366, height: 610 });
+    // iPhone 14: the 366 phone width cap wins over the height budget.
+    const frame = getQuoteCardFrame(390, 844, 47, 34);
+
+    expect(frame.width).toBe(366);
+    expect(frame.height).toBeCloseTo(549, 5);
   });
 
   it("clampsToShortViewportHeight", () => {
-    const frame = getQuoteFrameSize(844, 342);
+    const frame = getQuoteCardFrame(375, 667, 20, 0);
 
-    expect(frame.height).toBeLessThanOrEqual(342);
-    expect(frame.width).toBeCloseTo(205.2);
+    expect(frame.height).toBeCloseTo(457, 5);
+    expect(frame.width).toBeCloseTo(304.67, 1);
   });
 
   it("keepsTheTabletWidthCap", () => {
-    expect(getQuoteFrameSize(1024, 1100).width).toBe(620);
+    expect(getQuoteCardFrame(1024, 1366, 24, 20).width).toBe(620);
   });
 });

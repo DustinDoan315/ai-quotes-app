@@ -1,8 +1,8 @@
 import type { QuoteStack } from "./types";
 import { QuoteMomentCard } from "@/features/quotes/QuoteMomentCard";
-import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { useMemo, useEffect, useState, useCallback } from "react";
-import { useWindowDimensions, View, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -61,11 +61,8 @@ export function QuoteStackEntry({
   isActive,
   onActiveQuoteIdChange,
 }: Props) {
-  const { width: windowWidth } = useWindowDimensions();
-
-  const itemWidth = useMemo(() => {
-    return getQuoteFrameSize(windowWidth, screenHeight - 48).width;
-  }, [screenHeight, windowWidth]);
+  const frame = useQuoteCardFrame();
+  const itemWidth = frame.width;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const quoteCount = stack.quotes.length;

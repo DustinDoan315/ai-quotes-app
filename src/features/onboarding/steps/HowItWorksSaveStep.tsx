@@ -1,3 +1,4 @@
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { OnboardingQuotePreview } from "@/features/onboarding/components/OnboardingQuotePreview";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
@@ -28,7 +29,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
     windowHeight - Math.max(insets.top, 24) - Math.max(insets.bottom, 24);
   const previewWidth = Math.min(
     windowWidth - 64,
-    Math.max(120, (availableHeight - 290) * (3 / 5)),
+    Math.max(120, (availableHeight - 290) * QUOTE_DISPLAY_ASPECT),
   );
 
   return (

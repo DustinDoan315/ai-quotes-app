@@ -1,7 +1,7 @@
 import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { QuoteStyleControls } from "@/features/home/QuoteStyleControls";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
-import { getQuoteFrameSize } from "@/features/quotes/feedCardSizing";
+import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
 import type { QuotePosition } from "@/features/quotes/quotePosition";
 import { PinchGesture } from "@/features/home/useHomeCamera";
@@ -29,11 +29,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { QuoteInkBloom } from "@/components/QuoteInkBloom";
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
-  useWindowDimensions,
 } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -172,12 +172,34 @@ export const HomeCameraSection = ({
     width: number;
     height: number;
   } | null>(null);
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const [availableCardHeight, setAvailableCardHeight] = useState(windowHeight);
-  const cardFrame = useMemo(
-    () => getQuoteFrameSize(windowWidth, availableCardHeight),
-    [availableCardHeight, windowWidth],
+  // The canonical frame shared by the feed, memories, and onboarding.
+  const cardFrame = useQuoteCardFrame();
+  // Safety net: the Home header and the "this day in memories" banner can
+  // shrink the camera area below the canonical frame. Clamp to the space that
+  // is actually available so the card degrades gracefully instead of
+  // overflowing; when there is room (the common case) the clamp is a no-op.
+  // The measured height is parent-driven, so mounting camera controls cannot
+  // change it.
+  const [cameraContentHeight, setCameraContentHeight] = useState(0);
+  // The Edit and style controls live under the card; keep enough room for them
+  // while they are reachable, but only then (the live camera overlays theirs).
+  const reservesEditControls = Boolean(
+    dailyQuoteText && !hideQuote && selectedImageUri,
   );
+  const frame = useMemo(() => {
+    const height =
+      cameraContentHeight > 0
+        ? Math.min(
+            cardFrame.height,
+            Math.max(
+              0,
+              cameraContentHeight - (reservesEditControls ? 64 : 0),
+            ),
+          )
+        : cardFrame.height;
+    const width = Math.min(cardFrame.width, height * QUOTE_DISPLAY_ASPECT);
+    return { width, height: width / QUOTE_DISPLAY_ASPECT };
+  }, [cameraContentHeight, cardFrame, reservesEditControls]);
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const previousImageUriRef = useRef(selectedImageUri);
   const [showAdvancedControls, setShowAdvancedControls] = useState(false);
@@ -318,13 +340,19 @@ export const HomeCameraSection = ({
   };
 
   return (
-    <View className="flex-1 w-full flex-col px-2 py-6">
+    <View
+      className="flex-1 w-full flex-col px-2 py-6"
+      onLayout={({ nativeEvent }) => {
+        // Subtract this section's own py-6 padding (24 top + 24 bottom).
+        const next = Math.max(0, nativeEvent.layout.height - 48);
+        setCameraContentHeight((current) =>
+          Math.abs(current - next) < 1 ? current : next,
+        );
+      }}
+    >
       <View
-        className="min-h-0 flex-1 items-center justify-center"
-        onLayout={(event) => {
-          const height = event.nativeEvent.layout.height;
-          if (height > 0) setAvailableCardHeight(height);
-        }}
+        className="w-full items-center justify-center"
+        style={{ height: frame.height }}
       >
         <View ref={captureRefView} collapsable={false}>
           <GestureDetector gesture={pinchGesture}>
@@ -334,7 +362,7 @@ export const HomeCameraSection = ({
                 chrome.outerShell,
                 {
                   aspectRatio: QUOTE_DISPLAY_ASPECT,
-                  width: cardFrame.width,
+                  width: frame.width,
                 },
               ]}
               onLayout={(e) => {
@@ -860,134 +888,151 @@ export const HomeCameraSection = ({
             </View>
           </GestureDetector>
         </View>
-      </View>
-
-      <View className="items-center">
-        {canCreatePhotoStack && photoStackCount > 0 && !selectedImageUri ? (
-          <View className="mb-3 flex-row items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-2">
-            <Ionicons name="images-outline" size={16} color="#FCD34D" />
-            <Text className="ml-2 text-xs font-semibold text-amber-100">
-              {t("camera.photoStack.count", { count: photoStackCount })}
-            </Text>
-            <Pressable
-              onPress={onFinishPhotoStack}
-              className="ml-3 rounded-full bg-white/15 px-3 py-1"
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
-            >
-              <Text className="text-[11px] font-bold text-white">
-                {t("camera.photoStack.finish")}
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
-        {dailyQuoteText && !hideQuote && selectedImageUri ? (
-          <View className="my-3 w-full max-w-md self-center">
-            <Pressable
-              onPress={() => setShowAdvancedControls((visible) => !visible)}
-              className="self-center rounded-full border border-white/20 bg-white/10 px-4 py-2"
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
-            >
-              <Text className="text-xs font-semibold text-white">
-                {showAdvancedControls
-                  ? t("home.captureFlow.hideEditing")
-                  : t("home.captureFlow.editAndStyle")}
-              </Text>
-            </Pressable>
-            {showAdvancedControls ? (
-              <View className="mt-4">
-                <QuoteStyleControls
-                  quoteFontSize={quoteFontSize}
-                  quoteColorScheme={quoteColorScheme}
-                  onChangeQuoteFontSize={onChangeQuoteFontSize}
-                  onChangeQuoteColorScheme={onChangeQuoteColorScheme}
-                />
-                <View className="mt-5">
-                  <AiToolsRow
-                    selectedAiTool={selectedAiTool}
-                    pendingAiTool={pendingAiTool}
-                    aiToolsLoading={aiToolsLoading}
-                    onRewriteQuote={onRewriteQuote}
-                    onFutureQuotePress={onFutureQuotePress}
-                  />
-                  {aiResultTitle && aiResultBody ? (
-                    <View className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-950/20 px-4 py-4">
-                      <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-500">
-                        {aiResultTitle}
-                      </Text>
-                      <Text className="mt-2 text-sm leading-5 text-white/90">
-                        {aiResultBody}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
+        {selectedImageUri === null ? (
+          <View
+            className="absolute inset-x-0 bottom-1 items-center"
+            pointerEvents="box-none"
+          >
+            {canCreatePhotoStack && photoStackCount > 0 ? (
+              <View className="mb-3 flex-row items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-2">
+                <Ionicons name="images-outline" size={16} color="#FCD34D" />
+                <Text className="ml-2 text-xs font-semibold text-amber-100">
+                  {t("camera.photoStack.count", { count: photoStackCount })}
+                </Text>
+                <Pressable
+                  onPress={onFinishPhotoStack}
+                  className="ml-3 rounded-full bg-white/15 px-3 py-1"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+                >
+                  <Text className="text-[11px] font-bold text-white">
+                    {t("camera.photoStack.finish")}
+                  </Text>
+                </Pressable>
               </View>
             ) : null}
-          </View>
-        ) : null}
-        {selectedImageUri === null ? (
-          <View className="my-4 w-full max-w-md items-center gap-2 self-center">
-            <Text
-              className="text-sm font-medium text-white"
-              style={{ opacity: 0.8 }}
-            >
-              {zoomFactor % 1 === 0
-                ? `${zoomFactor}x`
-                : `${zoomFactor.toFixed(1)}x`}
-            </Text>
             <View
-              className="mt-1 w-full flex-row items-center"
-              style={{ justifyContent: "space-between" }}
+              className="my-4 w-full max-w-md items-center gap-2 self-center"
+              pointerEvents="box-none"
             >
-              <View className="flex-1" />
-              <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
-                {[0.5, 1, 2].map((preset) => {
-                  const isActive = activePreset === preset;
-                  return (
-                    <Pressable
-                      key={preset}
-                      onPress={() => onZoomPresetPress(preset as 0.5 | 1 | 2)}
-                      className="min-w-[44px] items-center justify-center rounded-full px-3 py-2"
-                      style={({ pressed }) => ({
-                        opacity: pressed ? 0.8 : 1,
-                        backgroundColor: isActive
-                          ? "rgba(255, 204, 0, 0.4)"
-                          : "transparent",
-                      })}
-                    >
-                      <Text
-                        className="text-sm font-semibold"
-                        style={{ color: isActive ? "#FFCC00" : "#fff" }}
+              <Text
+                className="text-sm font-medium text-white"
+                style={{ opacity: 0.8 }}
+              >
+                {zoomFactor % 1 === 0
+                  ? `${zoomFactor}x`
+                  : `${zoomFactor.toFixed(1)}x`}
+              </Text>
+              <View
+                className="mt-1 w-full flex-row items-center"
+                pointerEvents="box-none"
+                style={{ justifyContent: "space-between" }}
+              >
+                <View className="flex-1" />
+                <View className="flex-row items-center gap-1 rounded-full border border-white/40 bg-black/40 px-2 py-1">
+                  {[0.5, 1, 2].map((preset) => {
+                    const isActive = activePreset === preset;
+                    return (
+                      <Pressable
+                        key={preset}
+                        onPress={() => onZoomPresetPress(preset as 0.5 | 1 | 2)}
+                        className="min-w-[44px] items-center justify-center rounded-full px-3 py-2"
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.8 : 1,
+                          backgroundColor: isActive
+                            ? "rgba(255, 204, 0, 0.4)"
+                            : "transparent",
+                        })}
                       >
-                        {preset}x
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <View className="flex-1 items-end">
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t("camera.switchCamera")}
-                  onPress={handleCameraFlipPress}
-                  hitSlop={12}
-                  className="h-11 w-11 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
-                  style={({ pressed }) => ({
-                    opacity: pressed ? 0.75 : 1,
-                    transform: [{ scale: pressed ? 0.94 : 1 }],
+                        <Text
+                          className="text-sm font-semibold"
+                          style={{ color: isActive ? "#FFCC00" : "#fff" }}
+                        >
+                          {preset}x
+                        </Text>
+                      </Pressable>
+                    );
                   })}
-                >
-                  <Animated.View style={flipIconStyle}>
-                    <Ionicons
-                      name="camera-reverse-outline"
-                      size={22}
-                      color="#fff"
-                    />
-                  </Animated.View>
-                </Pressable>
+                </View>
+                <View className="flex-1 items-end">
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("camera.switchCamera")}
+                    onPress={handleCameraFlipPress}
+                    hitSlop={12}
+                    className="h-11 w-11 items-center justify-center rounded-full border-2 border-white/60 bg-white/15"
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.75 : 1,
+                      transform: [{ scale: pressed ? 0.94 : 1 }],
+                    })}
+                  >
+                    <Animated.View style={flipIconStyle}>
+                      <Ionicons
+                        name="camera-reverse-outline"
+                        size={22}
+                        color="#fff"
+                      />
+                    </Animated.View>
+                  </Pressable>
+                </View>
               </View>
             </View>
           </View>
         ) : null}
+
+      </View>
+
+      <View className="w-full flex-1 items-center">
+        <ScrollView
+          className="w-full"
+          contentContainerStyle={{ alignItems: "center" }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {dailyQuoteText && !hideQuote && selectedImageUri ? (
+            <View className="my-3 w-full max-w-md self-center">
+              <Pressable
+                onPress={() => setShowAdvancedControls((visible) => !visible)}
+                className="self-center rounded-full border border-white/20 bg-white/10 px-4 py-2"
+                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+              >
+                <Text className="text-xs font-semibold text-white">
+                  {showAdvancedControls
+                    ? t("home.captureFlow.hideEditing")
+                    : t("home.captureFlow.editAndStyle")}
+                </Text>
+              </Pressable>
+              {showAdvancedControls ? (
+                <View className="mt-4">
+                  <QuoteStyleControls
+                    quoteFontSize={quoteFontSize}
+                    quoteColorScheme={quoteColorScheme}
+                    onChangeQuoteFontSize={onChangeQuoteFontSize}
+                    onChangeQuoteColorScheme={onChangeQuoteColorScheme}
+                  />
+                  <View className="mt-5">
+                    <AiToolsRow
+                      selectedAiTool={selectedAiTool}
+                      pendingAiTool={pendingAiTool}
+                      aiToolsLoading={aiToolsLoading}
+                      onRewriteQuote={onRewriteQuote}
+                      onFutureQuotePress={onFutureQuotePress}
+                    />
+                    {aiResultTitle && aiResultBody ? (
+                      <View className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-950/20 px-4 py-4">
+                        <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-500">
+                          {aiResultTitle}
+                        </Text>
+                        <Text className="mt-2 text-sm leading-5 text-white/90">
+                          {aiResultBody}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </ScrollView>
       </View>
     </View>
   );

@@ -1,3 +1,4 @@
+import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { HomeBackground } from "@/features/home/HomeBackground";
 import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import { MotiView } from "moti";
@@ -11,8 +12,6 @@ type Props = {
   quotePositionY: number;
   reduceMotion: boolean;
 };
-
-const CARD_ASPECT_RATIO = 3 / 5;
 
 export function OnboardingQuotePreview({
   width,
@@ -28,7 +27,7 @@ export function OnboardingQuotePreview({
       style={{
         pointerEvents: "none",
         width,
-        aspectRatio: CARD_ASPECT_RATIO,
+        aspectRatio: QUOTE_DISPLAY_ASPECT,
         overflow: "hidden",
         borderRadius: 28,
         borderWidth: 1,
@@ -39,7 +38,7 @@ export function OnboardingQuotePreview({
       <HomeBackground
         palette={HOME_BACKGROUNDS[0]}
         width={width}
-        height={width / CARD_ASPECT_RATIO}
+        height={width / QUOTE_DISPLAY_ASPECT}
       />
       <View
         style={{
