@@ -431,11 +431,11 @@ PODS:
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
   - PromisesObjC (2.4.0)
-  - PurchasesHybridCommon (17.30.1):
-    - RevenueCat (= 5.56.0)
-  - PurchasesHybridCommonUI (17.30.1):
-    - PurchasesHybridCommon (= 17.30.1)
-    - RevenueCatUI (= 5.56.0)
+  - PurchasesHybridCommon (19.3.1):
+    - RevenueCat (= 5.90.2)
+  - PurchasesHybridCommonUI (19.3.1):
+    - PurchasesHybridCommon (= 19.3.1)
+    - RevenueCatUI (= 5.90.2)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2797,9 +2797,9 @@ PODS:
     - React-perflogger (= 0.81.5)
     - React-utils (= 0.81.5)
     - SocketRocket
-  - RevenueCat (5.56.0)
-  - RevenueCatUI (5.56.0):
-    - RevenueCat (= 5.56.0)
+  - RevenueCat (5.90.2)
+  - RevenueCatUI (5.90.2):
+    - RevenueCat (= 5.90.2)
   - RNCAsyncStorage (2.2.0):
     - boost
     - DoubleConversion
@@ -2913,11 +2913,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNPaywalls (9.7.5):
-    - PurchasesHybridCommonUI (= 17.30.1)
+  - RNPaywalls (10.10.2):
+    - PurchasesHybridCommonUI (= 19.3.1)
     - React-Core
-  - RNPurchases (9.7.5):
-    - PurchasesHybridCommon (= 17.30.1)
+  - RNPurchases (10.10.2):
+    - PurchasesHybridCommon (= 19.3.1)
     - React-Core
   - RNReanimated (4.1.6):
     - boost
@@ -3724,8 +3724,8 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  PurchasesHybridCommon: c0bc3edee10a8742e9a238247944b4be044ff177
-  PurchasesHybridCommonUI: b3d0bc51d9016e15b68d48ea9f297d202720df4a
+  PurchasesHybridCommon: c364d4198150bf4027b00fcada9b4ddc280df108
+  PurchasesHybridCommonUI: 060fadc5112e8c0c750bd7e8f1b19c78f3fcb657
   RCT-Folly: 59ec0ac1f2f39672a0c6e6cecdd39383b764646f
   RCTDeprecation: 5eb1d2eeff5fb91151e8a8eef45b6c7658b6c897
   RCTRequired: cebcf9442fc296c9b89ac791dfd463021d9f6f23
@@ -3792,14 +3792,14 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 1bcd3527ac0390a1c898c114f81ff954be35ed79
   ReactCodegen: 6c26f8c25d0b5ae66f86a1cce1777076ac8bcbd8
   ReactCommon: 5f0e5c09a64a2717215dd84380e1a747810406f2
-  RevenueCat: 9e2a13bead55198a72272ff105a7265e9510cd11
-  RevenueCatUI: 2200b8ec1cadb1c69c6f05452144184f929eadef
+  RevenueCat: c44e15b3ee88506da1fdf537c62a6c239cc41b21
+  RevenueCatUI: 0a1f31996e19f7905ea3175c11b4732b3908837b
   RNCAsyncStorage: 29f0230e1a25f36c20b05f65e2eb8958d6526e82
   RNDateTimePicker: cda4c045beca864cebb3209ef9cc4094f974864c
   RNGestureHandler: 3a73f098d74712952870e948b3d9cf7b6cae9961
   RNGoogleSignin: 15341729e1f79f1b82740393924cae5e429ad176
-  RNPaywalls: ab90f4c038b0913ffee94c180cb94c29b0fcc149
-  RNPurchases: ae1f8f522674a7938dd26eba6c103c40d049dfee
+  RNPaywalls: 34fd963a9f85c01d6d6cb720bcd49a0177e5a699
+  RNPurchases: 28391e533798d316c8ffeada5c8dbc59768d6d0c
   RNReanimated: 0a42c1fc618e8f510b7b1724164308e49220dbe2
   RNScreens: 0bbf16c074ae6bb1058a7bf2d1ae017f4306797c
   RNSentry: bca90d41b7e8423262c5fcfccfb12328a3aa6701
