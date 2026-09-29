@@ -1,5 +1,4 @@
 import * as Haptics from "expo-haptics";
-import * as ImagePicker from "expo-image-picker";
 import * as Crypto from "expo-crypto";
 import { CameraView, type CameraMountError } from "expo-camera";
 import { useFocusEffect } from "@react-navigation/native";
@@ -560,12 +559,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       return;
     }
     try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        showToast(i18n.t("camera.errors.galleryPermissionRequired"), "error");
-        return;
-      }
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const picked = await pickPhotoForQuote();
       if (!picked) {
