@@ -79,7 +79,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
           <Pressable
             onPress={onSkip}
             accessibilityRole="button"
-            className="min-h-11 justify-center px-2"
+            className="min-h-12 min-w-12 justify-center px-2"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Text className="text-sm font-medium text-white/60">
@@ -212,7 +212,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
             accessibilityRole="button"
             style={({ pressed }) => ({
               opacity: pressed ? 0.6 : 1,
-              paddingVertical: 14,
+              paddingVertical: 16,
             })}
           >
             <Text

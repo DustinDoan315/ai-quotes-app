@@ -48,7 +48,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
           <Pressable
             onPress={onBack}
             accessibilityRole="button"
-            className="min-h-11 min-w-14 flex-row items-center justify-start"
+            className="min-h-12 min-w-14 flex-row items-center justify-start"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Ionicons
@@ -76,7 +76,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
           <Pressable
             onPress={onSkip}
             accessibilityRole="button"
-            className="min-h-11 min-w-14 items-end justify-center"
+            className="min-h-12 min-w-14 items-end justify-center"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Text className="text-sm font-medium text-white/60">
