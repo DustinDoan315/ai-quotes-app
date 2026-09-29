@@ -4,7 +4,10 @@ const mockMaybeSingle = jest.fn();
 const mockInsert = jest.fn();
 const mockEq = jest.fn(() => ({ maybeSingle: mockMaybeSingle }));
 const mockSelect = jest.fn(() => ({ eq: mockEq }));
-const mockFrom = jest.fn(() => ({ select: mockSelect, insert: mockInsert }));
+const mockFrom = jest.fn((..._args: unknown[]) => ({
+  select: mockSelect,
+  insert: mockInsert,
+}));
 
 jest.mock("@/config/supabase", () => ({
   supabase: {
