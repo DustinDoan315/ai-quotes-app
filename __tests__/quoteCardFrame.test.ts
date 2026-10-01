@@ -38,6 +38,8 @@ describe("getQuoteCardFrame", () => {
     const frame = getQuoteCardFrame(375, 667, 20, 0);
 
     expect(frame.width / frame.height).toBeCloseTo(QUOTE_DISPLAY_ASPECT, 6);
+    expect(frame.width).toBe(frame.height);
+    expect(QUOTE_DISPLAY_ASPECT).toBe(1);
   });
 
   it("collapses instead of returning a negative frame", () => {

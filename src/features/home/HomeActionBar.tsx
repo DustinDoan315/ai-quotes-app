@@ -51,10 +51,18 @@ export function HomeActionBar({
     if (!shouldShowReactions) setIsEmojiPickerOpen(false);
   }, [shouldShowReactions]);
 
+  // Keep action-mode changes from resizing the feed while it is paging.
   return (
     <View
       className="border-t border-white/10 bg-black/20 px-4 pt-2"
-      style={{ paddingBottom: bottomInset }}
+      style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 10,
+        paddingBottom: bottomInset,
+      }}
       pointerEvents="box-none"
     >
       {shouldShowReactions ? (

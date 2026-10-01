@@ -1,5 +1,4 @@
 import { AppIcon } from "@/components/AppIcon";
-import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { OnboardingQuotePreview } from "@/features/onboarding/components/OnboardingQuotePreview";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
@@ -26,13 +25,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const reduceMotion = useReducedMotionPreference();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const availableHeight =
-    windowHeight - Math.max(insets.top, 24) - Math.max(insets.bottom, 24);
-  const previewWidth = Math.min(
-    windowWidth - 48,
-    Math.max(120, (availableHeight - 360) * QUOTE_DISPLAY_ASPECT),
-  );
+  const { width: previewWidth } = useWindowDimensions();
 
   return (
     <OnboardingStepShell>
@@ -42,7 +35,6 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingHorizontal: 24,
           paddingTop: Math.max(insets.top, 24),
           paddingBottom: Math.max(insets.bottom, 24),
         }}
@@ -61,6 +53,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
             delay: reduceMotion ? 0 : 60,
           }}
           style={{
+            marginHorizontal: 24,
             marginBottom: 20,
             flexDirection: "row",
             alignItems: "center",
@@ -73,7 +66,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
           </Text>
         </MotiView>
 
-        <View className="mb-1 flex-row items-center justify-between">
+        <View className="mx-6 mb-1 flex-row items-center justify-between">
           <Text className="text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
             {t("onboarding.welcome.progress")}
           </Text>
@@ -132,6 +125,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
             duration: reduceMotion ? 0 : 400,
             delay: reduceMotion ? 0 : 260,
           }}
+          style={{ marginHorizontal: 24 }}
         >
           <Text
             style={{
@@ -159,6 +153,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
             duration: reduceMotion ? 0 : 400,
             delay: reduceMotion ? 0 : 340,
           }}
+          style={{ marginHorizontal: 24 }}
         >
           <Text
             style={{
@@ -172,7 +167,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
           </Text>
         </MotiView>
 
-        <View className="flex-1" />
+        <View className="min-h-6 flex-1" />
 
         {/* CTAs */}
         <MotiView
@@ -187,6 +182,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
             duration: reduceMotion ? 0 : 380,
             delay: reduceMotion ? 0 : 460,
           }}
+          style={{ marginHorizontal: 24 }}
         >
           <Pressable
             onPress={onContinue}

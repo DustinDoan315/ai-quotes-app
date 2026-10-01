@@ -43,6 +43,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type {
   QuoteColor,
@@ -51,6 +52,7 @@ import type {
 
 export type HomeCameraSectionProps = {
   cameraRef: React.RefObject<CameraView | null>;
+  cameraSessionKey: number;
   pinchGesture: PinchGesture;
   cameraError: string | null;
   isCameraActive: boolean;
@@ -106,6 +108,7 @@ export type HomeCameraSectionProps = {
 
 export const HomeCameraSection = ({
   cameraRef,
+  cameraSessionKey,
   pinchGesture,
   cameraError,
   isCameraActive,
@@ -172,19 +175,25 @@ export const HomeCameraSection = ({
     width: number;
     height: number;
   } | null>(null);
+  const insets = useSafeAreaInsets();
   // The canonical frame shared by the feed, memories, and onboarding.
   const cardFrame = useQuoteCardFrame();
-  // Safety net: the Home header and the "this day in memories" banner can
-  // shrink the camera area below the canonical frame. Clamp to the space that
-  // is actually available so the card degrades gracefully instead of
-  // overflowing; when there is room (the common case) the clamp is a no-op.
+  // The Home header, memories banner, and bottom actions can shrink the camera
+  // area below the canonical frame. Fit and center the card in the visible area.
   // The measured height is parent-driven, so mounting camera controls cannot
   // change it.
   const [cameraContentHeight, setCameraContentHeight] = useState(0);
-  // The Edit and style controls live under the card; keep enough room for them
-  // while they are reachable, but only then (the live camera overlays theirs).
+  // Controls live below the photo canvas and share its available height.
   const reservesEditControls = Boolean(
     dailyQuoteText && !hideQuote && selectedImageUri,
+  );
+  const controlsHeight = selectedImageUri === null
+    ? 104 + (canCreatePhotoStack && photoStackCount > 0 ? 52 : 0)
+    : reservesEditControls ? 64 : 0;
+  // 80pt action row + 8pt top padding + 1pt border + the device's bottom inset.
+  const availableCameraHeight = Math.max(
+    0,
+    cameraContentHeight - 89 - insets.bottom,
   );
   const frame = useMemo(() => {
     const height =
@@ -193,13 +202,28 @@ export const HomeCameraSection = ({
             cardFrame.height,
             Math.max(
               0,
-              cameraContentHeight - (reservesEditControls ? 64 : 0),
+              availableCameraHeight - controlsHeight,
             ),
           )
         : cardFrame.height;
     const width = Math.min(cardFrame.width, height * QUOTE_DISPLAY_ASPECT);
     return { width, height: width / QUOTE_DISPLAY_ASPECT };
-  }, [cameraContentHeight, cardFrame, reservesEditControls]);
+  }, [
+    availableCameraHeight,
+    cameraContentHeight,
+    cardFrame,
+    controlsHeight,
+  ]);
+  const cameraTopOffset =
+    availableCameraHeight > 0
+      ? Math.max(
+          0,
+          (availableCameraHeight -
+            frame.height -
+            controlsHeight) /
+            2,
+        )
+      : 0;
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const previousImageUriRef = useRef(selectedImageUri);
   const [showAdvancedControls, setShowAdvancedControls] = useState(false);
@@ -341,10 +365,9 @@ export const HomeCameraSection = ({
 
   return (
     <View
-      className="flex-1 w-full flex-col px-2 py-6"
+      className="flex-1 w-full flex-col"
       onLayout={({ nativeEvent }) => {
-        // Subtract this section's own py-6 padding (24 top + 24 bottom).
-        const next = Math.max(0, nativeEvent.layout.height - 48);
+        const next = Math.max(0, nativeEvent.layout.height);
         setCameraContentHeight((current) =>
           Math.abs(current - next) < 1 ? current : next,
         );
@@ -352,7 +375,7 @@ export const HomeCameraSection = ({
     >
       <View
         className="w-full items-center justify-center"
-        style={{ height: frame.height }}
+        style={{ height: frame.height, marginTop: cameraTopOffset }}
       >
         <View ref={captureRefView} collapsable={false}>
           <GestureDetector gesture={pinchGesture}>
@@ -415,6 +438,7 @@ export const HomeCameraSection = ({
                       </View>
                     ) : isCameraActive ? (
                       <CameraView
+                        key={`${cameraSessionKey}-${facing}`}
                         ref={cameraRef}
                         style={StyleSheet.absoluteFill}
                         active={isCameraActive}
@@ -510,12 +534,12 @@ export const HomeCameraSection = ({
                           <Stop
                             offset="0.42"
                             stopColor="#000000"
-                            stopOpacity="0.18"
+                            stopOpacity="0.06"
                           />
                           <Stop
                             offset="1"
                             stopColor="#000000"
-                            stopOpacity="0.9"
+                            stopOpacity="0.3"
                           />
                         </LinearGradient>
                       </Defs>
@@ -585,7 +609,7 @@ export const HomeCameraSection = ({
                           onPress={openQuoteEditor}
                           className="rounded-2xl px-4 py-3"
                           style={{
-                            backgroundColor: "rgba(0,0,0,0.58)",
+                            backgroundColor: "rgba(0,0,0,0.28)",
                             borderWidth: 1,
                             borderColor: "rgba(255,255,255,0.34)",
                             maxWidth: "100%",
@@ -888,9 +912,10 @@ export const HomeCameraSection = ({
             </View>
           </GestureDetector>
         </View>
+      </View>
         {selectedImageUri === null ? (
           <View
-            className="absolute inset-x-0 bottom-1 items-center"
+            className="w-full items-center px-4"
             pointerEvents="box-none"
           >
             {canCreatePhotoStack && photoStackCount > 0 ? (
@@ -911,7 +936,7 @@ export const HomeCameraSection = ({
               </View>
             ) : null}
             <View
-              className="my-4 w-full max-w-md items-center gap-2 self-center"
+              className="w-full max-w-md items-center gap-2 self-center py-3"
               pointerEvents="box-none"
             >
               <Text
@@ -979,9 +1004,7 @@ export const HomeCameraSection = ({
           </View>
         ) : null}
 
-      </View>
-
-      <View className="w-full flex-1 items-center">
+      <View className="w-full flex-1 items-center px-2">
         <ScrollView
           className="w-full"
           contentContainerStyle={{ alignItems: "center" }}

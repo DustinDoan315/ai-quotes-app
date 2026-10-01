@@ -150,6 +150,8 @@ async function saveUserPhotoInternal(
       style_color_scheme_id: styleColorSchemeId,
       quote_position_x: quotePosition.x,
       quote_position_y: quotePosition.y,
+      quote_scale: quotePosition.scale ?? 1,
+      quote_rotation: quotePosition.rotation ?? 0,
       photo_orientation: orientation,
       home_vibe_key: homeVibeKey,
       photo_stack_id: photoStackId,

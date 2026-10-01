@@ -90,7 +90,7 @@ export function OnboardingQuotePreview({
             borderRadius: 18,
             borderWidth: 1,
             borderColor: "rgba(255,255,255,0.28)",
-            backgroundColor: "rgba(0,0,0,0.58)",
+            backgroundColor: "rgba(0,0,0,0.28)",
             paddingHorizontal: 15,
             paddingVertical: 12,
           }}

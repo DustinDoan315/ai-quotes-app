@@ -88,13 +88,13 @@ export function MemoryCard({
       <View
         pointerEvents="none"
         className="absolute inset-0 z-[2]"
-        style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+        style={{ backgroundColor: "rgba(0,0,0,0.12)" }}
       />
 
       {quote ? (
         <QuotePositionLayer position={quotePosition}>
           <View
-            className="rounded-2xl border border-white/25 bg-black/55 px-4 py-3"
+            className="rounded-2xl border border-white/25 bg-black/30 px-4 py-3"
             style={{ maxWidth: "88%" }}
           >
             <Text

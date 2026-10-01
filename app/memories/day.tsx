@@ -241,7 +241,7 @@ export default function MemoriesDayScreen() {
       {/* Two persistent ScrollViews — toggled with display to preserve scroll position per tab */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         style={{ flex: 1, display: layer === "mine" ? "flex" : "none" }}>
         {mineMemories.length === 0 ? (
           <View className="mt-16 items-center px-6">
@@ -318,7 +318,7 @@ export default function MemoriesDayScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         style={{ flex: 1, display: layer === "friends" ? "flex" : "none" }}>
         {friendsLoading ? (
           <View className="mt-16 items-center">

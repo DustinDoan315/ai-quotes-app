@@ -7,6 +7,7 @@ import { listMyFriends } from "@/services/inviteApi";
 import {
   listQuotePhotoCards,
   refreshQuotePhotoCardUrls,
+  SIGNED_URL_RETRY_INTERVAL_MS,
   SIGNED_URL_REFRESH_INTERVAL_MS,
   type QuotePhotoCard,
 } from "@/services/media/userPhotosApi";
@@ -76,7 +77,9 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
       );
       nextUrlRefreshAtRef.current =
         Date.now() +
-        (result.complete ? SIGNED_URL_REFRESH_INTERVAL_MS : 60_000);
+        (result.complete
+          ? SIGNED_URL_REFRESH_INTERVAL_MS
+          : SIGNED_URL_RETRY_INTERVAL_MS);
     } catch (error) {
       console.error("[useQuotePhotoFeed] signed URL refresh failed:", error);
       nextUrlRefreshAtRef.current = Date.now() + 60_000;
@@ -92,7 +95,11 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
       const guestId = profile?.user_id ? null : ensureGuestId();
       const data = await fetchFeedData(profile, guestId);
       setCurrentItems(data);
-      nextUrlRefreshAtRef.current = Date.now() + SIGNED_URL_REFRESH_INTERVAL_MS;
+      nextUrlRefreshAtRef.current =
+        Date.now() +
+        (data.some((card) => !card.imageUrl)
+          ? SIGNED_URL_RETRY_INTERVAL_MS
+          : SIGNED_URL_REFRESH_INTERVAL_MS);
     } catch (err) {
       console.error("[useQuotePhotoFeed] load failed:", err);
       setHasError(true);
@@ -118,7 +125,11 @@ export const useQuotePhotoFeed = (): QuotePhotoFeedState => {
       const guestId = profile?.user_id ? null : ensureGuestId();
       const data = await fetchFeedData(profile, guestId);
       setCurrentItems(data);
-      nextUrlRefreshAtRef.current = Date.now() + SIGNED_URL_REFRESH_INTERVAL_MS;
+      nextUrlRefreshAtRef.current =
+        Date.now() +
+        (data.some((card) => !card.imageUrl)
+          ? SIGNED_URL_RETRY_INTERVAL_MS
+          : SIGNED_URL_REFRESH_INTERVAL_MS);
     } catch (err) {
       console.error("[useQuotePhotoFeed] refreshSilently failed:", err);
     }

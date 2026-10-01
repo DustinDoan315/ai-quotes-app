@@ -1,10 +1,12 @@
-export type QuotePosition = { x: number; y: number };
+export type QuotePosition = { x: number; y: number; scale?: number; rotation?: number };
+
+export const MIN_QUOTE_SCALE = 0.875;
 
 export type QuoteBoxSize = { width: number; height: number };
 
 export const DEFAULT_QUOTE_POSITION: QuotePosition = { x: 0.5, y: 0.84 };
 
-export function parseQuotePosition(x: unknown, y: unknown): QuotePosition {
+export function parseQuotePosition(x: unknown, y: unknown, scale?: unknown, rotation?: unknown): QuotePosition {
   if (
     typeof x !== "number" ||
     !Number.isFinite(x) ||
@@ -18,10 +20,14 @@ export function parseQuotePosition(x: unknown, y: unknown): QuotePosition {
     return { ...DEFAULT_QUOTE_POSITION };
   }
 
-  return { x, y };
+  return { x, y,
+    ...(typeof scale === "number" && Number.isFinite(scale) ? { scale: Math.min(1, Math.max(MIN_QUOTE_SCALE, scale)) } : {}),
+    ...(typeof rotation === "number" && Number.isFinite(rotation) ? { rotation } : {}),
+  };
 }
 
 function clampAxis(position: number, frameSize: number, quoteSize: number) {
+  "worklet";
   if (!Number.isFinite(position)) return 0.5;
   if (!Number.isFinite(frameSize) || frameSize <= 0) return 0.5;
 
@@ -37,8 +43,14 @@ export function clampQuotePosition(
   frame: QuoteBoxSize,
   quote: QuoteBoxSize,
 ): QuotePosition {
+  "worklet";
+  const scale = Math.min(1, Math.max(MIN_QUOTE_SCALE, position.scale ?? 1));
+  const angle = position.rotation ?? 0;
+  const width = scale * (Math.abs(Math.cos(angle)) * quote.width + Math.abs(Math.sin(angle)) * quote.height);
+  const height = scale * (Math.abs(Math.sin(angle)) * quote.width + Math.abs(Math.cos(angle)) * quote.height);
   return {
-    x: clampAxis(position.x, frame.width, quote.width),
-    y: clampAxis(position.y, frame.height, quote.height),
+    ...position,
+    x: clampAxis(position.x, frame.width, width),
+    y: clampAxis(position.y, frame.height, height),
   };
 }

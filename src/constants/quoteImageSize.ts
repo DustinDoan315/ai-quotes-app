@@ -6,10 +6,10 @@ export type QuoteOrientation = "portrait" | "landscape";
  * a friend's post, the Memories feed, the skeleton, the onboarding preview,
  * and the share/export capture.
  *
- * 2/3 sits between the old 3/4 (too short) and 3/5 (too tall) and reduces the
- * cover-crop applied to a 3:4 source photo.
+ * Square cards use the available width without horizontal gutters. Source
+ * uploads preserve their aspect ratio within QUOTE_OUTPUT_SIZE below.
  */
-export const QUOTE_DISPLAY_ASPECT = 2 / 3;
+export const QUOTE_DISPLAY_ASPECT = 1;
 
 export const QUOTE_OUTPUT_SIZE = {
   portrait: { width: 720, height: 960 },

@@ -35,7 +35,7 @@ export const QuoteMomentCardMedia = ({
 }: QuoteMomentCardMediaProps) => {
   const { t } = useTranslation();
   return (
-    <View style={{ aspectRatio }} className="relative overflow-hidden bg-black">
+    <View style={{ width: "100%", aspectRatio }} className="relative overflow-hidden bg-black">
       {item.imageUrl ? (
         <Image
           source={{ uri: item.imageUrl }}
@@ -46,7 +46,7 @@ export const QuoteMomentCardMedia = ({
           transition={0}
         />
       ) : null}
-      <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/85 via-black/15 to-black/25" />
+      <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/35 via-transparent to-black/10" />
       {chrome ? (
         <>
           <View pointerEvents="none" style={chrome.photoBorder} />
@@ -181,7 +181,7 @@ export const QuoteMomentCardMedia = ({
       {item.quote ? (
         <QuotePositionLayer position={item.quotePosition}>
           <View
-            className="rounded-2xl border border-white/25 bg-black/55 px-4 py-3"
+            className="rounded-2xl border border-white/25 bg-black/30 px-4 py-3"
             style={{ maxWidth: "88%" }}
           >
             <Text

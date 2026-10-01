@@ -102,7 +102,7 @@ export const QuoteMomentCard = ({
   return (
     <View
       style={{ height: screenHeight }}
-      className="items-center justify-center py-6"
+      className="items-center justify-center"
     >
       <View className="relative items-center" style={{ width: frame.width }}>
         <View ref={captureRefView} collapsable={false} className="w-full">

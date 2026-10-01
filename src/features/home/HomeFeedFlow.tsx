@@ -23,7 +23,6 @@ type Props = {
   onViewableItemsChanged: ComponentProps<
     typeof FlatList<QuoteStack>
   >["onViewableItemsChanged"];
-  onViewportHeightChange: (height: number) => void;
   header: ReactElement;
   viewportHeight: number;
   authorName: string;
@@ -45,7 +44,6 @@ export function HomeFeedFlow({
   refreshFeed,
   viewabilityConfig,
   onViewableItemsChanged,
-  onViewportHeightChange,
   header,
   viewportHeight,
   authorName,
@@ -59,10 +57,7 @@ export function HomeFeedFlow({
   return (
     <FlatList
       ref={listRef}
-      onLayout={(event) =>
-        onViewportHeightChange(event.nativeEvent.layout.height)
-      }
-      className="flex-1 bg-transparent"
+      style={{ flex: 1, backgroundColor: "transparent" }}
       showsVerticalScrollIndicator={false}
       scrollEnabled={!isCaptureFlowActive}
       snapToAlignment="start"

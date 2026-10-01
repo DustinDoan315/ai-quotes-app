@@ -1,4 +1,3 @@
-import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { OnboardingQuotePreview } from "@/features/onboarding/components/OnboardingQuotePreview";
 import { OnboardingStepShell } from "@/features/onboarding/components/OnboardingStepShell";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
@@ -24,13 +23,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const reduceMotion = useReducedMotionPreference();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const availableHeight =
-    windowHeight - Math.max(insets.top, 24) - Math.max(insets.bottom, 24);
-  const previewWidth = Math.min(
-    windowWidth - 64,
-    Math.max(120, (availableHeight - 290) * QUOTE_DISPLAY_ASPECT),
-  );
+  const { width: previewWidth } = useWindowDimensions();
 
   return (
     <OnboardingStepShell>
@@ -40,12 +33,11 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingHorizontal: 24,
           paddingTop: Math.max(insets.top, 24),
           paddingBottom: Math.max(insets.bottom, 24),
         }}
       >
-        <View className="mb-3 flex-row items-center justify-between">
+        <View className="mx-6 mb-3 flex-row items-center justify-between">
           <Pressable
             onPress={onBack}
             accessibilityRole="button"
@@ -122,6 +114,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
             duration: reduceMotion ? 0 : 360,
             delay: reduceMotion ? 0 : 320,
           }}
+          style={{ marginHorizontal: 24 }}
         >
           <Text
             style={{
@@ -145,7 +138,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
           </Text>
         </MotiView>
 
-        <View className="flex-1" />
+        <View className="min-h-6 flex-1" />
 
         <MotiView
           from={
@@ -159,6 +152,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
             duration: reduceMotion ? 0 : 340,
             delay: reduceMotion ? 0 : 440,
           }}
+          style={{ marginHorizontal: 24 }}
         >
           <Pressable
             onPress={onComplete}

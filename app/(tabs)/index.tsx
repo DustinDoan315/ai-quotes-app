@@ -77,6 +77,7 @@ export default function HomeScreen() {
     isGranted: cameraPermissionGranted,
     cameraRef,
     cameraReady,
+    cameraSessionKey,
     cameraError,
     isCameraActive,
     handleCameraReady,
@@ -200,9 +201,8 @@ export default function HomeScreen() {
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
   const actionBarBottomPadding = insets.bottom;
-  const estimatedViewportHeight =
-    screenHeight - insets.top - actionBarBottomPadding;
-  const viewportHeight = measuredFeedViewportHeight || estimatedViewportHeight;
+  // The action bar overlays the list, so its first page uses the full root height.
+  const viewportHeight = measuredFeedViewportHeight || screenHeight;
   const onFeedViewportHeightChange = useCallback((height: number) => {
     setMeasuredFeedViewportHeight((current) =>
       Math.abs(current - height) < 1 ? current : height,
@@ -301,7 +301,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1">
+    <View
+      style={{ flex: 1 }}
+      onLayout={(event) =>
+        onFeedViewportHeightChange(event.nativeEvent.layout.height)
+      }
+    >
       <MilestoneCelebration
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
@@ -318,7 +323,6 @@ export default function HomeScreen() {
         refreshFeed={refreshFeed}
         viewabilityConfig={viewabilityConfig}
         onViewableItemsChanged={onViewableItemsChanged}
-        onViewportHeightChange={onFeedViewportHeightChange}
         viewportHeight={viewportHeight}
         authorName={authorName}
         authorAvatarUrl={authorAvatarUrl}
@@ -348,6 +352,7 @@ export default function HomeScreen() {
             }
             cameraSectionProps={{
               cameraRef,
+              cameraSessionKey,
               pinchGesture,
               cameraError,
               isCameraActive,

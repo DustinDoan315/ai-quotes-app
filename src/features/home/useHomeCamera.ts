@@ -87,6 +87,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const homeVibeKey = options?.homeVibeKey;
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
+  const [cameraSessionKey, setCameraSessionKey] = useState(0);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -167,6 +168,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
 
   useFocusEffect(
     useCallback(() => {
+      setCameraReady(false);
+      setCameraSessionKey((current) => current + 1);
       setIsCameraActive(true);
       setCameraError(null);
 
@@ -195,13 +198,14 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const pinchGesture = useMemo(
     () =>
       Gesture.Pinch()
+        .enabled(selectedImageUri === null)
         .onStart(() => {
           scheduleOnRN(captureZoomStart);
         })
         .onUpdate((event) => {
           scheduleOnRN(applyZoom, event.scale);
         }),
-    [captureZoomStart, applyZoom],
+    [captureZoomStart, applyZoom, selectedImageUri],
   );
 
   function handleZoomPreset(preset: ZoomPreset) {
@@ -616,6 +620,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     requestPermission,
     cameraRef,
     cameraReady,
+    cameraSessionKey,
     cameraError,
     isCameraActive: isCameraActive && isGranted,
     handleCameraReady,

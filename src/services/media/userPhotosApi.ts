@@ -21,6 +21,8 @@ const quotePhotoRowSchema = z.object({
   photo_orientation: z.enum(["portrait", "landscape"]).nullable().optional(),
   quote_position_x: z.number().nullable().optional(),
   quote_position_y: z.number().nullable().optional(),
+  quote_scale: z.number().nullable().optional(),
+  quote_rotation: z.number().nullable().optional(),
   visibility: z.enum(["private", "friends", "public"]).default("private"),
   is_favorite: z.boolean().default(false),
 });
@@ -46,6 +48,7 @@ export type QuotePhotoCard = {
 };
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
+export const SIGNED_URL_RETRY_INTERVAL_MS = 60_000;
 export const SIGNED_URL_REFRESH_INTERVAL_MS =
   (SIGNED_URL_TTL_SECONDS - 5 * 60) * 1000;
 
@@ -53,17 +56,29 @@ async function getSignedPhotoUrlMap(
   pathsToSign: string[],
 ): Promise<Map<string, string>> {
   const paths = [...new Set(pathsToSign)];
-  const results = await Promise.all(
-    paths.map(async (path) => {
-      const { data, error } = await supabase.storage
-        .from("user-photos")
-        .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
-      return [path, error ? null : data?.signedUrl ?? null] as const;
-    }),
+  if (paths.length === 0) return new Map();
+
+  const { data, error } = await supabase.storage
+    .from("user-photos")
+    .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
+  if (error) {
+    console.error("Failed to create signed photo URLs", {
+      error,
+      photoCount: paths.length,
+    });
+    return new Map();
+  }
+
+  const signedPhotos = data.flatMap(({ path, signedUrl, error: pathError }) =>
+    !pathError && path && signedUrl ? ([[path, signedUrl]] as const) : [],
   );
-  return new Map(
-    results.filter((result): result is readonly [string, string] => result[1] != null),
-  );
+  if (signedPhotos.length < paths.length) {
+    console.warn("Some photo URLs could not be signed", {
+      requested: paths.length,
+      signed: signedPhotos.length,
+    });
+  }
+  return new Map(signedPhotos);
 }
 
 type ListQuotePhotoCardsParams = {
@@ -76,7 +91,7 @@ type ListQuotePhotoCardsParams = {
 };
 
 const QUOTE_PHOTO_COLUMNS =
-  "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, photo_orientation, quote_position_x, quote_position_y, visibility, is_favorite";
+  "id, image_url, storage_path, created_at, quote, user_id, guest_id, style_font_id, style_color_scheme_id, home_vibe_key, photo_stack_id, photo_orientation, quote_position_x, quote_position_y, quote_scale, quote_rotation, visibility, is_favorite";
 
 export const listQuotePhotoCards = async (
   params: ListQuotePhotoCardsParams,
@@ -174,7 +189,7 @@ export const listQuotePhotoCards = async (
         : null,
       photoStackId: row.photo_stack_id ?? null,
       photoOrientation: row.photo_orientation ?? "portrait",
-      quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y),
+      quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y, row.quote_scale, row.quote_rotation),
       visibility: row.visibility,
       isFavorite: row.is_favorite,
     };
@@ -307,7 +322,7 @@ export const listQuotePhotoCardsForDay = async (
         : null,
       photoStackId: row.photo_stack_id ?? null,
       photoOrientation: row.photo_orientation ?? "portrait",
-      quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y),
+      quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y, row.quote_scale, row.quote_rotation),
       visibility: row.visibility,
       isFavorite: row.is_favorite,
     };

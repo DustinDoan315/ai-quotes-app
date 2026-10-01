@@ -1,5 +1,6 @@
 import {
   clampQuotePosition,
+  MIN_QUOTE_SCALE,
   type QuoteBoxSize,
   type QuotePosition,
 } from "@/features/quotes/quotePosition";
@@ -27,68 +28,91 @@ export function QuotePositionLayer({
   const [quote, setQuote] = useState<QuoteBoxSize>({ width: 0, height: 0 });
   const x = useSharedValue(position.x);
   const y = useSharedValue(position.y);
-  const startX = useSharedValue(position.x);
-  const startY = useSharedValue(position.y);
+  const scale = useSharedValue(position.scale ?? 1);
+  const rotation = useSharedValue(position.rotation ?? 0);
+  const activeGestures = useSharedValue(0);
 
   useEffect(() => {
+    if (activeGestures.value > 0) return;
     x.value = position.x;
     y.value = position.y;
-  }, [position.x, position.y, x, y]);
+    scale.value = position.scale ?? 1;
+    rotation.value = position.rotation ?? 0;
+  }, [position.x, position.y, position.scale, position.rotation, x, y, scale, rotation, activeGestures]);
 
   const reportPosition = useCallback(
-    (nextX: number, nextY: number) => {
+    (nextX: number, nextY: number, nextScale: number, nextRotation: number) => {
       onPositionChange?.(
-        clampQuotePosition({ x: nextX, y: nextY }, frame, quote),
+        clampQuotePosition({ x: nextX, y: nextY, scale: nextScale, rotation: nextRotation }, frame, quote),
       );
     },
     [frame, onPositionChange, quote],
   );
 
-  const panGesture = useMemo(
-    () =>
+  const transformGesture = useMemo(() => {
+    const begin = () => {
+      "worklet";
+      activeGestures.value += 1;
+    };
+    const finish = () => {
+      "worklet";
+      activeGestures.value = Math.max(0, activeGestures.value - 1);
+      if (activeGestures.value !== 0) return;
+      const bounded = clampQuotePosition(
+        { x: x.value, y: y.value, scale: scale.value, rotation: rotation.value },
+        frame, quote,
+      );
+      x.value = bounded.x;
+      y.value = bounded.y;
+      scheduleOnRN(reportPosition, x.value, y.value, scale.value, rotation.value);
+    };
+    const enabled = Boolean(onPositionChange);
+    return Gesture.Simultaneous(
       Gesture.Pan()
-        .enabled(Boolean(onPositionChange))
-        .maxPointers(1)
-        .onStart(() => {
-          startX.value = x.value;
-          startY.value = y.value;
-        })
-        .onUpdate((event) => {
-          "worklet";
+        .enabled(enabled)
+        .averageTouches(true)
+        .minDistance(1)
+        .onBegin(begin)
+        .onChange(event => {
           if (frame.width <= 0 || frame.height <= 0) return;
-
-          const minX = Math.min(0.5, quote.width / frame.width / 2);
-          const minY = Math.min(0.5, quote.height / frame.height / 2);
-          x.value = Math.min(
-            1 - minX,
-            Math.max(minX, startX.value + event.translationX / frame.width),
-          );
-          y.value = Math.min(
-            1 - minY,
-            Math.max(minY, startY.value + event.translationY / frame.height),
-          );
+          const bounded = clampQuotePosition({
+            x: x.value + event.changeX / frame.width,
+            y: y.value + event.changeY / frame.height,
+            scale: scale.value,
+            rotation: rotation.value,
+          }, frame, quote);
+          x.value = bounded.x;
+          y.value = bounded.y;
         })
-        .onEnd(() => {
-          "worklet";
-          scheduleOnRN(reportPosition, x.value, y.value);
-        }),
-    [frame, onPositionChange, quote, reportPosition, startX, startY, x, y],
-  );
+        .onFinalize(finish),
+      Gesture.Pinch()
+        .enabled(enabled)
+        .onBegin(begin)
+        .onChange(event => {
+          scale.value = Math.min(1, Math.max(MIN_QUOTE_SCALE, scale.value * event.scaleChange));
+        })
+        .onFinalize(finish),
+      Gesture.Rotation()
+        .enabled(enabled)
+        .onBegin(begin)
+        .onChange(event => { rotation.value += event.rotationChange; })
+        .onFinalize(finish),
+    );
+  }, [activeGestures, frame, onPositionChange, quote, reportPosition, rotation, scale, x, y]);
 
   const positionedStyle = useAnimatedStyle(() => {
-    const minX = frame.width > 0
-      ? Math.min(0.5, quote.width / frame.width / 2)
-      : 0.5;
-    const minY = frame.height > 0
-      ? Math.min(0.5, quote.height / frame.height / 2)
-      : 0.5;
-    const centerX = Math.min(1 - minX, Math.max(minX, x.value));
-    const centerY = Math.min(1 - minY, Math.max(minY, y.value));
+    const bounded = clampQuotePosition(
+      { x: x.value, y: y.value, scale: scale.value, rotation: rotation.value }, frame, quote,
+    );
+    const centerX = bounded.x;
+    const centerY = bounded.y;
 
     return {
       transform: [
         { translateX: frame.width * centerX - quote.width / 2 },
         { translateY: frame.height * centerY - quote.height / 2 },
+        { rotate: `${rotation.value}rad` },
+        { scale: scale.value },
       ],
     };
   });
@@ -106,7 +130,7 @@ export function QuotePositionLayer({
         );
       }}
     >
-      <GestureDetector gesture={panGesture}>
+      <GestureDetector gesture={transformGesture}>
         <Animated.View
           onLayout={({ nativeEvent }) => {
             const { width, height } = nativeEvent.layout;

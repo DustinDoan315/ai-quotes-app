@@ -26,7 +26,7 @@ export function QuoteCardSkeleton({ screenHeight }: Props) {
   return (
     <View
       style={{ height: screenHeight }}
-      className="items-center justify-center py-6">
+      className="items-center justify-center">
       <Animated.View
         style={[shimmerStyle, { width: frame.width }]}
         className="overflow-hidden rounded-3xl border border-white/10 bg-black/50">

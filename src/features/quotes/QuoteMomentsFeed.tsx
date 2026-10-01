@@ -24,7 +24,7 @@ export const QuoteMomentsFeed = ({
   if (items.length === 0) return null;
 
   return (
-    <View className="px-4" onLayout={handleLayout}>
+    <View onLayout={handleLayout}>
       {items.map((item) => (
         <QuoteMomentCard
           key={item.id}
