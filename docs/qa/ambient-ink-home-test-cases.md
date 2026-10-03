@@ -89,3 +89,8 @@ The original Home layout change did not alter database policies. The later custo
 - Calendar fits seven columns on smaller devices; today uses lavender. Move from January 31 to the next month: February must not be skipped.
 - Day header shows distinct adjacent dates. Swipe right goes back one day; swipe left goes forward one day. Next is disabled at today. Vertical scrolling and pull-to-refresh still work.
 - Navigate days rapidly on Friends: a delayed previous-day response must not replace the current day's cards. Each new day starts at the top.
+
+### Day transition and visible cards
+- With Mine showing 3, all three card containers and their quotes must render immediately; only the selected tab mounts a list.
+- Previous day enters from the left, next day from the right. The calendar back action retains normal navigation. Reduce Motion skips the horizontal transition.
+- An available local image remains visible while its Storage URL is signing, including network failure. Fresh signed URLs replace it on success.

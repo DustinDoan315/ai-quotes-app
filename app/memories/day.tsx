@@ -7,9 +7,10 @@ import {
   RefreshControl,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { runOnJS, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useOwnMemoriesSync } from "@/features/memories/useOwnMemoriesSync";
 import * as Haptics from "expo-haptics";
@@ -38,6 +39,9 @@ type Layer = "mine" | "friends";
 export default function MemoriesDayScreen() {
   const { i18n, t } = useTranslation();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
+  const { width: screenWidth } = useWindowDimensions();
+  const [dayDirection, setDayDirection] = useState(0);
   const insets = useSafeAreaInsets();
   const ownSync = useOwnMemoriesSync();
   const mineScrollRef = useRef<ScrollView>(null);
@@ -111,19 +115,15 @@ export default function MemoriesDayScreen() {
 
   function handlePrevDay() {
     void Haptics.selectionAsync();
-    router.replace({
-      pathname: "/memories/day",
-      params: { date: prevDateKey },
-    } as never);
+    setDayDirection(-1);
+    router.setParams({ date: prevDateKey });
   }
 
   function handleNextDay() {
     if (isToday) return;
     void Haptics.selectionAsync();
-    router.replace({
-      pathname: "/memories/day",
-      params: { date: nextDateKey },
-    } as never);
+    setDayDirection(1);
+    router.setParams({ date: nextDateKey });
   }
 
   const dayGesture = Gesture.Pan()
@@ -191,7 +191,11 @@ export default function MemoriesDayScreen() {
 
   return (
     <GestureDetector gesture={dayGesture}>
-    <View className="flex-1 bg-transparent" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <MotiView key={dateKey}
+      from={{ translateX: reduceMotion ? 0 : dayDirection * screenWidth }}
+      animate={{ translateX: 0 }}
+      transition={{ type: "timing", duration: reduceMotion ? 0 : 260 }}
+      className="flex-1 bg-transparent" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View className="border-b border-white/10 bg-transparent px-4 pt-3 pb-5">
         <Pressable
           onPress={() => goBackOrReplace(router, "/memories")}
@@ -262,13 +266,13 @@ export default function MemoriesDayScreen() {
         </View>
       </View>
 
-      {/* Two persistent ScrollViews — toggled with display to preserve scroll position per tab */}
-      <ScrollView
+      {/* Mount only the selected list so hidden flex siblings cannot consume its viewport. */}
+      {layer === "mine" && <ScrollView
         ref={mineScrollRef}
         refreshControl={<RefreshControl refreshing={ownSync.isLoading} onRefresh={ownSync.refresh} tintColor="#C4B5FD" />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        style={{ flex: 1, display: layer === "mine" ? "flex" : "none" }}>
+        style={{ flex: 1 }}>
         {ownSync.isLoading && mineMemories.length === 0 ? (
           <ActivityIndicator style={{ marginTop: 48 }} color="#C4B5FD" />
         ) : mineMemories.length === 0 ? (
@@ -289,12 +293,9 @@ export default function MemoriesDayScreen() {
             </Text>
           </View>
         ) : (
-          mineMemories.map((memory: QuoteMemory, index: number) => (
-            <MotiView
-              key={`mine-${dateKey}-${memory.id}`}
-              from={{ opacity: 0, translateY: 16 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 280, delay: index * 60 }}>
+          mineMemories.map((memory: QuoteMemory) => (
+            <View
+              key={`mine-${dateKey}-${memory.id}`}>
               <MemoryCard
                 quote={memory.quoteText}
                 author={t("memories.meAuthor")}
@@ -310,7 +311,7 @@ export default function MemoriesDayScreen() {
                 styleFontId={memory.styleFontId as "small" | "medium" | "large"}
                 styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
               />
-            </MotiView>
+            </View>
           ))
         )}
         {pastYearMemories.length > 0 && (
@@ -321,12 +322,9 @@ export default function MemoriesDayScreen() {
                 {t("memories.pastYearsTitle")}
               </Text>
             </View>
-            {pastYearMemories.map((memory: QuoteMemory, index: number) => (
-              <MotiView
-                key={`pastyear-${dateKey}-${memory.id}`}
-                from={{ opacity: 0, translateY: 16 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{ type: "timing", duration: 280, delay: index * 60 }}>
+            {pastYearMemories.map((memory: QuoteMemory) => (
+              <View
+                key={`pastyear-${dateKey}-${memory.id}`}>
                 <MemoryCard
                   quote={memory.quoteText}
                   author={t("memories.meAuthor")}
@@ -338,18 +336,18 @@ export default function MemoriesDayScreen() {
                   styleFontId={memory.styleFontId as "small" | "medium" | "large"}
                   styleColorSchemeId={memory.styleColorSchemeId as "light" | "amber" | "pink"}
                 />
-              </MotiView>
+              </View>
             ))}
           </View>
         )}
-      </ScrollView>
+      </ScrollView>}
 
-      <ScrollView
+      {layer === "friends" && <ScrollView
         ref={friendScrollRef}
         refreshControl={<RefreshControl refreshing={friendsLoading} onRefresh={refreshFriends} tintColor="#C4B5FD" />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        style={{ flex: 1, display: layer === "friends" ? "flex" : "none" }}>
+        style={{ flex: 1 }}>
         {friendsLoading ? (
           <View className="mt-16 items-center">
             <ActivityIndicator size="large" color="#ffffff" />
@@ -394,12 +392,9 @@ export default function MemoriesDayScreen() {
             </Text>
           </View>
         ) : (
-          friendCards.map((card, index) => (
-            <MotiView
-              key={`friend-${dateKey}-${card.id}`}
-              from={{ opacity: 0, translateY: 16 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 280, delay: index * 60 }}>
+          friendCards.map((card) => (
+            <View
+              key={`friend-${dateKey}-${card.id}`}>
               <MemoryCard
                 quote={card.quote}
                 author={card.authorDisplayName}
@@ -411,11 +406,11 @@ export default function MemoriesDayScreen() {
                 styleFontId={card.styleFontId}
                 styleColorSchemeId={card.styleColorSchemeId}
               />
-            </MotiView>
+            </View>
           ))
         )}
-      </ScrollView>
-    </View>
+      </ScrollView>}
+    </MotiView>
     </GestureDetector>
   );
 }
