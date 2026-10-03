@@ -251,23 +251,31 @@ export function ProfileAuthedView({
         onStartEdit={() => setEditing(true)}
       />
 
-      <ScrollView className="flex-1 px-4 py-6" contentContainerClassName="pb-10">
-        <ProfileIdentityCard />
-        <ProfileUpgradeCard />
-        <ProfileAvatarRow
-          avatarUrl={avatarUrl}
-          avatarSaving={avatarSaving}
-          displayLine={profile?.display_name || profile?.username || t("profile.noName")}
-          username={profile?.username ?? null}
-          onPickAvatar={handlePickAvatar}
-        />
-
-        {phoneDisplay ? (
-          <ProfilePhoneCard
-            phoneDisplay={phoneDisplay}
-            phoneVerified={Boolean(phoneVerified)}
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32 }}>
+        <View className="mb-5 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5">
+          <ProfileAvatarRow
+            avatarUrl={avatarUrl}
+            avatarSaving={avatarSaving}
+            displayLine={profile?.display_name || profile?.username || t("profile.noName")}
+            username={profile?.username ?? null}
+            onPickAvatar={handlePickAvatar}
           />
-        ) : null}
+
+          {phoneDisplay ? (
+            <ProfilePhoneCard
+              phoneDisplay={phoneDisplay}
+              phoneVerified={Boolean(phoneVerified)}
+            />
+          ) : null}
+
+          <ProfileIdentityCard />
+        </View>
+
+        <ProfileUpgradeCard />
 
         {editing ? (
           <MotiView

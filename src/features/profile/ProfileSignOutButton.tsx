@@ -12,11 +12,13 @@ export function ProfileSignOutButton({ onPress }: ProfileSignOutButtonProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="mt-2 rounded-2xl border border-red-500/25 bg-white/5 py-3.5"
+      accessibilityRole="button"
+      accessibilityLabel={t("profile.signOutButton")}
+      className="mt-2 min-h-14 justify-center rounded-3xl border border-white/10 bg-white/5 py-3.5"
       style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
       <View className="flex-row items-center justify-center gap-2">
-        <Ionicons name="log-out-outline" size={17} color="#f87171" />
-        <Text className="text-base font-medium text-red-400">{t("profile.signOutButton")}</Text>
+        <Ionicons name="log-out-outline" size={17} color="rgba(255,255,255,0.7)" />
+        <Text className="text-base font-medium text-white/80">{t("profile.signOutButton")}</Text>
       </View>
     </Pressable>
   );

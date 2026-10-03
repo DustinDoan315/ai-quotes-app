@@ -68,3 +68,11 @@ The original Home layout change did not alter database policies. The later custo
 - Swipe slowly and rapidly across three cards with different vibes. The current background blend should finish before the latest requested color blends in, with no flash or snap to an intermediate color.
 - Swipe sideways through a stack, then vertically away and back. Confirm images remain visible and the outgoing page does not jump to its first quote.
 - Enable Reduce Motion during a blend. The latest palette should appear immediately and no queued animation should resume.
+
+### Signed-in profile polish
+- Open an Apple/Google account profile: avatar, name, verified account and identity sit together above the Pro card; long names wrap without pushing controls offscreen.
+- Edit: close cancels; Save stays disabled for invalid/unchanged names; saving and avatar upload retain their busy overlays.
+- Switch Vietnamese/English: both app and quote language update; selected option is visibly highlighted.
+- Reminder: toggle, time picker and next reminder label retain their existing behavior.
+- Delete account initially shows a collapsed row. Expanding reveals the removal and subscription warnings, subscription link and delete button. Delete still opens the existing confirmation; Cancel keeps the account.
+- Check scrolling and readability on a small device and with larger text, especially reminder labels and the expanded deletion warning.

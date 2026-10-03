@@ -12,7 +12,7 @@ export function ProfileUpgradeCard() {
       accessibilityRole="button"
       accessibilityLabel={t("profile.upgradeToPro")}
       accessibilityHint={t("profile.upgradeToProHint")}
-      className="mb-6 overflow-hidden rounded-2xl border border-amber-300/40 bg-amber-400/15 px-4 py-4"
+      className="mb-6 overflow-hidden rounded-3xl border border-amber-300/20 bg-amber-400/5 px-4 py-4"
       style={({ pressed }) => ({ opacity: pressed ? 0.84 : 1 })}>
       <View className="flex-row items-center gap-3">
         <View className="h-10 w-10 items-center justify-center rounded-full bg-amber-300/20">

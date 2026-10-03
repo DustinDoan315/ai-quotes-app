@@ -42,44 +42,44 @@ export function ProfileStreakSection() {
 
   return (
     <View className="mb-6">
-      <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/50">
+      <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/60">
         {t("profile.streakLabel")}
       </Text>
-      <View className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      <View className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
         {/* Current streak row */}
         <View className="flex-row items-center px-4 py-4">
-          <View className="mr-4 h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+          <View className="mr-4 h-12 w-12 items-center justify-center rounded-xl bg-amber-400/10">
             <Ionicons name={tier.icon} size={26} color={tier.color} />
           </View>
           <View className="flex-1">
-            <Text className="text-2xl font-bold text-white">
+            <Text className="text-3xl font-bold text-white">
               {currentStreak}{" "}
               <Text className="text-base font-normal text-white/60">
                 {t("profile.streakDayCount", { count: currentStreak })}
               </Text>
             </Text>
-            <Text className="mt-0.5 text-xs text-white/50">{t("profile.streakCurrentLabel")}</Text>
+            <Text className="mt-0.5 text-xs text-white/60">{t("profile.streakCurrentLabel")}</Text>
           </View>
           <View className="items-end">
             <Text className="text-lg font-bold text-white">{longestStreak}</Text>
-            <Text className="mt-0.5 text-xs text-white/50">{t("profile.streakLongestLabel")}</Text>
+            <Text className="mt-0.5 text-xs text-white/60">{t("profile.streakLongestLabel")}</Text>
           </View>
         </View>
 
         {/* Divider */}
-        <View className="mx-4 border-t border-white/8" />
+        <View className="mx-4 border-t border-white/10" />
 
         {/* Last quote + next milestone */}
         <View className="flex-row px-4 py-3">
           <View className="flex-1">
-            <Text className="text-xs text-white/50">{t("profile.streakLastQuoteLabel")}</Text>
+            <Text className="text-xs text-white/60">{t("profile.streakLastQuoteLabel")}</Text>
             <Text className="mt-0.5 text-sm font-medium text-white/80">
               {lastDateLabel}
             </Text>
           </View>
           {nextMilestone !== null ? (
             <View className="flex-1 items-end">
-              <Text className="text-xs text-white/50">{t("profile.streakNextMilestoneLabel")}</Text>
+              <Text className="text-xs text-white/60">{t("profile.streakNextMilestoneLabel")}</Text>
               <Text className="mt-0.5 text-sm font-medium text-white/80">
                 {t("profile.streakMilestoneDays", { count: nextMilestone })}
               </Text>

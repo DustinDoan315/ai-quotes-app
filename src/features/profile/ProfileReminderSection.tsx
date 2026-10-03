@@ -160,14 +160,10 @@ export function ProfileReminderSection({
       {/* Main card */}
       <View
         style={{
-          borderRadius: 20,
+          borderRadius: 24,
           borderWidth: 1,
-          borderColor: reminderEnabled
-            ? "rgba(52,211,153,0.18)"
-            : "rgba(255,255,255,0.10)",
-          backgroundColor: reminderEnabled
-            ? "rgba(2,44,34,0.35)"
-            : "rgba(255,255,255,0.04)",
+          borderColor: "rgba(255,255,255,0.10)",
+          backgroundColor: "rgba(255,255,255,0.05)",
           overflow: "hidden",
         }}>
 
@@ -196,12 +192,13 @@ export function ProfileReminderSection({
               {t("profile.remindMeButton")}
             </Text>
             {showDescription ? (
-              <Text className="mt-0.5 text-xs leading-4 text-white/45">
+              <Text className="mt-0.5 text-xs leading-4 text-white/60">
                 {t("profile.reminderDescription")}
               </Text>
             ) : null}
           </View>
           <Switch
+            accessibilityLabel={t("profile.remindMeButton")}
             value={reminderEnabled}
             onValueChange={handleToggle}
             trackColor={{
@@ -218,12 +215,14 @@ export function ProfileReminderSection({
             <View
               style={{
                 height: 1,
-                backgroundColor: "rgba(52,211,153,0.12)",
+                backgroundColor: "rgba(255,255,255,0.08)",
                 marginHorizontal: 16,
               }}
             />
             <Pressable
               onPress={openTimePicker}
+              accessibilityRole="button"
+              accessibilityLabel={`${t("profile.reminderChangeTime")}, ${timeLabel}`}
               className="flex-row items-center px-4 py-4"
               style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}>
               <View
@@ -231,15 +230,15 @@ export function ProfileReminderSection({
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  backgroundColor: "rgba(245,158,11,0.12)",
+                  backgroundColor: "rgba(255,255,255,0.08)",
                   alignItems: "center",
                   justifyContent: "center",
                   marginRight: 12,
                 }}>
-                <Ionicons name="time-outline" size={18} color="#f59e0b" />
+                <Ionicons name="time-outline" size={18} color="rgba(255,255,255,0.7)" />
               </View>
               <View className="flex-1">
-                <Text className="text-[11px] font-semibold uppercase tracking-widest text-white/40">
+                <Text className="text-[11px] font-semibold uppercase tracking-widest text-white/60">
                   {t("profile.reminderTimeLabel")}
                 </Text>
                 <Text className="mt-0.5 text-[17px] font-bold text-white">

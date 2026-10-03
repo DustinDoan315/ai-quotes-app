@@ -1,22 +1,19 @@
 import { useUserStore } from "@/appState/userStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, View } from "react-native";
 
 type LangCode = "vi" | "en";
-const TOGGLE_PADDING = 4;
 const TOGGLE_GAP = 10;
 
 const LANGUAGES: {
   code: LangCode;
   flag: string;
-  shortLabel: string;
   labelKey: "profile.languageVietnamese" | "profile.languageEnglish";
 }[] = [
-  { code: "vi", flag: "🇻🇳", shortLabel: "VI", labelKey: "profile.languageVietnamese" },
-  { code: "en", flag: "🇺🇸", shortLabel: "EN", labelKey: "profile.languageEnglish" },
+  { code: "vi", flag: "🇻🇳", labelKey: "profile.languageVietnamese" },
+  { code: "en", flag: "🇺🇸", labelKey: "profile.languageEnglish" },
 ];
 
 function LanguageOption({
@@ -33,12 +30,17 @@ function LanguageOption({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
       style={({ pressed }) => ({
         width: "100%",
-        minHeight: 92,
+        minHeight: 52,
+        flexDirection: "row",
+        gap: 8,
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: 14,
+        borderRadius: 16,
         borderWidth: 1,
         borderColor: active
           ? "rgba(255,255,255,0.22)"
@@ -46,31 +48,23 @@ function LanguageOption({
         backgroundColor: active
           ? "rgba(255,255,255,0.16)"
           : "rgba(255,255,255,0.04)",
-        paddingHorizontal: 8,
+        paddingHorizontal: 10,
         paddingVertical: 12,
         opacity: pressed ? 0.9 : 1,
       })}>
-      <MotiView
-        animate={{ scale: active ? 1.04 : 1 }}
-        transition={{ type: "timing", duration: 180 }}
-        style={{ width: "100%", alignItems: "center", gap: 5 }}>
-        <Text style={{ fontSize: 22 }}>{flag}</Text>
-        <Text
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
-          style={{
-            width: "100%",
-            fontSize: 13,
-            fontWeight: active ? "700" : "500",
-            color: active ? "#FFFFFF" : "rgba(255,255,255,0.55)",
-            includeFontPadding: false,
-            letterSpacing: 0,
-            textAlign: "center",
-          }}>
-          {label}
-        </Text>
-      </MotiView>
+      <Text style={{ fontSize: 20 }}>{flag}</Text>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+        style={{
+          flexShrink: 1,
+          fontSize: 13,
+          fontWeight: active ? "700" : "500",
+          color: active ? "#FFFFFF" : "rgba(255,255,255,0.65)",
+        }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -100,11 +94,6 @@ function LanguageToggle({
         alignSelf: "stretch",
         width: "100%",
         flexDirection: "row",
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.10)",
-        backgroundColor: "rgba(255,255,255,0.05)",
-        padding: TOGGLE_PADDING,
         overflow: "hidden",
       }}>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -152,17 +141,17 @@ export function ProfileLanguageSection() {
       <View
         style={{
           alignSelf: "stretch",
-          borderRadius: 18,
+          borderRadius: 24,
           borderWidth: 1,
           borderColor: "rgba(255,255,255,0.10)",
-          backgroundColor: "rgba(255,255,255,0.04)",
+          backgroundColor: "rgba(255,255,255,0.05)",
           padding: 16,
           gap: 10,
         }}>
         <Text
           style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.45)",
+            color: "rgba(255,255,255,0.60)",
             letterSpacing: 0.2,
           }}>
           {t("profile.languageCombinedDescription")}

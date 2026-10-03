@@ -13,8 +13,8 @@ export function ProfilePhoneCard({
 }: ProfilePhoneCardProps) {
   const { t } = useTranslation();
   return (
-    <View className="mb-6 flex-row items-center justify-between overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
-      <View>
+    <View className="mb-4 flex-row items-center justify-between gap-3">
+      <View className="flex-1">
         <View className="flex-row items-center gap-1">
           <Ionicons name="shield-checkmark-outline" size={12} color="rgba(255,255,255,0.45)" />
           <Text className="text-xs font-medium uppercase tracking-wide text-white/50">
