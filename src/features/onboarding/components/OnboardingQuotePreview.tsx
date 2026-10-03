@@ -1,15 +1,17 @@
 import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
-import { HomeBackground } from "@/features/home/HomeBackground";
-import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
+import { Image } from "expo-image";
+import { InklyShareWatermark } from "@/components/InklyShareWatermark";
 import { MotiView } from "moti";
 import { Text, View } from "react-native";
+
+const photoSource = require("../../../../assets/images/onboarding-coffee.jpg");
 
 type Props = {
   width: number;
   quote: string;
   attribution: string;
   sampleLabel: string;
-  quotePositionY: number;
+  showWatermark?: boolean;
   reduceMotion: boolean;
 };
 
@@ -18,7 +20,7 @@ export function OnboardingQuotePreview({
   quote,
   attribution,
   sampleLabel,
-  quotePositionY,
+  showWatermark = false,
   reduceMotion,
 }: Props) {
   return (
@@ -35,10 +37,11 @@ export function OnboardingQuotePreview({
         backgroundColor: "#16131b",
       }}
     >
-      <HomeBackground
-        palette={HOME_BACKGROUNDS[0]}
-        width={width}
-        height={width / QUOTE_DISPLAY_ASPECT}
+      <Image
+        source={photoSource}
+        style={{ width: "100%", height: "100%" }}
+        contentFit="cover"
+        transition={0}
       />
       <View
         style={{
@@ -66,31 +69,29 @@ export function OnboardingQuotePreview({
       </Text>
       <MotiView
         from={
-          reduceMotion
+          reduceMotion || showWatermark
             ? { opacity: 1, translateY: 0 }
             : { opacity: 0, translateY: 14 }
         }
         animate={{ opacity: 1, translateY: 0 }}
         transition={{
           type: "timing",
-          duration: reduceMotion ? 0 : 320,
-          delay: reduceMotion ? 0 : 300,
+          duration: reduceMotion || showWatermark ? 0 : 320,
+          delay: reduceMotion || showWatermark ? 0 : 900,
         }}
         style={{
           position: "absolute",
           left: "7%",
           right: "7%",
-          top: `${quotePositionY}%`,
+          bottom: 48,
         }}
       >
         <View
           style={{
-            alignSelf: "center",
+            alignSelf: "flex-start",
             maxWidth: "100%",
             borderRadius: 18,
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.28)",
-            backgroundColor: "rgba(0,0,0,0.28)",
+            backgroundColor: "rgba(0,0,0,0.45)",
             paddingHorizontal: 15,
             paddingVertical: 12,
           }}
@@ -99,16 +100,16 @@ export function OnboardingQuotePreview({
             style={{
               color: "#fff",
               fontSize: 15,
-              fontWeight: "600",
-              fontStyle: "italic",
+              fontWeight: "700",
               lineHeight: 21,
-              textAlign: "center",
+              textAlign: "left",
             }}
           >
             {quote}
           </Text>
         </View>
       </MotiView>
+      <InklyShareWatermark visible={showWatermark} />
       <Text
         style={{
           position: "absolute",

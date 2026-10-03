@@ -8,8 +8,9 @@ jest.mock("moti", () => ({
     { displayName: "MotiView" },
   ),
 }));
-jest.mock("@/features/home/HomeBackground", () => ({
-  HomeBackground: () => null,
+jest.mock("expo-image", () => ({ Image: "PhotoImage" }));
+jest.mock("@/components/InklyShareWatermark", () => ({
+  InklyShareWatermark: "ShareWatermark",
 }));
 
 import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
@@ -27,18 +28,39 @@ function getElements(node: React.ReactNode): TestElement[] {
   });
 }
 
-function createPreview(reduceMotion: boolean) {
+function createPreview(reduceMotion: boolean, showWatermark = false) {
   return OnboardingQuotePreview({
     width: 210,
-    quote: "A small, true thing— carried gently— is enough.",
+    quote: "coffee first, everything else can wait ☕",
     attribution: "A MOMENT, KEPT",
     sampleLabel: "SAMPLE",
-    quotePositionY: 42,
+    showWatermark,
     reduceMotion,
   });
 }
 
 describe("OnboardingQuotePreview", () => {
+  it("uses a bundled photo and reveals its caption after the photo", () => {
+    const elements = getElements(createPreview(false));
+    const photo = elements.find((element) => element.type as unknown === "PhotoImage");
+    const caption = elements.find((element) => "from" in element.props);
+    const watermark = elements.find((element) => element.type as unknown === "ShareWatermark");
+    expect(photo?.props.source).toBeDefined();
+    expect(photo?.props.contentFit).toBe("cover");
+    expect(caption?.props.from).toEqual({ opacity: 0, translateY: 14 });
+    expect(caption?.props.transition).toMatchObject({ delay: 900 });
+    expect(watermark?.props.visible).toBe(false);
+  });
+
+  it("shows the finished sharing example with the logo watermark immediately", () => {
+    const elements = getElements(createPreview(false, true));
+    const caption = elements.find((element) => "from" in element.props);
+    const watermark = elements.find((element) => element.type as unknown === "ShareWatermark");
+    expect(caption?.props.from).toEqual({ opacity: 1, translateY: 0 });
+    expect(caption?.props.transition).toMatchObject({ duration: 0, delay: 0 });
+    expect(watermark?.props.visible).toBe(true);
+  });
+
   it("uses the shared quote card aspect and has no tappable sample controls", () => {
     const preview = createPreview(false);
     const elements = getElements(preview);

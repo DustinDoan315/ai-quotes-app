@@ -481,9 +481,9 @@
   "onboarding": {
     "welcome": {
       "headline": "Biến một bức ảnh thành kỷ niệm.",
-      "subheadline": "Lưu một khoảnh khắc để Inkly tự tìm cảm xúc, rồi giữ lại câu phản chiếu chạm đến bạn.",
-      "previewQuote": "\"Một điều nhỏ bé, thật— được mang nhẹ nhàng— là đủ.\"",
-      "previewAttribution": "MỘT KHOẢNH KHẮC ĐƯỢC GIỮ LẠI",
+      "subheadline": "Chụp một bức ảnh. Để AI viết nên cảm xúc. Lưu lại hoặc chia sẻ.",
+      "previewQuote": "cà phê trước, mọi chuyện tính sau ☕",
+      "previewAttribution": "Bạn · Hôm nay",
       "progress": "BƯỚC 1/2",
       "cta": "Xem cách hoạt động",
       "alreadyHaveAccount": "Tôi đã có tài khoản"

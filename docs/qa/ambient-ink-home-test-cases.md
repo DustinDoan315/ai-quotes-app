@@ -107,3 +107,12 @@ The original Home layout change did not alter database policies. The later custo
 - New captions start slightly lower. Previously saved caption positions remain unchanged. Check white text remains readable against bright and dark photos with the softer background.
 - Generate and rewrite captions in English and Vietnamese for bored, playful, quiet, and sad moments. Expect natural everyday wording; short fragments, occasional stretched words, and up to two relevant emoji are allowed. Emoji and stretched words should not appear on every result, and calm rewrites should stay understated.
 - Confirm captions still respect the original feeling, photo, rewrite meaning, and 180-character limit. Existing saved quotes are not rewritten automatically.
+
+### Photo onboarding example
+
+- Fresh install, offline: onboarding shows the bundled coffee photo on both steps; no gradient-only preview or network dependency.
+- Step 1: photo appears before the matching caption, “coffee first, everything else can wait ☕”; caption sits low without covering the author label.
+- Step 2: same photo and caption remain, with the actual Inkly logo and AI photo quote watermark only at the top right.
+- English and Vietnamese: caption and author label are translated; no clipped caption or overlap at large text sizes.
+- Reduce Motion enabled: caption is immediately visible without an entrance animation.
+- Small phone and landscape: photo stays within screen edges; scroll to the CTA; Back, Skip, and completion keep their existing behavior.

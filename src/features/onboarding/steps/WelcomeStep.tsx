@@ -67,7 +67,7 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
         </MotiView>
 
         <View className="mx-6 mb-1 flex-row items-center justify-between">
-          <Text className="text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
+          <Text className="text-[11px] font-bold tracking-[1.2px] text-violet-300/90">
             {t("onboarding.welcome.progress")}
           </Text>
           <Pressable
@@ -103,11 +103,10 @@ export function WelcomeStep({ onContinue, onSkip }: Props) {
           style={{ alignItems: "center", marginBottom: 18 }}
         >
           <OnboardingQuotePreview
-            width={previewWidth}
+            width={Math.max(0, previewWidth - 16)}
             quote={t("onboarding.welcome.previewQuote")}
             attribution={t("onboarding.welcome.previewAttribution")}
             sampleLabel={t("onboarding.previewLabel")}
-            quotePositionY={47}
             reduceMotion={reduceMotion}
           />
         </MotiView>

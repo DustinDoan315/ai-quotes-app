@@ -62,7 +62,7 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
               delay: reduceMotion ? 0 : 60,
             }}
           >
-            <Text className="text-[11px] font-bold tracking-[1.2px] text-amber-300/90">
+            <Text className="text-[11px] font-bold tracking-[1.2px] text-violet-300/90">
               {t("onboarding.howItWorks.save.sectionLabel")}
             </Text>
           </MotiView>
@@ -93,11 +93,11 @@ export function HowItWorksSaveStep({ onBack, onSkip, onComplete }: Props) {
           style={{ alignItems: "center", marginBottom: 20 }}
         >
           <OnboardingQuotePreview
-            width={previewWidth}
+            width={Math.max(0, previewWidth - 16)}
             quote={t("onboarding.welcome.previewQuote")}
             attribution={t("onboarding.welcome.previewAttribution")}
             sampleLabel={t("onboarding.previewLabel")}
-            quotePositionY={38}
+            showWatermark
             reduceMotion={reduceMotion}
           />
         </MotiView>
