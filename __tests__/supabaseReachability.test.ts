@@ -10,6 +10,8 @@ const oldKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 beforeAll(() => {
   process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'test-key';
+  // Load after configuring the environment; Jest's Node preset does not enable ESM imports.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   check = require('@/config/supabase').checkSupabaseReachable;
 });
 beforeEach(() => {
