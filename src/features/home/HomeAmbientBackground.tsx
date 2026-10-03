@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import type { HomeBackgroundPalette } from '@/types/homeBackground';
-import { beginHomeAmbientTransition, completeHomeAmbientTransition, createHomeAmbientTransition, getHomeAmbientColors, HOME_AMBIENT_LAYOUT } from '@/theme/homeAmbient';
+import { getHomeAmbientColors, HOME_AMBIENT_LAYOUT } from '@/theme/homeAmbient';
 
 function Atmosphere({ palette }: { palette: HomeBackgroundPalette }) {
   const id = useId().replaceAll(':', '');
@@ -30,28 +30,57 @@ function Atmosphere({ palette }: { palette: HomeBackgroundPalette }) {
   </View>;
 }
 
+type Layers = {
+  palettes: [HomeBackgroundPalette, HomeBackgroundPalette];
+  front: 0 | 1;
+  animating: boolean;
+  revision: number;
+};
+
 export function HomeAmbientBackground({ palette, reduceMotion }: { palette: HomeBackgroundPalette; reduceMotion: boolean }) {
-  const [layers, setLayers] = useState(() => createHomeAmbientTransition(palette));
-  const state = useRef(layers);
-  const opacity = useRef(new Animated.Value(1)).current;
+  const [layers, setLayers] = useState<Layers>(() => ({ palettes: [palette, palette], front: 0, animating: false, revision: 0 }));
+  const latest = useRef({ palette, reduceMotion });
+  const opacities = useRef([new Animated.Value(1), new Animated.Value(0)]).current;
+  const animation = useRef<Animated.CompositeAnimation | null>(null);
+  latest.current = { palette, reduceMotion };
+
   useEffect(() => {
-    opacity.stopAnimation();
-    if (state.current.current === palette && !state.current.previous) return;
-    const next = beginHomeAmbientTransition(state.current, palette, reduceMotion);
-    state.current = next;
-    setLayers(next);
-    opacity.setValue(reduceMotion ? 1 : 0);
-    if (reduceMotion) return;
-    const animation = Animated.timing(opacity, { toValue: 1, duration: HOME_AMBIENT_LAYOUT.crossfadeDuration, useNativeDriver: true });
-    animation.start(({ finished }) => {
-      if (!finished || state.current.revision !== next.revision) return;
-      state.current = completeHomeAmbientTransition(state.current, next.revision);
-      setLayers(state.current);
+    if (reduceMotion) animation.current?.stop();
+    setLayers(current => {
+      if (reduceMotion) return { palettes: [palette, palette], front: current.front, animating: false, revision: current.revision + 1 };
+      // Finish the visible blend before adopting the latest requested palette.
+      if (current.animating || current.palettes[current.front] === palette) return current;
+      const incoming = current.front === 0 ? 1 : 0;
+      const palettes: Layers['palettes'] = [...current.palettes];
+      palettes[incoming] = palette;
+      return { ...current, palettes, animating: true, revision: current.revision + 1 };
     });
-    return () => animation.stop();
-  }, [palette, reduceMotion, opacity]);
+  }, [palette, reduceMotion]);
+
+  useLayoutEffect(() => {
+    const incoming = layers.front === 0 ? 1 : 0;
+    opacities[layers.front].setValue(1);
+    // Reset only after the hidden slot's new palette has been committed.
+    opacities[incoming].setValue(0);
+    if (!layers.animating) return;
+    const blend = Animated.timing(opacities[incoming], { toValue: 1, duration: HOME_AMBIENT_LAYOUT.crossfadeDuration, useNativeDriver: true });
+    animation.current = blend;
+    blend.start(({ finished }) => {
+      if (!finished) return;
+      setLayers(current => {
+        if (current.revision !== layers.revision) return current;
+        const requested = latest.current;
+        const settled = current.palettes[incoming];
+        const palettes: Layers['palettes'] = [...current.palettes];
+        const queued = !requested.reduceMotion && requested.palette !== settled;
+        if (queued) palettes[current.front] = requested.palette;
+        return { palettes, front: incoming, animating: queued, revision: current.revision + 1 };
+      });
+    });
+  }, [layers, opacities]);
+
+  useEffect(() => () => animation.current?.stop(), []);
   return <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={StyleSheet.absoluteFill}>
-    {layers.previous ? <Atmosphere palette={layers.previous} /> : null}
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity }]}><Atmosphere palette={layers.current} /></Animated.View>
+    {layers.palettes.map((color, slot) => <Animated.View key={slot} style={[StyleSheet.absoluteFill, { opacity: opacities[slot], zIndex: slot === layers.front ? 0 : 1 }]}><Atmosphere palette={color} /></Animated.View>)}
   </View>;
 }

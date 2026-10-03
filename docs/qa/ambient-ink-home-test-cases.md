@@ -44,13 +44,13 @@ Native build and device verification were intentionally not run. Record results 
 - [ ] Camera pauses on saved feed, menu and export; resumes on settled capture.
 - [ ] Check actual gradients/shadows/photo contrast on iOS/Android, including bright busy images. Capture reference screenshots.
 
-No database policy or migration change is included. A real authenticated favorite write/read and native export capture remain device checks.
+The original Home layout change did not alter database policies. The later custom emoji migration is described below. A real authenticated favorite write/read and native export capture remain device checks.
 
 ## Discovery polish and development reaction preview
 
 - In a development build with a saved photo, open the Inkly menu and enable “Test friend feed · DEV”. Swipe into the demo friend stack. Test both cards, the friend attribution, vibe changes, heart, and emoji buttons under the card. Reactions animate locally without network requests. Demo sharing is disabled. Use “Remove demo friend · DEV” to remove the fixture.
 - Confirm both the demo toggle and fixture cards are absent in release builds. Real friends use the same emoji row under their feed cards.
-- Confirm discovery cards have balanced space between the header and bottom toolbar; camera placement remains unchanged.
+- Confirm discovery cards have balanced space between the header and bottom toolbar; the camera now sits slightly above the center of its available area.
 - Save a quote, reopen Home to refresh cloud memories, then open its Memories day. Confirm one entry per saved photo; separately saved photos remain separate.
 - Open Streak on a compact screen and with larger text. Confirm content scrolls and the bottom-right Close button remains accessible.
 
@@ -61,3 +61,10 @@ No database policy or migration change is included. A real authenticated favorit
 - Close/dismiss without selection; confirm no reaction is sent. Switching cards or starting export must close the picker.
 - Real custom emoji reactions require `20261003100000_allow_custom_emoji_reactions.sql` to be applied to Supabase. This migration preserves friend authorization and duplicate protection. Demo reactions remain local.
 - Database pgTAP tests were updated but not run locally; no PostgreSQL/Supabase CLI was available. Native picker keyboard/safe-area behavior needs the user’s build check.
+
+## Camera spacing and background continuity
+
+- On compact and tall devices, confirm the camera is closer to the header, retains its full width, and leaves room above the fixed zoom controls and dock.
+- Swipe slowly and rapidly across three cards with different vibes. The current background blend should finish before the latest requested color blends in, with no flash or snap to an intermediate color.
+- Swipe sideways through a stack, then vertically away and back. Confirm images remain visible and the outgoing page does not jump to its first quote.
+- Enable Reduce Motion during a blend. The latest palette should appear immediately and no queued animation should resume.

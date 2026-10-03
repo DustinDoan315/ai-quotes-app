@@ -3,7 +3,7 @@ import type { HomeBackgroundPalette } from '@/types/homeBackground';
 export const HOME_AMBIENT_LAYOUT = {
   horizontalGutter: 20, headerMinHeight: 56, dockMinHeight: 112,
   dockClearance: 12, actionRowMinHeight: 64, regionGap: 12,
-  radius: 24, shutterSize: 72, hitArea: 48, crossfadeDuration: 300,
+  radius: 24, shutterSize: 72, hitArea: 48, crossfadeDuration: 500,
 } as const;
 
 export const HOME_AMBIENT_CHROME = {
