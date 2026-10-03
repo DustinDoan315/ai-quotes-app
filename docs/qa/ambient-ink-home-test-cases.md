@@ -76,3 +76,9 @@ The original Home layout change did not alter database policies. The later custo
 - Reminder: toggle, time picker and next reminder label retain their existing behavior.
 - Delete account initially shows a collapsed row. Expanding reveals the removal and subscription warnings, subscription link and delete button. Delete still opens the existing confirmation; Cancel keeps the account.
 - Check scrolling and readability on a small device and with larger text, especially reminder labels and the expanded deletion warning.
+
+### Profile edit layout
+- Profile avatar displays at 104pt; the camera badge stays attached at its lower right.
+- Enter Edit: only avatar and display-name/bio fields remain, without Pro, account/settings, or destructive actions. Keyboard opening should keep fields reachable by scrolling.
+- Name input permits up to 40 characters; bio up to 200, with matching counter. Save retains validation and persists the values; Close discards text edits. Avatar uploads still save immediately through their existing flow.
+- Delete disclosure centers the icon and label together, with its chevron at the right. Identity no longer repeats the dedicated streak summary.

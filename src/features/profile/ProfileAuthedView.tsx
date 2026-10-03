@@ -13,7 +13,6 @@ import { ProfileUpgradeCard } from "@/features/profile/ProfileUpgradeCard";
 import { useProfileAuthedPhone } from "@/features/profile/useProfileAuthedPhone";
 import { saveUserAvatar } from "@/services/media/saveUserAvatar";
 import * as ImagePicker from "expo-image-picker";
-import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +20,8 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Text,
   TextInput,
   View,
@@ -229,7 +230,7 @@ export function ProfileAuthedView({
   const titleName = profile?.display_name || profile?.username || t("profile.guestTitle");
 
   return (
-    <View className="flex-1 bg-transparent">
+    <KeyboardAvoidingView className="flex-1 bg-transparent" behavior={Platform.OS === "ios" ? "padding" : undefined}>
       {(saving || avatarSaving || deleting) && (
         <View className="absolute inset-0 z-10 items-center justify-center bg-black/30">
           <ActivityIndicator size="large" color="#fff" />
@@ -241,7 +242,7 @@ export function ProfileAuthedView({
         </View>
       )}
       <ProfileAuthedHeader
-        titleName={titleName}
+        titleName={editing ? t("profile.editProfileButton") : titleName}
         editing={editing}
         saving={saving}
         canSave={canSave}
@@ -256,8 +257,9 @@ export function ProfileAuthedView({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32 }}>
-        <View className="mb-5 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5">
+        <View className={editing ? "mb-2 px-5 pt-2" : "mb-5 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5"}>
           <ProfileAvatarRow
+            showDetails={!editing}
             avatarUrl={avatarUrl}
             avatarSaving={avatarSaving}
             displayLine={profile?.display_name || profile?.username || t("profile.noName")}
@@ -265,28 +267,28 @@ export function ProfileAuthedView({
             onPickAvatar={handlePickAvatar}
           />
 
-          {phoneDisplay ? (
+          {!editing && phoneDisplay ? (
             <ProfilePhoneCard
               phoneDisplay={phoneDisplay}
               phoneVerified={Boolean(phoneVerified)}
             />
           ) : null}
 
-          <ProfileIdentityCard />
+          {!editing && <ProfileIdentityCard />}
         </View>
 
-        <ProfileUpgradeCard />
+        {!editing && <ProfileUpgradeCard />}
 
         {editing ? (
-          <MotiView
-            from={{ opacity: 0, translateY: 10 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "spring", damping: 20, stiffness: 200 }}>
+          <View className="rounded-3xl border border-white/10 bg-white/5 p-5">
             <View className="mb-4">
               <Text className="mb-2 text-sm font-medium text-white/70">
                 {t("profile.displayNameLabel")}
               </Text>
               <TextInput
+                maxLength={40}
+                autoCapitalize="words"
+                accessibilityLabel={t("profile.displayNameLabel")}
                 value={displayName}
                 onChangeText={setDisplayName}
                 placeholder={t("profile.displayNamePlaceholder")}
@@ -301,6 +303,9 @@ export function ProfileAuthedView({
             <View className="mb-6">
               <Text className="mb-2 text-sm font-medium text-white/70">{t("profile.bioLabel")}</Text>
               <TextInput
+                maxLength={200}
+                textAlignVertical="top"
+                accessibilityLabel={t("profile.bioLabel")}
                 value={bio}
                 onChangeText={setBio}
                 placeholder={t("profile.bioPlaceholder")}
@@ -312,7 +317,7 @@ export function ProfileAuthedView({
                 {bio.length}/200
               </Text>
             </View>
-          </MotiView>
+          </View>
         ) : profile?.bio ? (
           <View className="mb-6 overflow-hidden rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5">
             <Text className="text-left text-sm leading-5 text-white/85">
@@ -321,6 +326,7 @@ export function ProfileAuthedView({
           </View>
         ) : null}
 
+        {!editing && <>
         <ProfileAuthedSettingsSections />
 
         <ProfileSignOutButton onPress={handleSignOut} />
@@ -329,7 +335,8 @@ export function ProfileAuthedView({
           onDeleteAccount={handleDeleteAccount}
         />
         {__DEV__ && <ScreenshotSeeder />}
+        </>}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

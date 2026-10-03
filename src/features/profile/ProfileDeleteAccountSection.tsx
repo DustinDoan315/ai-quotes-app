@@ -26,16 +26,16 @@ export function ProfileDeleteAccountSection({
         accessibilityState={{ expanded }}
         disabled={deleting}
         style={({ pressed }) => ({ opacity: deleting ? 0.5 : pressed ? 0.7 : 1 })}>
-        <View style={{ minHeight: 60, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12 }}>
-          <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: "rgba(248,113,113,0.10)", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ minHeight: 60, justifyContent: "center", paddingHorizontal: 48 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <Ionicons name="trash-outline" size={18} color="#fca5a5" />
+            <Text className="text-center text-sm font-medium text-red-200" style={{ flexShrink: 1 }}>
+              {t("profile.deleteAccountTitle")}
+            </Text>
           </View>
-          <Text className="text-sm font-medium text-red-200" style={{ position: "absolute", left: 60, right: 60, textAlign: "center" }}>
-            {t("profile.deleteAccountTitle")}
-          </Text>
           <Ionicons
             name={expanded ? "chevron-up" : "chevron-down"}
-            style={{ marginLeft: "auto" }}
+            style={{ position: "absolute", right: 16 }}
             size={18}
             color="rgba(255,255,255,0.6)"
           />
