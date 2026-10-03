@@ -37,9 +37,9 @@ const shadowSoft =
     : { elevation: 3 };
 
 const T = {
-  amber500: "#F59E0B",
-  amber600: "#D97706",
-  amber200: "#FDE68A",
+  violet500: "#8B5CF6",
+  violet600: "#7C3AED",
+  violet200: "#DDD6FE",
   zinc900: "#18181B",
   zinc800: "#27272A",
   slate50: "#F8FAFC",
@@ -63,13 +63,13 @@ function chipAppearance(isActive: boolean, isPending: boolean) {
       wrap: {
         ...baseButton,
         ...shadowStrong,
-        backgroundColor: T.amber500,
+        backgroundColor: T.violet500,
         borderWidth: 1,
-        borderColor: T.amber200,
+        borderColor: T.violet200,
       },
-      highlight: T.amber500,
+      highlight: T.violet500,
       fg: T.slate50,
-      iconBg: T.amber600,
+      iconBg: T.violet600,
     };
   }
   if (isPending) {
@@ -77,13 +77,13 @@ function chipAppearance(isActive: boolean, isPending: boolean) {
       wrap: {
         ...baseButton,
         ...shadowSoft,
-        backgroundColor: "rgba(245,158,11,0.08)",
+        backgroundColor: "rgba(139,92,246,0.08)",
         borderWidth: 2,
-        borderColor: T.amber600,
+        borderColor: T.violet600,
       },
-      highlight: "rgba(245,158,11,0.12)",
+      highlight: "rgba(139,92,246,0.12)",
       fg: T.slate50,
-      iconBg: "rgba(245,158,11,0.16)",
+      iconBg: "rgba(139,92,246,0.16)",
     };
   }
   return {
@@ -191,7 +191,7 @@ export function AiToolsRow({
   return (
     <View className="w-full">
       <View className="mb-5 flex-row items-center gap-3 px-1">
-        <Ionicons name="sparkles-outline" size={18} color={T.amber500} />
+        <Ionicons name="sparkles-outline" size={18} color={T.violet500} />
         <Text
           className="text-[12px] font-semibold uppercase tracking-[0.14em]"
           style={{ color: "rgba(248,250,252,0.45)" }}>

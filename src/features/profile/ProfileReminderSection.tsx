@@ -342,7 +342,7 @@ export function ProfileReminderSection({
               </Pressable>
 
               <View className="flex-row items-center gap-2">
-                <Ionicons name="time-outline" size={16} color="#f59e0b" />
+                <Ionicons name="time-outline" size={16} color="#C4B5FD" />
                 <Text
                   style={{
                     fontSize: 15,
@@ -367,7 +367,7 @@ export function ProfileReminderSection({
                     paddingHorizontal: 16,
                     paddingVertical: 7,
                     borderRadius: 99,
-                    backgroundColor: "#f59e0b",
+                    backgroundColor: "#FFFFFF",
                   }}>
                   <Text
                     style={{

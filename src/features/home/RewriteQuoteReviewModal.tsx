@@ -105,7 +105,7 @@ export function RewriteQuoteReviewModal({
             onChangeText={setText}
             multiline
             textAlignVertical="top"
-            className="min-h-[200px] rounded-2xl border border-amber-500/35 bg-white/5 px-4 py-3 text-base leading-6 text-white"
+            className="min-h-[200px] rounded-2xl border border-violet-500/35 bg-white/5 px-4 py-3 text-base leading-6 text-white"
             placeholderTextColor="rgba(255,255,255,0.35)"
             style={{ color: "#FFFFFF" }}
           />
@@ -119,8 +119,8 @@ export function RewriteQuoteReviewModal({
                 backgroundColor: isOverLimit
                   ? "#FCA5A5"
                   : isNearLimit
-                    ? "#FCD34D"
-                    : "#F59E0B",
+                    ? "#C4B5FD"
+                    : "#8B5CF6",
               }}
             />
           </View>
@@ -153,11 +153,11 @@ export function RewriteQuoteReviewModal({
           <Pressable
             disabled={!validation.isValid}
             onPress={() => onApprove(validation.sanitizedQuote)}
-            className="flex-1 items-center rounded-2xl bg-amber-500 py-3.5"
+            className="flex-1 items-center rounded-2xl bg-violet-500 py-3.5"
             style={({ pressed }) => ({
               opacity: !validation.isValid ? 0.45 : pressed ? 0.9 : 1,
             })}>
-            <Text className="text-base font-bold text-stone-950">
+            <Text className="text-base font-bold text-white">
               {approveLabel ?? t("home.aiTools.rewriteApprove")}
             </Text>
           </Pressable>

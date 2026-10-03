@@ -318,6 +318,7 @@
     "contextGenericTitle": "Nâng cấp lên Pro"
   },
   "profile": {
+    "legalLinkError": "Không thể mở trang này. Vui lòng thử lại.",
     "languageLabel": "Ngôn ngữ",
     "languageCombinedDescription": "Đổi ngôn ngữ ứng dụng và câu trích dẫn cùng lúc.",
     "languageUiDescription": "Chọn ngôn ngữ cho giao diện ứng dụng.",

@@ -45,3 +45,10 @@ export function getStreakTier(streak: number): StreakTier {
   }
   return { icon: tier.icon, color: tier.color, size: tier.size };
 }
+
+/** Total progress matches the displayed current/target label. */
+export function getStreakProgress(streak: number) {
+  const current = Number.isFinite(streak) ? Math.max(0, Math.floor(streak)) : 0;
+  const nextMilestone = STREAK_MILESTONES.find((milestone) => milestone > current) ?? null;
+  return { nextMilestone, progressRatio: nextMilestone === null ? 1 : current / nextMilestone };
+}

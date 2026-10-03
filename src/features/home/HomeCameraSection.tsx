@@ -661,7 +661,7 @@ export const HomeCameraSection = ({
                               <Pressable
                                 onPress={handleSaveQuoteEdit}
                                 disabled={isSavingPhoto}
-                                className="rounded-full bg-amber-400 px-3 py-2"
+                                className="rounded-full bg-violet-500 px-3 py-2"
                                 style={({ pressed }) => ({
                                   opacity:
                                     quoteEditValidation.isValid ||
@@ -673,7 +673,7 @@ export const HomeCameraSection = ({
                                       : 0.5,
                                 })}
                               >
-                                <Text className="text-xs font-bold text-black">
+                                <Text className="text-xs font-bold text-white">
                                   {t("home.aiTools.editQuoteSave")}
                                 </Text>
                               </Pressable>
@@ -683,7 +683,7 @@ export const HomeCameraSection = ({
                           <Animated.View style={pendingAnimStyle}>
                             <Text
                               className="mb-2 text-[10px] font-semibold uppercase tracking-wide"
-                              style={{ color: chrome.cornerColor ?? "#F59E0B" }}
+                              style={{ color: chrome.cornerColor ?? "#8B5CF6" }}
                               numberOfLines={1}
                             >
                               {pendingQuoteTitle ??
@@ -739,7 +739,7 @@ export const HomeCameraSection = ({
                                     pendingValidation.sanitizedQuote,
                                   )
                                 }
-                                className="rounded-full bg-amber-400 px-3 py-2"
+                                className="rounded-full bg-violet-500 px-3 py-2"
                                 style={({ pressed }) => ({
                                   opacity: !pendingValidation.isValid
                                     ? 0.45
@@ -748,7 +748,7 @@ export const HomeCameraSection = ({
                                       : 1,
                                 })}
                               >
-                                <Text className="text-xs font-bold text-black">
+                                <Text className="text-xs font-bold text-white">
                                   {t("home.aiTools.rewriteApprove")}
                                 </Text>
                               </Pressable>
@@ -840,7 +840,7 @@ export const HomeCameraSection = ({
                             height: "100%",
                             width: "55%",
                             borderRadius: 999,
-                            backgroundColor: "#F59E0B",
+                            backgroundColor: "#8B5CF6",
                           }}
                         />
                       </View>
@@ -874,7 +874,7 @@ export const HomeCameraSection = ({
                             height: "100%",
                             width: "55%",
                             borderRadius: 999,
-                            backgroundColor: "#F59E0B",
+                            backgroundColor: "#8B5CF6",
                           }}
                         />
                       </View>
@@ -905,9 +905,9 @@ export const HomeCameraSection = ({
             pointerEvents="box-none"
           >
             {canCreatePhotoStack && photoStackCount > 0 ? (
-              <View className="mb-3 flex-row items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-2">
-                <Ionicons name="images-outline" size={16} color="#FCD34D" />
-                <Text className="ml-2 text-xs font-semibold text-amber-100">
+              <View className="mb-3 flex-row items-center rounded-full border border-violet-300/30 bg-violet-300/10 px-3 py-2">
+                <Ionicons name="images-outline" size={16} color="#C4B5FD" />
+                <Text className="ml-2 text-xs font-semibold text-violet-100">
                   {t("camera.photoStack.count", { count: photoStackCount })}
                 </Text>
                 <Pressable
@@ -956,7 +956,7 @@ export const HomeCameraSection = ({
                       >
                         <Text
                           className="text-sm font-semibold"
-                          style={{ color: isActive ? "#FFCC00" : "#fff" }}
+                          style={{ color: isActive ? "#C4B5FD" : "#fff" }}
                         >
                           {preset}x
                         </Text>
@@ -1027,8 +1027,8 @@ export const HomeCameraSection = ({
                       onFutureQuotePress={onFutureQuotePress}
                     />
                     {aiResultTitle && aiResultBody ? (
-                      <View className="mt-4 rounded-2xl border border-amber-500/25 bg-amber-950/20 px-4 py-4">
-                        <Text className="text-[11px] font-semibold uppercase tracking-wide text-amber-500">
+                      <View className="mt-4 rounded-2xl border border-violet-500/25 bg-violet-950/20 px-4 py-4">
+                        <Text className="text-[11px] font-semibold uppercase tracking-wide text-violet-300">
                           {aiResultTitle}
                         </Text>
                         <Text className="mt-2 text-sm leading-5 text-white/90">

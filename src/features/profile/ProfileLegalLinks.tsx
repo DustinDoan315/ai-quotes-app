@@ -1,9 +1,17 @@
 import { LEGAL_LINKS } from "@/config/legalLinks";
 import { useTranslation } from "react-i18next";
-import { Linking, Pressable, Text, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import { Alert, Pressable, Text, View } from "react-native";
 
 export function ProfileLegalLinks() {
   const { t } = useTranslation();
+  const openLink = async (url: string) => {
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      Alert.alert(t("profile.legalLinkError"));
+    }
+  };
   const privacyUrl = LEGAL_LINKS.privacyPolicyUrl;
   const termsUrl = LEGAL_LINKS.termsOfServiceUrl;
 
@@ -15,11 +23,11 @@ export function ProfileLegalLinks() {
       {privacyUrl ? (
         <Pressable
           accessibilityRole="link"
-          style={{ minHeight: 44, justifyContent: "center" }}
+          style={{ minHeight: 48, paddingHorizontal: 12, justifyContent: "center" }}
           onPress={() => {
-            void Linking.openURL(privacyUrl);
+            void openLink(privacyUrl);
           }}>
-          <Text className="text-xs text-white/60">
+          <Text className="text-sm text-white/75 underline">
             {t("subscription.privacyPolicyLink")}
           </Text>
         </Pressable>
@@ -27,11 +35,11 @@ export function ProfileLegalLinks() {
       {termsUrl ? (
         <Pressable
           accessibilityRole="link"
-          style={{ minHeight: 44, justifyContent: "center" }}
+          style={{ minHeight: 48, paddingHorizontal: 12, justifyContent: "center" }}
           onPress={() => {
-            void Linking.openURL(termsUrl);
+            void openLink(termsUrl);
           }}>
-          <Text className="text-xs text-white/60">
+          <Text className="text-sm text-white/75 underline">
             {t("subscription.subscriptionTermsLink")}
           </Text>
         </Pressable>

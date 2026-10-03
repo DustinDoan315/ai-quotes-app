@@ -30,11 +30,12 @@ export function ProfileDeleteAccountSection({
           <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: "rgba(248,113,113,0.10)", alignItems: "center", justifyContent: "center" }}>
             <Ionicons name="trash-outline" size={18} color="#fca5a5" />
           </View>
-          <Text className="text-sm font-medium text-red-200" style={{ flex: 1 }}>
+          <Text className="text-sm font-medium text-red-200" style={{ position: "absolute", left: 60, right: 60, textAlign: "center" }}>
             {t("profile.deleteAccountTitle")}
           </Text>
           <Ionicons
             name={expanded ? "chevron-up" : "chevron-down"}
+            style={{ marginLeft: "auto" }}
             size={18}
             color="rgba(255,255,255,0.6)"
           />

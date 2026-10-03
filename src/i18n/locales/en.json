@@ -319,6 +319,7 @@
     "contextGenericTitle": "Upgrade to Pro"
   },
   "profile": {
+    "legalLinkError": "Unable to open this page. Please try again.",
     "languageLabel": "Language",
     "languageCombinedDescription": "Change the app and your quotes together.",
     "languageUiDescription": "Choose what the app interface speaks.",

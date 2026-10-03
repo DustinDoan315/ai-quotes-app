@@ -1,5 +1,5 @@
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
-import { getStreakTier, STREAK_MILESTONES } from "@/utils/streakMilestones";
+import { getStreakTier, getStreakProgress } from "@/utils/streakMilestones";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, Text, View } from "react-native";
@@ -21,16 +21,10 @@ export function ProfileStreakSection() {
     : "—";
 
   // Progress to next milestone
-  const nextMilestone = STREAK_MILESTONES.find((m) => m > currentStreak) ?? null;
-  const prevMilestone =
-    [...STREAK_MILESTONES].reverse().find((m) => m <= currentStreak) ?? 0;
-  const progressRatio =
-    nextMilestone !== null && nextMilestone > prevMilestone
-      ? (currentStreak - prevMilestone) / (nextMilestone - prevMilestone)
-      : 1;
+  const { nextMilestone, progressRatio } = getStreakProgress(currentStreak);
 
   // Animated progress bar
-  const animatedWidth = useRef(new Animated.Value(0)).current;
+  const animatedWidth = useRef(new Animated.Value(progressRatio * 100)).current;
   useEffect(() => {
     Animated.timing(animatedWidth, {
       toValue: Math.min(progressRatio * 100, 100),
@@ -48,8 +42,8 @@ export function ProfileStreakSection() {
       <View className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
         {/* Current streak row */}
         <View className="flex-row items-center px-4 py-4">
-          <View className="mr-4 h-12 w-12 items-center justify-center rounded-xl bg-amber-400/10">
-            <Ionicons name={tier.icon} size={26} color={tier.color} />
+          <View className="mr-4 h-12 w-12 items-center justify-center rounded-xl bg-violet-400/10">
+            <Ionicons name={tier.icon} size={26} color="#C4B5FD" />
           </View>
           <View className="flex-1">
             <Text className="text-3xl font-bold text-white">
@@ -95,7 +89,7 @@ export function ProfileStreakSection() {
                 style={{
                   height: "100%",
                   borderRadius: 99,
-                  backgroundColor: tier.color,
+                  backgroundColor: "#A78BFA",
                   width: animatedWidth.interpolate({
                     inputRange: [0, 100],
                     outputRange: ["0%", "100%"],

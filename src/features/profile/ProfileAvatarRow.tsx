@@ -19,7 +19,7 @@ export function ProfileAvatarRow({
   const initials = displayLine.trim().charAt(0).toUpperCase() || "?";
 
   return (
-    <View className="mb-5 flex-row items-center">
+    <View className="mb-5 flex-col items-center">
       <Pressable
         onPress={onPickAvatar}
         disabled={avatarSaving}
@@ -61,8 +61,8 @@ export function ProfileAvatarRow({
           </View>
         ) : null}
       </Pressable>
-      <View className="ml-4 flex-1">
-        <Text className="text-2xl font-semibold text-white" numberOfLines={2}>{displayLine}</Text>
+      <View className="mt-3 w-full items-center">
+        <Text className="text-center text-2xl font-semibold text-white" numberOfLines={2}>{displayLine}</Text>
         {username ? (
           <Text className="text-sm text-white/60">@{username}</Text>
         ) : null}

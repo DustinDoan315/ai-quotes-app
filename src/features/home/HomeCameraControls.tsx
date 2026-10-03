@@ -15,7 +15,7 @@ export function HomeCameraControls({ disabled, activePreset, onZoom, onFlip, sta
     <View style={{ minHeight: 48, justifyContent: 'center', alignItems: 'center', opacity: disabled ? 0.45 : 1 }}>
       <View style={{ flexDirection: 'row', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: 4 }}>
         {([0.5, 1, 2] as const).map(preset => <Pressable key={preset} disabled={disabled} accessibilityRole="button" accessibilityLabel={`${preset}x`} accessibilityState={{ selected: activePreset === preset, disabled }} onPress={() => onZoom(preset)} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: activePreset === preset ? '#FFCC00' : '#fff', fontWeight: '600' }}>{preset}x</Text>
+          <Text style={{ color: activePreset === preset ? '#C4B5FD' : '#fff', fontWeight: '600' }}>{preset}x</Text>
         </Pressable>)}
       </View>
       <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={t('camera.switchCamera')} onPress={onFlip} style={{ position: 'absolute', right: 0, width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.1)' }}><Ionicons name="camera-reverse-outline" size={24} color="#fff" /></Pressable>
