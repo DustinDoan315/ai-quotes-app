@@ -103,9 +103,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
-  const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(
-    null,
-  );
   const [photoOrientation, setPhotoOrientation] =
     useState<QuoteOrientation>("portrait");
   const [quotePosition, setQuotePosition] = useState<QuotePosition>(
@@ -274,7 +271,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     invalidateGeneration();
     commitDraftVibe(null);
     setSelectedImageUri(null);
-    setSelectedImageBase64(null);
     setPhotoOrientation("portrait");
     setQuotePosition(DEFAULT_QUOTE_POSITION);
     setHideQuote(true);
@@ -292,7 +288,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   async function generateForImage(
     sourceUri: string | null,
     enforceCooldown: boolean,
-    sourceBase64?: string | null,
   ) {
     const requestId = ++generationRequestIdRef.current;
     const isCurrentRequest = () =>
@@ -310,7 +305,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return current + 0.04;
       });
     }, 180);
-    let base64 = sourceBase64?.trim() || undefined;
+    let base64: string | undefined;
     if (!base64 && sourceUri) {
       try {
         base64 = await compressImageForUpload(sourceUri);
@@ -394,7 +389,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       invalidateGeneration();
       commitDraftVibe(captureVibe);
       setSelectedImageUri(photo.uri);
-      setSelectedImageBase64(null);
       setPhotoOrientation("portrait");
       setQuotePosition(DEFAULT_QUOTE_POSITION);
       clearDailyQuote();
@@ -413,16 +407,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   async function handleRetryGeneration() {
     if (isSavingPhotoRef.current) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await generateForImage(selectedImageUri ?? null, true, selectedImageBase64);
-  }
-
-  function handleClearQuote() {
-    if (isSavingPhotoRef.current) return;
-    invalidateGeneration();
-    clearDailyQuote();
-    setHideQuote(true);
-    setGenerationProgress(0);
-    setGenerationStage("idle");
+    await generateForImage(selectedImageUri ?? null, true);
   }
 
   async function handleSavePhoto(quoteDraft?: string | null) {
@@ -527,8 +512,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         setPhotoStackCount((count) => count + 1);
       }
       commitDraftVibe(null);
-    setSelectedImageUri(null);
-      setSelectedImageBase64(null);
+      setSelectedImageUri(null);
       setPhotoOrientation("portrait");
       setQuotePosition(DEFAULT_QUOTE_POSITION);
       setHideQuote(true);
@@ -601,7 +585,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       invalidateGeneration();
       commitDraftVibe(importVibe);
       setSelectedImageUri(picked.uri);
-      setSelectedImageBase64(null);
       setPhotoOrientation(orientationForImage(picked.width, picked.height));
       setQuotePosition(DEFAULT_QUOTE_POSITION);
       clearDailyQuote();
@@ -673,7 +656,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     handleToggleFacing,
     handleCapture,
     handleRetryGeneration,
-    handleClearQuote,
     handleSavePhoto,
     handleOpenGallery,
     clearSelectedImage,

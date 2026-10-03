@@ -1,7 +1,7 @@
 import type { QuoteStack } from "./types";
 import { QuoteMomentCard, type QuoteMomentCardProps } from "@/features/quotes/QuoteMomentCard";
 import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
-import { useMemo, useEffect, useState, useCallback, useRef } from "react";
+import { useMemo, useEffect, useCallback, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated, {
   runOnJS,
@@ -15,32 +15,6 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import type { QuotePhotoCard } from "@/services/media/userPhotosApi";
 
-type DotProps = { isActive: boolean };
-
-function AnimatedDot({ isActive }: DotProps) {
-  const dotWidth = useSharedValue(isActive ? 18 : 6);
-
-  useEffect(() => {
-    dotWidth.value = withSpring(isActive ? 18 : 6, {
-      damping: 18,
-      stiffness: 220,
-      mass: 0.6,
-    });
-  }, [isActive]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const dotStyle = useAnimatedStyle(() => ({ width: dotWidth.value }));
-
-  return (
-    <Animated.View
-      style={[
-        styles.dot,
-        isActive ? styles.dotActiveColor : styles.dotInactiveColor,
-        dotStyle,
-      ]}
-    />
-  );
-}
-
 const SWIPE_THRESHOLD = 100;
 const VELOCITY_THRESHOLD = 800;
 const SNAP_BACK_SPRING = { damping: 20, stiffness: 320, mass: 0.8 };
@@ -51,10 +25,9 @@ type Props = {
   readonly authorName: string;
   readonly authorAvatarUrl: string | null;
   readonly isActive: boolean;
-  readonly onActiveQuoteIdChange: (quoteId: string) => void;
-  readonly activeQuoteId?: string | null;
+  readonly activeQuoteId: string | null;
   readonly interactionLocked?: boolean;
-  readonly onSelectQuote?: (quoteId: string) => void;
+  readonly onSelectQuote: (quoteId: string) => void;
   readonly presentation?: "default" | "home";
   readonly frameWidth?: number;
   readonly contentTop?: number;
@@ -62,7 +35,6 @@ type Props = {
   readonly viewerUserId?: string | null;
   readonly viewerGuestId?: string | null;
   readonly onRegisterShare?: QuoteMomentCardProps["onRegisterShare"];
-  readonly onSharingChange?: (sharing: boolean) => void;
 };
 
 export function QuoteStackEntry({
@@ -71,17 +43,14 @@ export function QuoteStackEntry({
   authorName,
   authorAvatarUrl,
   isActive,
-  onActiveQuoteIdChange,
-  activeQuoteId, interactionLocked = false, onSelectQuote, presentation, frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId, onRegisterShare, onSharingChange,
+  activeQuoteId, interactionLocked = false, onSelectQuote, presentation, frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId, onRegisterShare,
 }: Props) {
   const frame = useQuoteCardFrame();
   const itemWidth = frameWidth ?? frame.width;
-  const controlled = activeQuoteId !== undefined;
   const cardPresentation = { presentation, frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId };
 
-  const [currentIndex, setCurrentIndex] = useState(0);
   const quoteCount = stack.quotes.length;
-  const renderIndex = controlled ? Math.max(0, stack.quotes.findIndex(quote => quote.id === activeQuoteId)) : currentIndex;
+  const renderIndex = Math.max(0, stack.quotes.findIndex(quote => quote.id === activeQuoteId));
   const previousItem: QuotePhotoCard | undefined = stack.quotes[renderIndex - 1];
   const topItem: QuotePhotoCard | undefined = stack.quotes[renderIndex];
   const nextItem: QuotePhotoCard | undefined = stack.quotes[renderIndex + 1];
@@ -99,9 +68,9 @@ export function QuoteStackEntry({
     (index: number) => {
       const quote = stack.quotes[index];
       if (!quote) return;
-      (onSelectQuote ?? onActiveQuoteIdChange)(quote.id);
+      onSelectQuote(quote.id);
     },
-    [onSelectQuote, onActiveQuoteIdChange, stack.quotes],
+    [onSelectQuote, stack.quotes],
   );
 
   useEffect(() => {
@@ -123,32 +92,13 @@ export function QuoteStackEntry({
 
   useEffect(() => {
     if (!isActive) return;
-    if (controlled) return;
-    currentIndexSV.value = 0;
-    setCurrentIndex(0);
-    translateX.value = 0;
-    isAnimatingOut.value = false;
-    notifyActive(0);
-  }, [isActive, stack.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isActive) return;
-    if (controlled) return;
-    const quote = stack.quotes[currentIndex];
-    if (!quote) return;
-    onActiveQuoteIdChange(quote.id);
-  }, [currentIndex, isActive]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!controlled || !isActive) return;
     cancelAnimation(translateX);
     const found = stack.quotes.findIndex(quote => quote.id === activeQuoteId);
     const index = found >= 0 ? found : 0;
     currentIndexSV.value = index;
-    setCurrentIndex(index);
     translateX.value = 0;
     isAnimatingOut.value = false;
-  }, [controlled, activeQuoteId, isActive, stack.quotes, currentIndexSV, translateX, isAnimatingOut]);
+  }, [activeQuoteId, isActive, stack.quotes, currentIndexSV, translateX, isAnimatingOut]);
 
   useEffect(() => {
     if (interactionLocked) { cancelAnimation(translateX); translateX.value = 0; isAnimatingOut.value = false; }
@@ -158,7 +108,6 @@ export function QuoteStackEntry({
     if (lockedRef.current) return;
     const next = currentIndexSV.value + 1;
     currentIndexSV.value = next;
-    setCurrentIndex(next);
     notifyActive(next);
     translateX.value = 0;
     isAnimatingOut.value = false;
@@ -169,7 +118,6 @@ export function QuoteStackEntry({
     const prev = currentIndexSV.value - 1;
     if (prev < 0) return;
     currentIndexSV.value = prev;
-    setCurrentIndex(prev);
     notifyActive(prev);
     translateX.value = 0;
     isAnimatingOut.value = false;
@@ -244,7 +192,6 @@ export function QuoteStackEntry({
             screenHeight={screenHeight}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
-            counterLabel={null}
           />
         </Animated.View>
       ) : null}
@@ -261,7 +208,6 @@ export function QuoteStackEntry({
             screenHeight={screenHeight}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}
-            counterLabel={null}
           />
         </Animated.View>
       ) : null}
@@ -275,21 +221,11 @@ export function QuoteStackEntry({
               {...cardPresentation}
               isActive={isActive}
               onRegisterShare={onRegisterShare}
-              onSharingChange={onSharingChange}
               item={topItem}
               screenHeight={screenHeight}
               authorName={authorName}
               authorAvatarUrl={authorAvatarUrl}
-              counterLabel={quoteCount > 1 ? `${currentIndex + 1}/${quoteCount}` : null}
-              dotsContent={
-                quoteCount > 1 ? (
-                  <View style={styles.dotsRow}>
-                    {stack.quotes.map((_, i) => (
-                      <AnimatedDot key={i} isActive={i === currentIndex} />
-                    ))}
-                  </View>
-                ) : null
-              }
+
             />
           </Animated.View>
         </GestureDetector>
@@ -297,22 +233,3 @@ export function QuoteStackEntry({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  dotsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 6,
-  },
-  dot: {
-    height: 6,
-    borderRadius: 3,
-  },
-  dotActiveColor: {
-    backgroundColor: "rgba(255,255,255,0.9)",
-  },
-  dotInactiveColor: {
-    backgroundColor: "rgba(255,255,255,0.3)",
-  },
-});

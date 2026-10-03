@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import type { EmojiBurst } from "@/features/home/useHomeFeedState";
+import type { EmojiBurst } from "@/features/home/useHomeReactions";
 
 type Props = {
   bursts: EmojiBurst[];

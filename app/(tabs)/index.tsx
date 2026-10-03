@@ -28,7 +28,7 @@ import { HomeFeedFlow } from "@/features/home/HomeFeedFlow";
 import { useHomeBackgroundPalette } from "@/features/home/useHomeBackgroundPalette";
 import { useHomeAiReview } from "@/features/home/useHomeAiReview";
 import { useHomeCamera } from "@/features/home/useHomeCamera";
-import { useHomeFeedState } from "@/features/home/useHomeFeedState";
+import { useHomeReactions } from "@/features/home/useHomeReactions";
 import { groupQuotePhotoCardsIntoStacks } from "@/features/quotes/quoteStack/groupQuotePhotoCardsIntoStacks";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useQuotePhotoFeed } from "@/features/quotes/useQuotePhotoFeed";
@@ -83,7 +83,6 @@ export default function HomeScreen() {
   const ensureGuestId = useUserStore((s) => s.ensureGuestId);
   const {
     items: feedItems,
-    isLoading: isFeedLoading,
     isRefreshing: isFeedRefreshing,
     refresh: refreshFeed,
     refreshSilently,
@@ -297,22 +296,16 @@ export default function HomeScreen() {
     aiToolsLoadingLabel,
   } = useHomeAiReview(dailyQuoteText);
   const {
-
     emojiBursts,
-    setActiveQuoteId,
     handleReact,
-    viewabilityConfig,
-    onViewableItemsChanged,
     shouldShowReactions,
-  } = useHomeFeedState({
-    quoteStacks: ambient.visibleStacks,
+  } = useHomeReactions({
     activeQuote: ambient.active?.card ?? null,
     userId: profile?.user_id ?? null,
   });
   const isOnFeed = ambient.isOnFeed;
   const currentFeedIndex = Math.max(0, ambient.stackIndex);
   const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || isAiToolLoading || Boolean(rewriteReviewText || futureReviewText) || exportLocked;
-  useEffect(() => { setActiveQuoteId(ambient.active?.card.id ?? null); }, [ambient.active?.card.id, setActiveQuoteId]);
   const canSaveDraft = Boolean(selectedImageUri && !hasSavedCurrentPhoto && validateEditableQuote(quoteDraftForSave ?? dailyQuoteText ?? '').isValid);
   const isOwned = Boolean(ambient.active && ((authUserId && ambient.active.card.userId === authUserId) || (!ambient.active.card.userId && guestId && ambient.active.card.guestId === guestId)));
   function protectDraft(action: () => void, clear = true) {
@@ -393,7 +386,6 @@ export default function HomeScreen() {
         activeQuoteId={ambient.active?.card.id ?? null}
         interactionLocked={busy}
         horizontalLocked={ambient.isDragging}
-        hasError={feedHasError}
         onBeginDrag={ambient.beginDrag}
         onCommitPage={ambient.commitPage}
         onSelectQuote={ambient.selectQuote}
@@ -403,16 +395,12 @@ export default function HomeScreen() {
         snapOffsets={snapOffsets}
         getItemLayout={getItemLayout}
         isFeedRefreshing={isFeedRefreshing}
-        isFeedLoading={isFeedLoading}
         refreshFeed={refreshFeed}
-        viewabilityConfig={viewabilityConfig}
-        onViewableItemsChanged={onViewableItemsChanged}
         viewportHeight={viewportHeight}
         authorName={authorName}
         authorAvatarUrl={authorAvatarUrl}
         currentFeedIndex={currentFeedIndex}
         isOnFeed={isOnFeed}
-        onActiveQuoteIdChange={setActiveQuoteId}
         header={
           <HomeCaptureFlow
             viewportHeight={viewportHeight}

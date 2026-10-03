@@ -4,18 +4,16 @@ import { FlatList, Pressable } from 'react-native';
 import { QuoteStackEntry } from '@/features/quotes/quoteStack/QuoteStackEntry';
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/hooks/useReducedMotionPreference', () => ({ useReducedMotionPreference: () => true }));
-jest.mock('@/features/quotes/QuoteCardSkeleton', () => ({ QuoteCardSkeleton: 'Skeleton' }));
-jest.mock('@/features/quotes/QuoteMomentsFeed', () => ({ QuoteMomentsFeed: 'Empty' }));
 jest.mock('@/features/quotes/quoteStack/QuoteStackEntry', () => ({ QuoteStackEntry: 'Stack' }));
 jest.mock('@/features/home/HomeCameraSection', () => ({ HomeCameraSection: 'Camera' }));
 jest.mock('moti', () => ({ MotiView: 'Motion' }));
 function feed(overrides: Record<string, unknown> = {}) {
   return HomeFeedFlow({
     listRef: { current: null }, quoteStacks: [], isCaptureFlowActive: false, flatListExtraData: '', snapOffsets: [0,844], getItemLayout: undefined,
-    isFeedRefreshing: false, isFeedLoading: false, refreshFeed: async () => {}, viewabilityConfig: undefined, onViewableItemsChanged: undefined,
-    header: null as any, viewportHeight: 844, authorName: 'Viewer', authorAvatarUrl: null, currentFeedIndex: 0, isOnFeed: true, onActiveQuoteIdChange: jest.fn(),
+    isFeedRefreshing: false, refreshFeed: async () => {},
+    header: null as any, viewportHeight: 844, authorName: 'Viewer', authorAvatarUrl: null, currentFeedIndex: 0, isOnFeed: true,
     frameWidth: 350, contentTop: 115, contentHeight: 483, viewerUserId: 'viewer', viewerGuestId: null, activeQuoteId: 'second', interactionLocked: false,
-    horizontalLocked: false, hasError: false, onBeginDrag: jest.fn(), onCommitPage: jest.fn(), onSelectQuote: jest.fn(), onRegisterShare: jest.fn(), ...overrides,
+    horizontalLocked: false, onBeginDrag: jest.fn(), onCommitPage: jest.fn(), onSelectQuote: jest.fn(), onRegisterShare: jest.fn(), ...overrides,
   });
 }
 it('allows vertical drag to finish while disabling horizontal gestures', () => {

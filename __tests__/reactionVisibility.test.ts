@@ -4,7 +4,7 @@ jest.mock("@/services/media/userPhotoReactions", () => ({
   sendUserPhotoReaction: jest.fn(),
 }));
 
-import { canReactToQuotePhoto } from "@/features/home/useHomeFeedState";
+import { canReactToQuotePhoto } from "@/features/home/useHomeReactions";
 
 describe("canReactToQuotePhoto", () => {
   it("allowsFriendPhotoForAccount", () => {
