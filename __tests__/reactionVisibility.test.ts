@@ -1,6 +1,7 @@
 /* eslint-disable import/first */
 
 jest.mock("@/services/media/userPhotoReactions", () => ({
+  getPhotoReactionEmoji: () => "❤️",
   sendUserPhotoReaction: jest.fn(),
 }));
 

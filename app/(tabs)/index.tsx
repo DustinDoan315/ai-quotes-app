@@ -496,7 +496,7 @@ export default function HomeScreen() {
             onNext={() => { const card = ambient.visibleStacks[currentFeedIndex]?.quotes[(ambient.active?.index ?? 0) + 1]; if (card) ambient.selectQuote(card.id); }}
           /> : null}
         </View>
-        {ambient.active && (isDemoFriend || shouldShowReactions) ? <HomeReactionRow disabled={busy || ambient.isDragging} onReact={type => { if (busy || ambient.isDragging) return; if (isDemoFriend) previewReaction(type); else void handleReact(type); }} /> : null}
+        {ambient.active && (isDemoFriend || shouldShowReactions) ? <HomeReactionRow targetId={ambient.active.card.id} disabled={busy || ambient.isDragging} onReact={type => { if (busy || ambient.isDragging) return; if (isDemoFriend) previewReaction(type); else void handleReact(type); }} /> : null}
         <View style={{ height: HOME_AMBIENT_LAYOUT.regionGap }} />
         <HomeAmbientDock mode={busy ? 'busy' : isOnFeed ? 'feed' : selectedImageUri ? 'draft' : 'capture'}
           canCapture={isOnFeed || !cameraPermissionGranted || cameraReady} canSave={canSaveDraft}

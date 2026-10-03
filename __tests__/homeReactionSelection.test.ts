@@ -1,7 +1,7 @@
 import { useHomeReactions } from '@/features/home/useHomeReactions';
 import { sendUserPhotoReaction } from '@/services/media/userPhotoReactions';
 jest.mock('react', () => ({ useState: (value: unknown) => [value, jest.fn()], useRef: (value: unknown) => ({ current: value }), useEffect: jest.fn() }));
-jest.mock('@/services/media/userPhotoReactions', () => ({ PHOTO_REACTION_EMOJIS: { love: '❤️' }, sendUserPhotoReaction: jest.fn().mockResolvedValue(true) }));
+jest.mock('@/services/media/userPhotoReactions', () => ({ PHOTO_REACTION_EMOJIS: { love: '❤️' }, getPhotoReactionEmoji: (type: string) => type.startsWith('emoji:') ? type.slice(6) : '❤️', sendUserPhotoReaction: jest.fn().mockResolvedValue(true) }));
 beforeEach(() => { jest.clearAllMocks(); jest.useFakeTimers(); });
 afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); });
 it('secondary emoji actions use the committed card', async () => {

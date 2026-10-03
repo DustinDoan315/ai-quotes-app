@@ -1,5 +1,5 @@
 import {
-  PHOTO_REACTION_EMOJIS,
+  getPhotoReactionEmoji,
   sendUserPhotoReaction,
   type UserPhotoReactionType,
 } from "@/services/media/userPhotoReactions";
@@ -65,7 +65,8 @@ export function useHomeReactions({ activeQuote, userId }: UseHomeReactionsOption
   }
 
   function playBurst(type: UserPhotoReactionType) {
-    const emoji = PHOTO_REACTION_EMOJIS[type];
+    const emoji = getPhotoReactionEmoji(type);
+    if (!emoji) return;
     const bursts: EmojiBurst[] = [];
     const count = 24;
     const baseId = Date.now().toString();

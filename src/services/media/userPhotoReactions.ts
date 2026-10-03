@@ -1,6 +1,7 @@
+import { parseCustomReactionEmoji } from "@/domain/reactions/customEmoji";
 import { supabase } from "@/config/supabase";
 
-export type UserPhotoReactionType =
+export type QuickPhotoReactionType =
   | "love"
   | "clap"
   | "fire"
@@ -11,7 +12,9 @@ export type UserPhotoReactionType =
   | "party"
   | "white_heart";
 
-export const PHOTO_REACTION_EMOJIS: Record<UserPhotoReactionType, string> = {
+export type UserPhotoReactionType = QuickPhotoReactionType | `emoji:${string}`;
+
+export const PHOTO_REACTION_EMOJIS: Record<QuickPhotoReactionType, string> = {
   love: "❤️",
   clap: "👏",
   fire: "🔥",
@@ -22,6 +25,10 @@ export const PHOTO_REACTION_EMOJIS: Record<UserPhotoReactionType, string> = {
   party: "🎉",
   white_heart: "🤍",
 };
+
+export function getPhotoReactionEmoji(type: UserPhotoReactionType): string | null {
+  return PHOTO_REACTION_EMOJIS[type as QuickPhotoReactionType] ?? parseCustomReactionEmoji(type);
+}
 
 type SendUserPhotoReactionParams = {
   photoId: string;
@@ -34,7 +41,7 @@ export const sendUserPhotoReaction = async (
 ): Promise<boolean> => {
   const { photoId, userId, type } = params;
 
-  if (!photoId || !userId) {
+  if (!photoId || !userId || !getPhotoReactionEmoji(type)) {
     return false;
   }
 

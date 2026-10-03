@@ -91,8 +91,11 @@
       "clap": "Thả biểu tượng vỗ tay",
       "withEmoji": "Thả biểu tượng {{emoji}}",
       "sendHint": "Gửi phản ứng bằng biểu tượng",
-      "more": "Thêm biểu tượng",
-      "moreHint": "Mở thêm các biểu tượng phản ứng"
+      "more": "Thêm cảm xúc",
+      "moreHint": "Mở thêm các biểu tượng phản ứng",
+      "pickerTitle": "Chọn biểu tượng cảm xúc",
+      "search": "Tìm biểu tượng cảm xúc",
+      "empty": "Không tìm thấy biểu tượng"
     },
     "messagePlaceholder": "Gửi tin nhắn…",
     "messageSent": "Đã gửi tin nhắn",
@@ -227,7 +230,8 @@
       "photoUnavailable": "Ảnh không khả dụng",
       "you": "Bạn",
       "shareError": "Không thể chia sẻ khoảnh khắc này. Vui lòng thử lại.",
-      "loveSent": "Đã gửi yêu thương"
+      "loveSent": "Đã gửi yêu thương",
+      "close": "Đóng"
     }
   },
   "streak": {

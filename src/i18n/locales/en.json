@@ -93,7 +93,10 @@
       "withEmoji": "React with {{emoji}}",
       "sendHint": "Sends an emoji reaction",
       "more": "More reactions",
-      "moreHint": "Opens more emoji reactions"
+      "moreHint": "Opens more emoji reactions",
+      "pickerTitle": "Choose an emoji",
+      "search": "Search emoji",
+      "empty": "No emoji found"
     },
     "messagePlaceholder": "Send a message…",
     "messageSent": "Message sent",
@@ -228,7 +231,8 @@
       "photoUnavailable": "Photo unavailable",
       "you": "You",
       "shareError": "Could not share this moment. Please try again.",
-      "loveSent": "Love sent"
+      "loveSent": "Love sent",
+      "close": "Close"
     }
   },
   "streak": {

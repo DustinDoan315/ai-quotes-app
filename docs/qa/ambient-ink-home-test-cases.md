@@ -53,3 +53,11 @@ No database policy or migration change is included. A real authenticated favorit
 - Confirm discovery cards have balanced space between the header and bottom toolbar; camera placement remains unchanged.
 - Save a quote, reopen Home to refresh cloud memories, then open its Memories day. Confirm one entry per saved photo; separately saved photos remain separate.
 - Open Streak on a compact screen and with larger text. Confirm content scrolls and the bottom-right Close button remains accessible.
+
+## Expanded emoji picker
+
+- On a friend or demo card, confirm one row of four quick emojis and a More (•••) button.
+- Tap More, search for an emoji, and select a face, flag, family sequence, or skin-tone variant. Confirm the picker closes and the exact selected emoji animates.
+- Close/dismiss without selection; confirm no reaction is sent. Switching cards or starting export must close the picker.
+- Real custom emoji reactions require `20261003100000_allow_custom_emoji_reactions.sql` to be applied to Supabase. This migration preserves friend authorization and duplicate protection. Demo reactions remain local.
+- Database pgTAP tests were updated but not run locally; no PostgreSQL/Supabase CLI was available. Native picker keyboard/safe-area behavior needs the user’s build check.

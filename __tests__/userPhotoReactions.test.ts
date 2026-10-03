@@ -71,3 +71,16 @@ describe("sendUserPhotoReaction", () => {
     ).resolves.toBe(false);
   });
 });
+
+it('sends an exact custom emoji through the existing friend reaction API', async () => {
+  mockFrom.mockReturnValue({ upsert: mockUpsert });
+  mockUpsert.mockResolvedValue({ error: null });
+  await expect(sendUserPhotoReaction({ photoId: 'photo', userId: 'friend', type: 'emoji:🐱' })).resolves.toBe(true);
+  expect(mockUpsert.mock.calls.at(-1)[0].type).toBe('emoji:🐱');
+});
+it('rejects text and multiple emoji as custom reactions before making a request', async () => {
+  mockFrom.mockClear();
+  await expect(sendUserPhotoReaction({ photoId: 'photo', userId: 'friend', type: 'emoji:hello' })).resolves.toBe(false);
+  await expect(sendUserPhotoReaction({ photoId: 'photo', userId: 'friend', type: 'emoji:🐱🐱' })).resolves.toBe(false);
+  expect(mockFrom).not.toHaveBeenCalled();
+});

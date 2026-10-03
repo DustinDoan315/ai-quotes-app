@@ -1,5 +1,5 @@
 begin;
-select plan(9);
+select plan(10);
 
 select has_table(
   'public',
@@ -29,6 +29,12 @@ select ok(
       and i.indnullsnotdistinct
   ),
   'unique_key_treats_nulls_as_equal'
+);
+
+select ok(
+  exists (select 1 from pg_constraint where conrelid = 'public.user_photo_reactions'::regclass
+    and conname = 'user_photo_reactions_type_check' and pg_get_constraintdef(oid) like '%emoji:%'),
+  'custom_emoji_namespace_allowed'
 );
 
 insert into auth.users (id, aud, role, email)
