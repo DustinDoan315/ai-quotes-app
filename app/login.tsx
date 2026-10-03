@@ -2,7 +2,6 @@ import { useAuth } from "@/hooks/useSupabaseAuth";
 import { useUserStore } from "@/appState/userStore";
 import { AppIcon } from "@/components/AppIcon";
 import { LEGAL_LINKS } from "@/config/legalLinks";
-import { APP_BRAND_MARK } from "@/theme/appBrand";
 import * as Crypto from "expo-crypto";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -250,11 +249,12 @@ export default function LoginScreen() {
         style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }}>
 
         {/* Top bar */}
-        <View className="flex-row items-center justify-between mb-5">
+        <View className="flex-row items-center justify-between mb-4">
           <Pressable
             onPress={() => goBackOrReplace(router, returnTo as never)}
             disabled={isBusy}
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            accessibilityRole="button"
+            style={({ pressed }) => ({ minHeight: 44, opacity: isBusy ? 0.5 : pressed ? 0.7 : 1 })}
             className="flex-row items-center gap-1">
             <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.7)" />
             <Text className="text-white/70 text-base">{t("auth.login.back")}</Text>
@@ -262,45 +262,16 @@ export default function LoginScreen() {
           <Text className="text-white/40 text-sm">v{appVersion}</Text>
         </View>
 
-        {/* Hero card */}
-        <View className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 mb-7">
-          {/* Card header row */}
-          <View className="flex-row items-center justify-between px-5 pt-4 pb-2">
-            <View className="flex-row items-center gap-2">
-              <AppIcon size={26} borderRadius={7} />
-              <Text className="text-white text-base font-semibold">{APP_BRAND_MARK}</Text>
-            </View>
-            <View className="w-10 h-5 rounded-full bg-white/20 border border-white/10" />
-          </View>
-
-          {/* App icon */}
-          <View className="items-center justify-center py-6">
-            <AppIcon
-              size={150}
-              borderRadius={34}
-              style={{
-                shadowColor: "#f97316",
-                shadowOffset: { width: 0, height: 12 },
-                shadowOpacity: 0.35,
-                shadowRadius: 32,
-              }}
-            />
-          </View>
-
-          {/* Vibe label */}
-          <View className="items-center pb-6">
-            <Text className="text-white/40 text-xs font-semibold tracking-widest uppercase mb-1">
-              {t("auth.login.todaysVibeLabel")}
-            </Text>
-            <Text className="text-white text-3xl font-bold">Midnight</Text>
-          </View>
+        {/* A compact identity gives the sign-in actions room to breathe. */}
+        <View className="items-center mb-7 px-3">
+          <AppIcon size={76} borderRadius={22} />
+          <Text className="text-white text-3xl font-bold text-center mt-5 mb-2">
+            {t("auth.login.welcome")}
+          </Text>
+          <Text className="text-white/65 text-sm text-center leading-5" style={{ maxWidth: 300 }}>
+            {t("auth.login.subtitle")}
+          </Text>
         </View>
-
-        {/* Headline */}
-        <Text className="text-white text-2xl font-bold mb-2">{t("auth.login.welcome")}</Text>
-        <Text className="text-white/50 text-sm mb-6 leading-5">
-          {t("auth.login.subtitle")}
-        </Text>
 
         {/* Apple Sign-in */}
         {Platform.OS === "ios" && (
@@ -308,8 +279,10 @@ export default function LoginScreen() {
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
             buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
             cornerRadius={16}
-            style={{ width: "100%", height: 52, marginBottom: 12 }}
-            onPress={handleAppleSignIn}
+            style={{ width: "100%", height: 52, marginBottom: 12, opacity: isBusy ? 0.5 : 1 }}
+            onPress={() => {
+              if (!isBusy) void handleAppleSignIn();
+            }}
           />
         )}
 
@@ -317,8 +290,9 @@ export default function LoginScreen() {
         <Pressable
           onPress={handleGoogleSignIn}
           disabled={isBusy}
-          className="flex-row items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/5 py-3.5"
-          style={({ pressed }) => ({ opacity: isBusy ? 0.5 : pressed ? 0.75 : 1 })}>
+          accessibilityRole="button"
+          className="flex-row items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/5 px-4"
+          style={({ pressed }) => ({ minHeight: 52, opacity: isBusy ? 0.5 : pressed ? 0.75 : 1 })}>
           {loadingGoogle ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -335,36 +309,38 @@ export default function LoginScreen() {
         ) : null}
 
         {/* Feature rows */}
-        <View className="mt-7 gap-5">
+        <View className="mt-6 gap-4 rounded-3xl border border-white/10 bg-white/5 p-4">
           {featureRows.map((row) => (
             <View key={row.title} className="flex-row items-start gap-3">
-              <View className="w-8 h-8 rounded-xl bg-white/8 items-center justify-center mt-0.5">
-                <Ionicons name={row.icon} size={17} color="rgba(255,255,255,0.55)" />
+              <View className="w-8 h-8 rounded-xl bg-white/5 items-center justify-center">
+                <Ionicons name={row.icon} size={17} color="rgba(255,255,255,0.75)" />
               </View>
               <View className="flex-1">
                 <Text className="text-white text-sm font-semibold mb-0.5">{row.title}</Text>
-                <Text className="text-white/45 text-xs leading-4">{row.description}</Text>
+                <Text className="text-white/60 text-xs leading-4">{row.description}</Text>
               </View>
             </View>
           ))}
         </View>
 
         {/* Footer */}
-        <View className="mt-8 items-center">
+        <View className="mt-4 items-center">
           <Pressable
             onPress={() => {
               if (fromOnboarding) completeOnboarding();
               router.replace(returnTo as never);
             }}
             disabled={isBusy}
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-            <Text className="text-white/60 text-sm">{t("auth.login.continueAsGuest")}</Text>
+            accessibilityRole="button"
+            className="items-center justify-center px-5"
+            style={({ pressed }) => ({ minHeight: 44, opacity: isBusy ? 0.5 : pressed ? 0.7 : 1 })}>
+            <Text className="text-white/75 text-sm font-medium">{t("auth.login.continueAsGuest")}</Text>
           </Pressable>
 
-          <Text className="text-white/25 text-xs text-center mt-4 leading-4">
+          <Text className="text-white/50 text-xs text-center mt-2 leading-5 px-3">
             {t("auth.login.termsPrefix")}{" "}
             <Text
-              className="underline text-white/35"
+              className="underline text-white/70"
               onPress={() => Linking.openURL(termsUrl)}>
               {t("auth.login.terms")}
             </Text>
@@ -372,7 +348,7 @@ export default function LoginScreen() {
               <>
                 {" "}{t("auth.login.and")}{" "}
                 <Text
-                  className="underline text-white/35"
+                  className="underline text-white/70"
                   onPress={() => Linking.openURL(privacyUrl)}>
                   {t("auth.login.privacy")}
                 </Text>
