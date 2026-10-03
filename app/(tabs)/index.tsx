@@ -503,7 +503,7 @@ export default function HomeScreen() {
       <Modal visible={menuVisible} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={() => setMenuVisible(false)}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('home.ambient.closeMenu')} onPress={() => setMenuVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 28 }}>
           <Pressable accessibilityViewIsModal onPress={() => {}} style={{ backgroundColor: '#141a24', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', width: '100%', maxWidth: 420, alignSelf: 'center', maxHeight: '80%' }}>
-            <ScrollView>
+            <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} showsVerticalScrollIndicator={false}>
               <Text accessibilityRole="header" style={{ color: 'white', fontSize: 24, fontWeight: '600', marginBottom: 24 }}>{t('home.ambient.menu')}</Text>
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
@@ -514,8 +514,8 @@ export default function HomeScreen() {
               </View> : null}
               {shouldShowReactions && ambient.active ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={t('home.reactions.withEmoji', { emoji })} style={{ padding: 16 }} onPress={() => { setMenuVisible(false); void handleReact(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View> : null}
             </ScrollView>
-            <View style={{ alignItems: 'flex-end', paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' }}>
-              <Pressable accessibilityRole="button" style={({ pressed }) => ({ minHeight: 48, minWidth: 112, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#ffffff', backgroundColor: '#ffffff', opacity: pressed ? 0.8 : 1 })} onPress={() => setMenuVisible(false)}><Text style={{ color: '#141a24', fontWeight: '700' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
+            <View style={{ flexShrink: 0, alignItems: 'flex-end', paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' }}>
+              <Pressable accessibilityRole="button" style={{ height: 48, minWidth: 112, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#ffffff', backgroundColor: '#ffffff' }} onPress={() => setMenuVisible(false)}><Text style={{ color: '#141a24', fontWeight: '700' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
             </View>
           </Pressable>
         </Pressable>

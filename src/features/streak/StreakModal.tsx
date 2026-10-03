@@ -51,7 +51,7 @@ export function StreakModal({ visible, onClose }: Props) {
           onPress={(e) => e.stopPropagation()}
           accessibilityViewIsModal
           style={{ width: "100%", maxWidth: 400, maxHeight: Math.max(180, height - insets.top - insets.bottom - 32), borderRadius: HOME_AMBIENT_LAYOUT.radius, borderWidth: 1, borderColor: HOME_AMBIENT_CHROME.border, backgroundColor: "#15121c", overflow: "hidden" }}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
+          <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
             <Text accessibilityRole="header" style={{ color: HOME_AMBIENT_CHROME.text, fontSize: 20, fontWeight: "700" }}>
               {t("streak.modalTitle")}
             </Text>
@@ -83,8 +83,8 @@ export function StreakModal({ visible, onClose }: Props) {
               </View>
             </View>
           </ScrollView>
-          <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 20, borderTopWidth: 1, borderTopColor: HOME_AMBIENT_CHROME.border, alignItems: "flex-end" }}>
-            <Pressable accessibilityRole="button" onPress={onClose} style={({ pressed }) => ({ minHeight: HOME_AMBIENT_LAYOUT.hitArea, minWidth: 112, alignItems: "center", paddingHorizontal: 24, borderRadius: 16, borderWidth: 1, borderColor: "#ffffff", justifyContent: "center", backgroundColor: "#ffffff", opacity: pressed ? 0.7 : 1 })}>
+          <View style={{ flexShrink: 0, paddingHorizontal: 24, paddingTop: 12, paddingBottom: 20, borderTopWidth: 1, borderTopColor: HOME_AMBIENT_CHROME.border, alignItems: "flex-end" }}>
+            <Pressable accessibilityRole="button" onPress={onClose} style={{ height: HOME_AMBIENT_LAYOUT.hitArea, minWidth: 112, alignItems: "center", paddingHorizontal: 24, borderRadius: 16, borderWidth: 1, borderColor: "#ffffff", justifyContent: "center", backgroundColor: "#ffffff" }}>
               <Text style={{ color: "#15121c", fontWeight: "700", fontSize: 15 }}>{t("home.ambient.closeMenu")}</Text>
             </Pressable>
           </View>
