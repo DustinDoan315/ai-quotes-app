@@ -1,12 +1,17 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  RefreshControl,
   Text,
   View,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useOwnMemoriesSync } from "@/features/memories/useOwnMemoriesSync";
 import * as Haptics from "expo-haptics";
 import { MotiView } from "moti";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +38,10 @@ type Layer = "mine" | "friends";
 export default function MemoriesDayScreen() {
   const { i18n, t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const ownSync = useOwnMemoriesSync();
+  const mineScrollRef = useRef<ScrollView>(null);
+  const friendScrollRef = useRef<ScrollView>(null);
   const params = useLocalSearchParams<{ date?: string }>();
   const dateParam = params.date;
   const dateKey =
@@ -51,7 +60,11 @@ export default function MemoriesDayScreen() {
   const [updatingVisibilityId, setUpdatingVisibilityId] = useState<string | null>(null);
 
   const todayKey = getTodayLocalDateKey();
-  const isToday = dateKey === todayKey;
+  const isToday = dateKey >= todayKey;
+  useEffect(() => {
+    mineScrollRef.current?.scrollTo({ y: 0, animated: false });
+    friendScrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [dateKey]);
 
   const prevDateKey = useMemo(() => {
     const d = parseLocalDateKey(dateKey);
@@ -71,10 +84,10 @@ export default function MemoriesDayScreen() {
   const getMemoriesOnSameDayPastYears = useMemoryStore(
     (s: MemoryState) => s.getMemoriesOnSameDayPastYears,
   );
-  const pastYearMemories = useMemo(
-    () => getMemoriesOnSameDayPastYears(dateKey),
-    [getMemoriesOnSameDayPastYears, dateKey],
-  );
+  const pastYearMemories = getMemoriesOnSameDayPastYears(dateKey).filter(memory => {
+    const userId = profile?.user_id ?? authUserId;
+    return userId ? memory.ownerUserId === userId : Boolean(guestId && !memory.ownerUserId && memory.ownerGuestId === guestId);
+  });
 
   const mineMemories = useMemo(() => {
     const userId = profile?.user_id ?? authUserId;
@@ -83,10 +96,7 @@ export default function MemoriesDayScreen() {
       if (!hasIdentity) {
         return m.visibility === "private";
       }
-      return (
-        (userId ? m.ownerUserId === userId : false) ||
-        (guestId ? m.ownerGuestId === guestId : false)
-      );
+      return userId ? m.ownerUserId === userId : Boolean(guestId && !m.ownerUserId && m.ownerGuestId === guestId);
     };
     return dayMemories.filter((m) => isMine(m));
   }, [authUserId, dayMemories, guestId, profile?.user_id]);
@@ -115,6 +125,15 @@ export default function MemoriesDayScreen() {
       params: { date: nextDateKey },
     } as never);
   }
+
+  const dayGesture = Gesture.Pan()
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-12, 12])
+    .onEnd((event) => {
+      if (event.translationX > 60) runOnJS(handlePrevDay)();
+      else if (event.translationX < -60 && !isToday) runOnJS(handleNextDay)();
+    });
+  const adjacentLabel = (key: string) => parseLocalDateKey(key).toLocaleDateString(i18n.language, { month: "short", day: "numeric" });
 
   const title = parseLocalDateKey(dateKey).toLocaleDateString(i18n.language, {
     month: "long",
@@ -171,8 +190,9 @@ export default function MemoriesDayScreen() {
   }
 
   return (
-    <View className="flex-1 bg-transparent">
-      <View className="border-b border-white/10 bg-transparent px-4 pt-14 pb-5">
+    <GestureDetector gesture={dayGesture}>
+    <View className="flex-1 bg-transparent" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <View className="border-b border-white/10 bg-transparent px-4 pt-3 pb-5">
         <Pressable
           onPress={() => goBackOrReplace(router, "/memories")}
           className="mb-4 h-10 w-10 items-center justify-center rounded-full bg-white/10"
@@ -182,9 +202,11 @@ export default function MemoriesDayScreen() {
         <View className="mt-0.5 flex-row items-center justify-between">
           <Pressable
             onPress={handlePrevDay}
-            className="h-9 w-9 items-center justify-center rounded-full bg-white/10"
+            accessibilityRole="button"
+            className="min-h-11 items-center justify-center rounded-2xl bg-white/5 px-2"
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-            <Ionicons name="chevron-back" size={20} color="#fff" />
+            <Ionicons name="chevron-back" size={20} color="#C4B5FD" />
+            <Text className="mt-1 text-[10px] text-white/60">{adjacentLabel(prevDateKey)}</Text>
           </Pressable>
           <View className="flex-1 items-center px-2">
             <Text className="text-xs font-medium uppercase tracking-wider text-white/70">
@@ -195,13 +217,15 @@ export default function MemoriesDayScreen() {
           <Pressable
             onPress={handleNextDay}
             disabled={isToday}
-            className="h-9 w-9 items-center justify-center rounded-full bg-white/10"
+            accessibilityRole="button"
+            className="min-h-11 items-center justify-center rounded-2xl bg-white/5 px-2"
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
             <Ionicons
               name="chevron-forward"
               size={20}
               color={isToday ? "rgba(255,255,255,0.2)" : "#fff"}
             />
+            <Text className="mt-1 text-[10px] text-white/60">{isToday ? t("memories.todayLabel") : adjacentLabel(nextDateKey)}</Text>
           </Pressable>
         </View>
         <View className="mt-4 flex-row rounded-xl bg-white/5 p-1">
@@ -240,10 +264,14 @@ export default function MemoriesDayScreen() {
 
       {/* Two persistent ScrollViews — toggled with display to preserve scroll position per tab */}
       <ScrollView
+        ref={mineScrollRef}
+        refreshControl={<RefreshControl refreshing={ownSync.isLoading} onRefresh={ownSync.refresh} tintColor="#C4B5FD" />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         style={{ flex: 1, display: layer === "mine" ? "flex" : "none" }}>
-        {mineMemories.length === 0 ? (
+        {ownSync.isLoading && mineMemories.length === 0 ? (
+          <ActivityIndicator style={{ marginTop: 48 }} color="#C4B5FD" />
+        ) : mineMemories.length === 0 ? (
           <View className="mt-16 items-center px-6">
             <MotiView
               from={{ scale: 0.9, opacity: 0.7 }}
@@ -257,7 +285,7 @@ export default function MemoriesDayScreen() {
               {t("memories.emptyForDay")}
             </Text>
             <Text className="mt-2 text-center text-sm text-white/50">
-              {t("memories.emptyForDayHint")}
+              {ownSync.hasError ? t("memories.networkError") : t("memories.emptyForDayHint")}
             </Text>
           </View>
         ) : (
@@ -317,6 +345,8 @@ export default function MemoriesDayScreen() {
       </ScrollView>
 
       <ScrollView
+        ref={friendScrollRef}
+        refreshControl={<RefreshControl refreshing={friendsLoading} onRefresh={refreshFriends} tintColor="#C4B5FD" />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         style={{ flex: 1, display: layer === "friends" ? "flex" : "none" }}>
@@ -386,5 +416,6 @@ export default function MemoriesDayScreen() {
         )}
       </ScrollView>
     </View>
+    </GestureDetector>
   );
 }

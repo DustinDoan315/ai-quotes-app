@@ -46,6 +46,7 @@
     "retrying": "Trying again…"
   },
   "memories": {
+    "todayLabel": "Today",
     "title": "Memories",
     "thisDayInMemoriesLabel": "This day in memories",
     "emptyForDay": "No memories for this day yet.",

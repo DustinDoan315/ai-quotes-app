@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useUserStore } from "@/appState";
@@ -15,6 +15,7 @@ type FriendsDayState = {
 };
 
 export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
+  const requestId = useRef(0);
   const { t } = useTranslation();
   const profile = useUserStore((s) => s.profile);
   const [cards, setCards] = useState<QuotePhotoCard[]>([]);
@@ -23,9 +24,14 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    const request = ++requestId.current;
+    setCards([]);
+    setHasError(false);
+    setErrorMessage(null);
     const userId = profile?.user_id ?? null;
     if (!userId) {
       setCards([]);
+      setIsLoading(false);
       return;
     }
 
@@ -48,8 +54,9 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
         limit: 60,
       });
 
-      setCards(data);
+      if (request === requestId.current) setCards(data);
     } catch (err) {
+      if (request !== requestId.current) return;
       console.error("[useFriendsMemoriesForDay] failed to load:", err);
       setHasError(true);
       const isNetworkError =
@@ -62,12 +69,13 @@ export function useFriendsMemoriesForDay(dateKey: string): FriendsDayState {
           : t("memories.friendsLoadErrorWithRetry"),
       );
     } finally {
-      setIsLoading(false);
+      if (request === requestId.current) setIsLoading(false);
     }
   }, [dateKey, profile?.user_id, t]);
 
   useEffect(() => {
     void load();
+    return () => { requestId.current += 1; };
   }, [load]);
 
   return { cards, isLoading, hasError, errorMessage, refresh: load };

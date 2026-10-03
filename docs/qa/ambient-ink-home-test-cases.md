@@ -82,3 +82,10 @@ The original Home layout change did not alter database policies. The later custo
 - Enter Edit: only avatar and display-name/bio fields remain, without Pro, account/settings, or destructive actions. Keyboard opening should keep fields reachable by scrolling.
 - Name input permits up to 40 characters; bio up to 200, with matching counter. Save retains validation and persists the values; Close discards text edits. Avatar uploads still save immediately through their existing flow.
 - Delete disclosure centers the icon and label together, with its chevron at the right. Identity no longer repeats the dedicated streak summary.
+
+### Memories calendar and day navigation
+- Open Memories directly after returning social sign-in: own cloud cards load independently of Home; calendar counts/thumbnails update when loading completes.
+- Offline refresh preserves cached cards. Mine and calendar must show only current account/guest-owned cards; switching accounts must not relabel old guest cards.
+- Calendar fits seven columns on smaller devices; today uses lavender. Move from January 31 to the next month: February must not be skipped.
+- Day header shows distinct adjacent dates. Swipe right goes back one day; swipe left goes forward one day. Next is disabled at today. Vertical scrolling and pull-to-refresh still work.
+- Navigate days rapidly on Friends: a delayed previous-day response must not replace the current day's cards. Each new day starts at the top.

@@ -2,9 +2,9 @@ import { useStreakStore, getDisplayStreak } from "@/appState/streakStore";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
-import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
 
+import { useUserStore } from "@/appState/userStore";
 import { useMemoryStore } from "@/appState";
 import type { MemoryState } from "@/appState/memoryStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -82,7 +82,7 @@ function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
   );
   if (!summary) {
     return (
-      <View className="h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 opacity-30" />
+      <View style={{ width: "100%", aspectRatio: 1 }} />
     );
   }
   const hasMine = summary.hasMine;
@@ -96,9 +96,15 @@ function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress(summary.date);
       }}
-      className="h-14 w-14 items-center justify-center rounded-2xl overflow-hidden border border-white/10 bg-white/5"
+      accessibilityRole="button"
+      accessibilityLabel={`${summary.date}, ${count}`}
+      accessibilityState={{ selected: isToday }}
+      className="items-center justify-center rounded-xl overflow-hidden border border-white/10 bg-white/5"
       style={({ pressed }) => ({
-        opacity: pressed ? 0.85 : 1,
+        width: "100%",
+        aspectRatio: 1,
+        borderColor: isToday ? "#C4B5FD" : "rgba(255,255,255,0.08)",
+        opacity: pressed ? 0.75 : 1,
       })}>
       {hasThumb && thumbnailUrl ? (
         <>
@@ -123,26 +129,26 @@ function CalendarDay({ summary, onPress, isToday, count }: CalendarDayProps) {
         <View
           className="items-center justify-center rounded-full"
           style={{
-            width: 28,
-            height: 28,
-            backgroundColor: isToday ? "rgba(250, 204, 21, 0.95)" : "transparent",
+            width: 24,
+            height: 24,
+            backgroundColor: isToday ? "#C4B5FD" : "transparent",
           }}>
           <Text
             className="font-bold"
             style={{
-              fontSize: 16,
+              fontSize: 14,
               color: isToday ? "#000000" : "#ffffff",
             }}>
             {dayNumber}
           </Text>
         </View>
       </View>
-      <View className="mt-1 h-4 flex-row items-center justify-center gap-1">
+      <View className="h-3 flex-row items-center justify-center gap-1">
         {hasMine ? (
           <View className="h-1.5 w-1.5 rounded-full bg-white" />
         ) : null}
-        {isStreak ? <Text className="text-xs">🔥</Text> : null}
-        {hasFavorite ? <Text className="text-xs">⭐</Text> : null}
+        {isStreak ? <Ionicons name="flame-outline" size={11} color="#C4B5FD" /> : null}
+        {hasFavorite ? <Ionicons name="star" size={10} color="#C4B5FD" /> : null}
       </View>
     </Pressable>
   );
@@ -222,18 +228,27 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   const { i18n, t } = useTranslation();
   const router = useRouter();
   const [cursorMonth, setCursorMonth] = useState(() => new Date());
-  const memories = useMemoryStore((s: MemoryState) => s.memories);
-  const getCalendarSummaryForMonth = useMemoryStore(
-    (s: MemoryState) => s.getCalendarSummaryForMonth,
-  );
+  const allMemories = useMemoryStore((s: MemoryState) => s.memories);
+  const profileUserId = useUserStore((s) => s.profile?.user_id);
+  const authUserId = useUserStore((s) => s.authUserId);
+  const guestId = useUserStore((s) => s.guestId);
+  const userId = profileUserId ?? authUserId;
+  const memories = useMemo(() => allMemories.filter(memory => userId
+    ? memory.ownerUserId === userId
+    : Boolean(guestId && !memory.ownerUserId && memory.ownerGuestId === guestId)), [allMemories, userId, guestId]);
   const displayStreak = useStreakStore((s) => getDisplayStreak(s));
   const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
 
   const monthKey = getMonthKey(cursorMonth);
-  const summarySelector = useMemo(
-    () => getCalendarSummaryForMonth(monthKey),
-    [getCalendarSummaryForMonth, monthKey],
-  );
+  const summarySelector = useMemo(() => {
+    const result: Record<string, MonthSummaryWithoutStreak> = {};
+    memories.forEach(memory => {
+      if (!memory.date.startsWith(monthKey)) return;
+      result[memory.date] = { date: memory.date, hasMine: true,
+        hasFavorite: Boolean(result[memory.date]?.hasFavorite || memory.isFavorite) };
+    });
+    return result;
+  }, [memories, monthKey]);
 
   const thumbnails = useMemo(
     () => getThumbnailsForMonth(memories, monthKey),
@@ -302,8 +317,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
   function handleChangeMonth(offset: number) {
     void Haptics.selectionAsync();
     setCursorMonth((prev) => {
-      const next = new Date(prev);
-      next.setMonth(prev.getMonth() + offset);
+      const next = new Date(prev.getFullYear(), prev.getMonth() + offset, 1);
       return next;
     });
   }
@@ -334,7 +348,8 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         <View className="mb-3 flex-row items-center justify-between">
           <Pressable
             onPress={() => goBackOrReplace(router, "/(tabs)")}
-            className="h-10 w-10 items-center justify-center rounded-full bg-white/10"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center rounded-full bg-white/5"
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}>
             <Ionicons name="chevron-back" size={22} color="#ffffff" />
           </Pressable>
@@ -352,16 +367,18 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         <View className="mt-5 flex-row items-center justify-between">
           <Pressable
             onPress={() => handleChangeMonth(-1)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5"
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-            <Text className="text-lg font-semibold text-white">‹</Text>
+            <Ionicons name="chevron-back" size={20} color="#C4B5FD" />
           </Pressable>
           <View className="flex-row items-center gap-2">
             <Text className="text-lg font-semibold text-white">{monthLabel}</Text>
             {!isCurrentMonth ? (
               <Pressable
                 onPress={handleGoToToday}
-                className="rounded-full bg-white/15 px-2.5 py-1"
+                accessibilityRole="button"
+                className="min-h-11 items-center justify-center rounded-full bg-violet-300/10 px-2.5"
                 style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
                 <Text className="text-[11px] font-semibold text-white/90">
                   {t("memories.todayButton")}
@@ -371,9 +388,10 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
           </View>
           <Pressable
             onPress={() => handleChangeMonth(1)}
-            className="h-11 w-11 items-center justify-center rounded-xl bg-white/10"
+            accessibilityRole="button"
+            className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5"
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-            <Text className="text-lg font-semibold text-white">›</Text>
+            <Ionicons name="chevron-forward" size={20} color="#C4B5FD" />
           </Pressable>
         </View>
         <View className="mt-3 flex-row items-center gap-2">
@@ -386,7 +404,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
           </View>
           {displayStreak > 0 ? (
             <View className="flex-row items-center gap-1 rounded-full bg-white/10 px-3 py-1">
-              <Text className="text-xs">🔥</Text>
+              <Ionicons name="flame-outline" size={13} color="#C4B5FD" />
               <Text className="text-xs font-medium text-white/80">
                 {t("memories.calendarStreakCount", {
                   count: displayStreak,
@@ -397,7 +415,7 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
         </View>
       </View>
 
-      <View className="mb-1 flex-row justify-between px-1 pt-4">
+      <View className="mb-2 flex-row justify-between px-4 pt-5">
         {weekdayLabels.map((label, index) => (
           <Text
             key={`${label}-${index}`}
@@ -409,29 +427,22 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 4 }}>
+        contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 14 }}>
         <View className="flex-row flex-wrap">
           {gridDays.map((day, index) => (
-            <MotiView
+            <View
               key={day ? `${monthKey}-${day.date}` : `${monthKey}-empty-${index}`}
-              from={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                type: "timing",
-                duration: 220,
-                delay: index * 18,
-              }}
-              className="w-[14.28%] items-center pb-3 px-0.5">
+              style={{ width: `${100 / 7}%`, paddingHorizontal: 2, paddingBottom: 6 }}>
               <CalendarDay
                 summary={day}
                 onPress={onPressDay}
                 isToday={day ? day.date === todayKey : false}
                 count={day ? (dayCounts[day.date] ?? 0) : 0}
               />
-            </MotiView>
+            </View>
           ))}
         </View>
-        <View className="mt-6 flex-row flex-wrap items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+        <View className="mt-5 flex-row flex-wrap items-center justify-center gap-4 px-2 py-3">
           <View className="flex-row items-center gap-2">
             <View className="h-2.5 w-2.5 rounded-full bg-white" />
             <Text className="text-xs text-white/80">
@@ -439,13 +450,13 @@ export function MemoriesCalendarScreen({ onPressDay }: Props) {
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <Text className="text-sm">🔥</Text>
+            <Ionicons name="flame-outline" size={13} color="#C4B5FD" />
             <Text className="text-xs text-white/80">
               {t("memories.calendarLegendStreakDay")}
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <Text className="text-sm">⭐</Text>
+            <Ionicons name="star" size={12} color="#C4B5FD" />
             <Text className="text-xs text-white/80">
               {t("memories.calendarLegendFavorite")}
             </Text>

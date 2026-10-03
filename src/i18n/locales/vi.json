@@ -45,6 +45,7 @@
     "retrying": "Đang thử lại…"
   },
   "memories": {
+    "todayLabel": "Hôm nay",
     "title": "Kỷ niệm",
     "thisDayInMemoriesLabel": "Ngày này trong kỷ niệm",
     "emptyForDay": "Chưa có kỷ niệm nào cho ngày này.",
