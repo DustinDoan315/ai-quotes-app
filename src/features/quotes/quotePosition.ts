@@ -54,3 +54,30 @@ export function clampQuotePosition(
     y: clampAxis(position.y, frame.height, height),
   };
 }
+
+/** Scale a fixed-center quote by projecting the dragged corner onto its diagonal. */
+export function resizeQuoteScale(
+  startScale: number,
+  dx: number,
+  dy: number,
+  quoteSize: QuoteBoxSize,
+  rotation = 0,
+): number {
+  "worklet";
+  const start = Number.isFinite(startScale)
+    ? Math.min(1, Math.max(MIN_QUOTE_SCALE, startScale))
+    : 1;
+  const { width, height } = quoteSize;
+  if (
+    !Number.isFinite(dx) || !Number.isFinite(dy) ||
+    !Number.isFinite(rotation) || !Number.isFinite(width) ||
+    !Number.isFinite(height) || width < 0 || height < 0
+  ) return start;
+  const diagonalSquared = width * width + height * height;
+  if (!Number.isFinite(diagonalSquared) || diagonalSquared <= 0) return start;
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const delta = 2 * (dx * (cos * width - sin * height) + dy * (sin * width + cos * height)) / diagonalSquared;
+  if (!Number.isFinite(delta)) return start;
+  return Math.min(1, Math.max(MIN_QUOTE_SCALE, start + delta));
+}

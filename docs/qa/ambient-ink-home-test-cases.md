@@ -116,3 +116,14 @@ The original Home layout change did not alter database policies. The later custo
 - English and Vietnamese: caption and author label are translated; no clipped caption or overlap at large text sizes.
 - Reduce Motion enabled: caption is immediately visible without an entrance animation.
 - Small phone and landscape: photo stays within screen edges; scroll to the CTA; Back, Skip, and completion keep their existing behavior.
+
+### Caption edit handles
+
+- On the first generated own card, a violet caption outline, pencil, and resize corner appear briefly; no explanatory text occupies the photo or footer.
+- Tap the caption after the hint disappears: controls return without opening the keyboard. Tap the pencil: existing text editor opens; save/cancel work.
+- Drag the caption: position changes. Drag the resize corner inward/outward: caption shrinks/grows within 0.55–1 without being translated. Pinch and rotation still work.
+- Move the caption to every edge, resize at minimum size and after rotation: handles stay tappable; keep dragging for more than eight seconds without losing the active handle.
+- Relaunch after the first hint: it does not replay. Generate another photo: controls start hidden until tapped. Storage read/write failure must not crash.
+- Friend cards and memory cards never show editing controls.
+- Share Free and Pro drafts while controls are selected: exported photo contains no border, pencil, handle, or helper text. Saving/generating/reviewing a rewrite also disables the controls.
+- VoiceOver: caption announces adjustment instructions, pencil announces text editing, and resize handle supports increment/decrement actions. Both English and Vietnamese labels work.

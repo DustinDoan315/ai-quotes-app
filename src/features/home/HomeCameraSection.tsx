@@ -1,3 +1,4 @@
+import { useCaptionEditHint } from "@/hooks/useCaptionEditHint";
 import { InklyShareWatermark } from "@/components/InklyShareWatermark";
 import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { QuoteStyleControls } from "@/features/home/QuoteStyleControls";
@@ -282,7 +283,11 @@ export const HomeCameraSection = ({
   const showQuoteOverlay = Boolean(
     !hideQuote && dailyQuoteText && !isGenerating && selectedImageUri,
   );
-  const canMoveQuote = !interactionLocked && !isEditingQuote && !pendingQuoteText && !isSavingPhoto;
+  const canMoveQuote = !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto;
+  const captionControls = useCaptionEditHint(
+    showQuoteOverlay && canMoveQuote && !watermarkForExport,
+    selectedImageUri,
+  );
   const quoteEditValidation = useMemo(
     () => validateEditableQuote(quoteDraft),
     [quoteDraft],
@@ -330,6 +335,7 @@ export const HomeCameraSection = ({
     if (!dailyQuoteText || isSavingPhoto || interactionLocked) {
       return;
     }
+    captionControls.dismissControls();
     setQuoteDraft(dailyQuoteText);
     onQuoteDraftChange(dailyQuoteText);
     setIsEditingQuote(true);
@@ -589,12 +595,20 @@ export const HomeCameraSection = ({
                       </View>
                       <QuotePositionLayer
                         position={quotePosition}
+                        controlsVisible={captionControls.controlsVisible && canMoveQuote && !watermarkForExport}
+                        onInteraction={captionControls.activateControls}
+                        onEditText={openQuoteEditor}
+                        resizeAccessibilityLabel={t("home.aiTools.resizeCaption")}
+                        editAccessibilityLabel={t("home.aiTools.editCaption")}
                         onPositionChange={
                           canMoveQuote ? onQuotePositionChange : undefined
                         }
                       >
                         <Pressable
-                          onPress={openQuoteEditor}
+                          onPress={captionControls.activateControls}
+                          accessibilityRole="button"
+                          accessibilityLabel={t("home.aiTools.adjustCaption")}
+                          accessibilityHint={t("home.aiTools.adjustCaptionHint")}
                           className="rounded-2xl px-4 py-3"
                           style={{
                             backgroundColor: "rgba(0,0,0,0.45)",
@@ -770,16 +784,7 @@ export const HomeCameraSection = ({
                             >
                               {dailyQuoteText}
                             </Text>
-                            {!interactionLocked ? <View className="mt-2 flex-row items-center gap-1">
-                              <Ionicons
-                                name="create-outline"
-                                size={11}
-                                color="rgba(255,255,255,0.55)"
-                              />
-                              <Text className="text-left text-[11px] font-medium text-white/55">
-                                {t("home.aiTools.editQuoteHint")}
-                              </Text>
-                            </View> : null}
+
                           </>
                         )}
                       </Pressable>
