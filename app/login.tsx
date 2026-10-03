@@ -1,5 +1,7 @@
 import { useAuth } from "@/hooks/useSupabaseAuth";
 import { useUserStore } from "@/appState/userStore";
+import { HomeAmbientBackground } from "@/features/home/HomeAmbientBackground";
+import { HOME_BACKGROUNDS } from "@/theme/homeBackgrounds";
 import { AppIcon } from "@/components/AppIcon";
 import { LEGAL_LINKS } from "@/config/legalLinks";
 import * as Crypto from "expo-crypto";
@@ -135,17 +137,14 @@ export default function LoginScreen() {
     {
       icon: FEATURE_ROW_ICONS[0],
       title: t("auth.login.features.verifiedTitle"),
-      description: t("auth.login.features.verifiedDesc"),
     },
     {
       icon: FEATURE_ROW_ICONS[1],
       title: t("auth.login.features.personaTitle"),
-      description: t("auth.login.features.personaDesc"),
     },
     {
       icon: FEATURE_ROW_ICONS[2],
       title: t("auth.login.features.memoriesTitle"),
-      description: t("auth.login.features.memoriesDesc"),
     },
   ];
 
@@ -239,6 +238,8 @@ export default function LoginScreen() {
   };
 
   return (
+    <View style={{ flex: 1 }}>
+      <HomeAmbientBackground palette={HOME_BACKGROUNDS[0]} reduceMotion />
     <ScrollView
       className="flex-1 bg-transparent"
       contentContainerStyle={{ flexGrow: 1 }}
@@ -254,7 +255,7 @@ export default function LoginScreen() {
             onPress={() => goBackOrReplace(router, returnTo as never)}
             disabled={isBusy}
             accessibilityRole="button"
-            style={({ pressed }) => ({ minHeight: 44, opacity: isBusy ? 0.5 : pressed ? 0.7 : 1 })}
+            style={{ minHeight: 44, opacity: isBusy ? 0.5 : 1 }}
             className="flex-row items-center gap-1">
             <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.7)" />
             <Text className="text-white/70 text-base">{t("auth.login.back")}</Text>
@@ -262,9 +263,9 @@ export default function LoginScreen() {
           <Text className="text-white/40 text-sm">v{appVersion}</Text>
         </View>
 
-        {/* A compact identity gives the sign-in actions room to breathe. */}
+        <View style={{ flexGrow: 1, justifyContent: "center", paddingVertical: 28 }}>
         <View className="items-center mb-7 px-3">
-          <AppIcon size={76} borderRadius={22} />
+          <AppIcon size={104} borderRadius={28} />
           <Text className="text-white text-3xl font-bold text-center mt-5 mb-2">
             {t("auth.login.welcome")}
           </Text>
@@ -292,7 +293,7 @@ export default function LoginScreen() {
           disabled={isBusy}
           accessibilityRole="button"
           className="flex-row items-center justify-center gap-3 rounded-2xl border border-white/20 bg-white/5 px-4"
-          style={({ pressed }) => ({ minHeight: 52, opacity: isBusy ? 0.5 : pressed ? 0.75 : 1 })}>
+          style={{ height: 52, flexShrink: 0, opacity: isBusy ? 0.5 : 1 }}>
           {loadingGoogle ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -309,7 +310,7 @@ export default function LoginScreen() {
         ) : null}
 
         {/* Feature rows */}
-        <View className="mt-6 gap-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+        <View className="mt-7 gap-4 px-3">
           {featureRows.map((row) => (
             <View key={row.title} className="flex-row items-start gap-3">
               <View className="w-8 h-8 rounded-xl bg-white/5 items-center justify-center">
@@ -317,10 +318,12 @@ export default function LoginScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-white text-sm font-semibold mb-0.5">{row.title}</Text>
-                <Text className="text-white/60 text-xs leading-4">{row.description}</Text>
+
               </View>
             </View>
           ))}
+        </View>
+
         </View>
 
         {/* Footer */}
@@ -333,7 +336,7 @@ export default function LoginScreen() {
             disabled={isBusy}
             accessibilityRole="button"
             className="items-center justify-center px-5"
-            style={({ pressed }) => ({ minHeight: 44, opacity: isBusy ? 0.5 : pressed ? 0.7 : 1 })}>
+            style={{ minHeight: 44, opacity: isBusy ? 0.5 : 1 }}>
             <Text className="text-white/75 text-sm font-medium">{t("auth.login.continueAsGuest")}</Text>
           </Pressable>
 
@@ -358,5 +361,6 @@ export default function LoginScreen() {
         </View>
       </View>
     </ScrollView>
+    </View>
   );
 }
