@@ -29,19 +29,20 @@ export const supabase = createClient(supabaseUrl ?? "", supabaseAnonKey ?? "", {
   },
 });
 
-export function checkSupabaseReachable(): void {
+/** Advisory startup diagnostic. Authentication owns the retry/error UI. */
+export async function checkSupabaseReachable(): Promise<void> {
   if (!supabaseUrl) return;
-  fetch(`${supabaseUrl}/rest/v1/`, {
-    method: "HEAD",
-    headers: { apikey: supabaseAnonKey ?? "" },
-  }).catch(() => {
-    console.error(
-      "[Supabase] Project is unreachable. Common causes:\n" +
-        "  1. Free-tier project is paused — resume it at https://supabase.com/dashboard\n" +
-        "  2. EXPO_PUBLIC_SUPABASE_URL is wrong in your .env or EAS secrets\n" +
-        "  3. No internet access to the Supabase endpoint",
-    );
-  });
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/health`, {
+      method: "GET",
+      headers: { apikey: supabaseAnonKey ?? "" },
+    });
+    if (!response.ok) {
+      console.warn(`[Supabase] Health check returned HTTP ${response.status}. Authentication will handle retries.`);
+    }
+  } catch {
+    console.warn("[Supabase] Startup health check could not connect. This may be temporary; authentication will handle retries.");
+  }
 }
 
 export type Database = {
