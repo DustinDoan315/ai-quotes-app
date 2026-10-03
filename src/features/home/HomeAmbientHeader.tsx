@@ -15,7 +15,7 @@ export function HomeAmbientHeader({ palette, avatarUrl, onProfile, onMenu }: {
     </Pressable>
     <Pressable onPress={onMenu} accessibilityRole="button" accessibilityLabel={t('home.ambient.menu')} style={styles.brand}>
       <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={styles.wordmark}>{APP_BRAND_MARK}</Text>
-      <Ionicons name="chevron-down" size={13} color={C.muted} style={{ position: 'absolute', right: 0 }} />
+      <Ionicons name="chevron-down" size={13} color={C.muted} style={{ position: 'absolute', left: '50%', marginLeft: 46 }} />
     </Pressable>
     <View style={styles.pillSlot}><View style={styles.pill} accessible accessibilityLabel={t(`home.vibes.${palette.vibeKey}`)}>
       <View style={styles.swatches}>{palette.colors.slice(0, 3).map((color, index) => <View key={index} style={[styles.swatch, { backgroundColor: color }]} />)}</View>

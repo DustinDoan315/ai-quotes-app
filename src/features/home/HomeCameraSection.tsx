@@ -52,6 +52,7 @@ import type {
 
 export type HomeCameraSectionProps = {
   frameWidth?: number;
+  externalCameraControls?: boolean;
   interactionLocked?: boolean;
   cameraRef: React.RefObject<CameraView | null>;
   cameraSessionKey: number;
@@ -110,6 +111,7 @@ export type HomeCameraSectionProps = {
 
 export const HomeCameraSection = ({
   frameWidth,
+  externalCameraControls = false,
   interactionLocked = false,
   cameraRef,
   cameraSessionKey,
@@ -191,7 +193,7 @@ export const HomeCameraSection = ({
   const reservesEditControls = Boolean(
     dailyQuoteText && !hideQuote && selectedImageUri,
   );
-  const controlsHeight = selectedImageUri === null
+  const controlsHeight = selectedImageUri === null && externalCameraControls ? 0 : selectedImageUri === null
     ? 104 + (canCreatePhotoStack && photoStackCount > 0 ? 52 : 0)
     : reservesEditControls ? 64 : 0;
   // 80pt action row + 8pt top padding + 1pt border + the device's bottom inset.
@@ -210,7 +212,7 @@ export const HomeCameraSection = ({
             ),
           )
         : cardFrame.height;
-    const width = Math.min(frameWidth ?? cardFrame.width, height * QUOTE_DISPLAY_ASPECT);
+    const width = frameWidth ?? Math.min(cardFrame.width, height * QUOTE_DISPLAY_ASPECT);
     return { width, height: width / QUOTE_DISPLAY_ASPECT };
   }, [
     availableCameraHeight,
@@ -219,7 +221,7 @@ export const HomeCameraSection = ({
     controlsHeight,
     frameWidth,
   ]);
-  const cameraTopOffset =
+  const cameraTopOffset = frameWidth != null ? 0 :
     availableCameraHeight > 0
       ? Math.max(
           0,
@@ -897,7 +899,7 @@ export const HomeCameraSection = ({
           </GestureDetector>
         </View>
       </View>
-        {selectedImageUri === null ? (
+        {selectedImageUri === null && !externalCameraControls ? (
           <View
             className="w-full items-center px-4"
             pointerEvents="box-none"

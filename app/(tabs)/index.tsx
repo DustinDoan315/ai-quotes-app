@@ -11,6 +11,7 @@ import { ServiceUnavailableScreen } from "@/components/ServiceUnavailableScreen"
 import { HomeAmbientHeader } from "@/features/home/HomeAmbientHeader";
 import { HomeAmbientBackground } from "@/features/home/HomeAmbientBackground";
 import { HomeMomentToolbar } from "@/features/home/HomeMomentToolbar";
+import { HomeCameraControls } from "@/features/home/HomeCameraControls";
 import { HomeAmbientDock } from "@/features/home/HomeAmbientDock";
 import { useHomeAmbientController } from "@/features/home/useHomeAmbientController";
 import { useHomeActiveShare } from "@/hooks/useHomeActiveShare";
@@ -409,6 +410,7 @@ export default function HomeScreen() {
             feedError={feedHasError && ambient.visibleStacks.length === 0}
             onRetryFeed={() => void refreshFeed()}
             cameraSectionProps={{
+              externalCameraControls: true,
               frameWidth: layout.cardWidth,
               interactionLocked: exportLocked,
               cameraRef,
@@ -476,6 +478,7 @@ export default function HomeScreen() {
       />
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => setFooterHeight(e.nativeEvent.layout.height)}>
         <View style={{ minHeight: HOME_AMBIENT_LAYOUT.actionRowMinHeight }}>
+          {!isOnFeed && !selectedImageUri ? <HomeCameraControls disabled={busy || ambient.isDragging} activePreset={activePreset} onZoom={handleZoomPreset} onFlip={handleToggleFacing} stackCount={canCreatePhotoStack ? photoStackCount : 0} onFinish={finishPhotoStack} /> : null}
           {ambient.active || selectedImageUri ? <HomeMomentToolbar
             context={ambient.active ? isOwned ? 'mine' : 'friends' : 'draft'}
             index={ambient.active?.index ?? 0} count={ambient.active?.count ?? 1}
