@@ -94,3 +94,10 @@ The original Home layout change did not alter database policies. The later custo
 - With Mine showing 3, all three card containers and their quotes must render immediately; only the selected tab mounts a list.
 - Previous day enters from the left, next day from the right. The calendar back action retains normal navigation. Reduce Motion skips the horizontal transition.
 - An available local image remains visible while its Storage URL is signing, including network failure. Fresh signed URLs replace it on success.
+
+### Returning account guest merge
+- Sign out, create three guest photos, sign in with an existing Apple/Google account. The same photo IDs appear in Home and Memories with preserved quote transforms/favorites and target-owned storage paths. Anonymous source Auth account is removed only after transfer/storage cleanup.
+- Disable network during transfer, reopen Memories and pull to refresh: pending transfer resumes without duplicate photos. Cache/proof remain intact on error; account login itself remains usable.
+- Try another destination during a pending transfer: reject changing the destination. Never merge guest records by a guest ID alone.
+- Fresh provider linking keeps the same UUID and does not delete the upgraded account. Cancelled login then successful same-UUID linking clears only its unbound pending proof.
+- Previously lost guest credentials require trusted one-time recovery: use Profile's DEV-only Copy memory recovery info button. It includes IDs only and is absent from release builds.

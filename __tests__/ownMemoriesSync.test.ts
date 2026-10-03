@@ -4,6 +4,8 @@ import type { QuotePhotoCard } from "@/services/media/userPhotosApi";
 import type { QuoteMemory } from "@/types/memory";
 import { useOwnMemoriesSync } from "@/features/memories/useOwnMemoriesSync";
 
+jest.mock("@/services/guestAccountMerge", () => ({ resumeGuestMerge: jest.fn().mockResolvedValue(false) }));
+
 const mockUser = { profile: { user_id: "me" }, authUserId: "me", guestId: "guest" };
 const mockMemory = { _hasHydrated: true, memories: [] as QuoteMemory[], replaceMemories: jest.fn() };
 let mockCleanup: (() => void) | undefined;

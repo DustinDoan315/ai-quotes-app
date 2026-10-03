@@ -1,3 +1,4 @@
+import { rememberGuestMerge, bindGuestMergeTarget, resumeGuestMerge, finishGuestIdentityUpgrade } from "@/services/guestAccountMerge";
 import { supabase } from "@/config/supabase";
 import type { AuthError, Session, User } from "@supabase/supabase-js";
 import type { SignInWithIdTokenCredentials } from "@supabase/auth-js";
@@ -25,7 +26,7 @@ export class IdentityLinkingError extends Error {
   }
 }
 
-export type SocialSignInError = AuthError | IdentityLinkingError;
+export type SocialSignInError = AuthError | IdentityLinkingError | Error;
 
 export type DeleteAccountErrorCode =
   | "no_authenticated_session"
@@ -151,6 +152,9 @@ async function signInOrLinkIdentity(
     const { data, error } = await supabase.auth.linkIdentity(credentials);
     const linkingError = error ? classifyIdentityLinkingError(error) : null;
     if (!(linkingError instanceof IdentityLinkingError && linkingError.code === "identity_already_linked")) {
+      if (!error && data.user?.id === currentSession.user.id) {
+        await finishGuestIdentityUpgrade(data.user.id);
+      }
       return {
         user: data.user ?? null,
         session: data.session ?? null,
@@ -158,11 +162,27 @@ async function signInOrLinkIdentity(
         upgradedAnonymousUser: !error && data.user?.id === currentSession.user.id,
       };
     }
+    try {
+      // Persist proof before the provider replaces the anonymous session.
+      await rememberGuestMerge(currentSession);
+    } catch {
+      return { user: null, session: currentSession, error: new Error("Could not preserve guest memories. Please try signing in again."), upgradedAnonymousUser: false };
+    }
     // The provider belongs to an existing account. Authenticate that account
     // without clearing the guest session first or relabeling its memories.
   }
 
   const { data, error } = await supabase.auth.signInWithIdToken(credentials);
+  if (!error && data.user && data.session && !data.user.is_anonymous) {
+    try {
+      await bindGuestMergeTarget(data.user.id);
+      await resumeGuestMerge(data.user.id);
+    } catch {
+      // The destination login succeeded. Preserve pending proof for retry;
+      // never delete or locally reassign photos before server confirmation.
+      console.warn("[Auth] Guest memory transfer is pending; retry from Memories.");
+    }
+  }
   return {
     user: data.user ?? null,
     session: data.session ?? null,

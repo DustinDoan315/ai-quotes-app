@@ -5,6 +5,16 @@ const mockLinkIdentity = jest.fn();
 const mockSignInWithIdToken = jest.fn();
 const mockSignOut = jest.fn();
 
+const mockRememberGuest = jest.fn();
+const mockBindGuestTarget = jest.fn();
+const mockResumeGuestMerge = jest.fn();
+jest.mock("@/services/guestAccountMerge", () => ({
+  finishGuestIdentityUpgrade: jest.fn(),
+  rememberGuestMerge: (...args: unknown[]) => mockRememberGuest(...args),
+  bindGuestMergeTarget: (...args: unknown[]) => mockBindGuestTarget(...args),
+  resumeGuestMerge: (...args: unknown[]) => mockResumeGuestMerge(...args),
+}));
+
 jest.mock("@/config/supabase", () => ({
   supabase: {
     auth: {
@@ -195,4 +205,14 @@ describe("social identity upgrade", () => {
       expect(mockSignOut).not.toHaveBeenCalled();
     });
   });
+});
+
+it("does not replace the guest session when saving its merge proof fails", async () => {
+  jest.resetAllMocks();
+  mockGetSession.mockResolvedValue({ data: { session: { user: { id: "guest", is_anonymous: true } } } });
+  mockLinkIdentity.mockResolvedValue({ data: {}, error: { code: "identity_already_exists", message: "conflict" } });
+  mockRememberGuest.mockRejectedValue(new Error("secure storage unavailable"));
+  const result = await signInWithApple("token");
+  expect(result.error).toBeInstanceOf(Error);
+  expect(mockSignInWithIdToken).not.toHaveBeenCalled();
 });

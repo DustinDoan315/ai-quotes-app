@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.sync-subscription]
 verify_jwt = true
+
+[functions.merge-guest-account]
+verify_jwt = false

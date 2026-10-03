@@ -1,3 +1,4 @@
+jest.mock("@/services/guestAccountMerge", () => ({ rememberGuestMerge: jest.fn(), bindGuestMergeTarget: jest.fn(), resumeGuestMerge: jest.fn().mockResolvedValue(false) }));
 /* eslint-disable import/first */
 
 const mockGetSession = jest.fn();

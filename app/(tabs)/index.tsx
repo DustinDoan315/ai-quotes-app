@@ -192,13 +192,7 @@ export default function HomeScreen() {
           offset += cards.length;
         }
         if (!cancelled) {
-          const latestLocalMemories = useMemoryStore
-            .getState()
-            .memories.filter((memory) =>
-              ownerUserId
-                ? memory.ownerUserId === ownerUserId
-                : memory.ownerGuestId === ownerGuestId,
-            );
+          const latestLocalMemories = useMemoryStore.getState().memories;
           replaceMemories(mergeMemories(memories, latestLocalMemories));
         }
       } catch (error) {

@@ -1,6 +1,7 @@
 import { useUIStore } from "@/appState/uiStore";
 import { useUserStore } from "@/appState/userStore";
 import { useAuth } from "@/hooks/useSupabaseAuth";
+import { MemoryRecoveryInfoButton } from "@/features/dev/MemoryRecoveryInfoButton";
 import { ScreenshotSeeder } from "@/features/dev/ScreenshotSeeder";
 import { ProfileAuthedHeader } from "@/features/profile/ProfileAuthedHeader";
 import { ProfileAvatarRow } from "@/features/profile/ProfileAvatarRow";
@@ -334,7 +335,7 @@ export function ProfileAuthedView({
           deleting={deleting}
           onDeleteAccount={handleDeleteAccount}
         />
-        {__DEV__ && <ScreenshotSeeder />}
+        {__DEV__ && <><MemoryRecoveryInfoButton /><ScreenshotSeeder /></>}
         </>}
       </ScrollView>
     </KeyboardAvoidingView>

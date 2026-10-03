@@ -1,3 +1,4 @@
+import { resumeGuestMerge } from "@/services/guestAccountMerge";
 import { getCurrentUserProfile, ensureUserProfile, updateUserProfile } from "@/services/supabase-auth";
 import { isRevenueCatInitialized } from "@/services/paywall/nativeRevenueCat";
 import { revenuecatClient } from "@/services/paywall/revenuecatClient";
@@ -63,5 +64,10 @@ export const syncUserProfile = async (user: User | null) => {
     useUserStore.setState({ profile, authState: "authenticated" });
   } else {
     setAuthState("authenticated");
+  }
+  try {
+    await resumeGuestMerge(user.id);
+  } catch {
+    console.warn("[Auth] Guest memory transfer remains pending.");
   }
 };

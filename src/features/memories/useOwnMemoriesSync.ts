@@ -1,3 +1,4 @@
+import { resumeGuestMerge } from "@/services/guestAccountMerge";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMemoryStore, useUserStore } from "@/appState";
@@ -30,6 +31,7 @@ export function useOwnMemoriesSync() {
     setIsLoading(true);
     setHasError(false);
     try {
+      if (userId) await resumeGuestMerge(userId);
       const cloud = await loadOwnMemories({ userId, guestId });
       if (!isCurrent() || !useMemoryStore.getState()._hasHydrated) return;
       const latest = useMemoryStore.getState();
