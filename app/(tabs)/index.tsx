@@ -1,3 +1,4 @@
+import { mergeMemories } from "@/domain/memories/mergeMemories";
 import { useUIStore } from "@/appState/uiStore";
 import { useMemoryStore } from "@/appState";
 import {
@@ -189,7 +190,6 @@ export default function HomeScreen() {
           offset += cards.length;
         }
         if (!cancelled) {
-          const byId = new Map(memories.map((memory) => [memory.id, memory]));
           const latestLocalMemories = useMemoryStore
             .getState()
             .memories.filter((memory) =>
@@ -197,10 +197,7 @@ export default function HomeScreen() {
                 ? memory.ownerUserId === ownerUserId
                 : memory.ownerGuestId === ownerGuestId,
             );
-          latestLocalMemories.forEach((memory) => {
-            if (!byId.has(memory.id)) byId.set(memory.id, memory);
-          });
-          replaceMemories([...byId.values()]);
+          replaceMemories(mergeMemories(memories, latestLocalMemories));
         }
       } catch (error) {
         // Keep the last local cache visible while offline; a failed cloud
@@ -242,6 +239,7 @@ export default function HomeScreen() {
   if (!exportLocked) heldGeometry.current = { height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight };
   const viewportHeight = heldGeometry.current.height;
   const layout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: heldGeometry.current.footerHeight });
+  const feedLayout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: heldGeometry.current.footerHeight, presentation: 'feed' });
   const draftPalette = draftVibeKey ? getHomeBackgroundPaletteByKey(draftVibeKey) : palette;
   const activePalette = ambient.active?.palette ?? draftPalette;
   const patchMomentFavorite = useCallback((id: string, value: boolean) => {
@@ -299,6 +297,7 @@ export default function HomeScreen() {
   const {
     emojiBursts,
     handleReact,
+    previewReaction,
     shouldShowReactions,
   } = useHomeReactions({
     activeQuote: ambient.active?.card ?? null,
@@ -380,8 +379,8 @@ export default function HomeScreen() {
         listRef={listRef}
         quoteStacks={ambient.visibleStacks}
         frameWidth={Math.max(1, layout.cardWidth)}
-        contentTop={layout.contentTop}
-        contentHeight={layout.contentHeight}
+        contentTop={feedLayout.contentTop}
+        contentHeight={feedLayout.contentHeight}
         viewerUserId={authUserId}
         viewerGuestId={guestId}
         activeQuoteId={ambient.active?.card.id ?? null}
@@ -509,6 +508,10 @@ export default function HomeScreen() {
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
               {pastMemories[0] ? <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push({ pathname: '/memories/day', params: { date: pastMemories[0].date } } as never)); }}><Text style={{ color: 'white' }}>{t('memories.thisDayInMemoriesLabel')}</Text></Pressable> : null}
+              {__DEV__ ? <View style={{ paddingVertical: 12 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>Reaction preview · development only</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={`Preview ${emoji}`} style={{ padding: 14 }} onPress={() => { setMenuVisible(false); previewReaction(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View>
+              </View> : null}
               {shouldShowReactions && ambient.active ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={t('home.reactions.withEmoji', { emoji })} style={{ padding: 16 }} onPress={() => { setMenuVisible(false); void handleReact(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View> : null}
             </ScrollView>
             <View style={{ alignItems: 'flex-end', paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' }}>

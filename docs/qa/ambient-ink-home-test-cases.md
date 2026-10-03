@@ -45,3 +45,11 @@ Native build and device verification were intentionally not run. Record results 
 - [ ] Check actual gradients/shadows/photo contrast on iOS/Android, including bright busy images. Capture reference screenshots.
 
 No database policy or migration change is included. A real authenticated favorite write/read and native export capture remain device checks.
+
+## Discovery polish and development reaction preview
+
+- Open the Inkly menu in a development build. Under “Reaction preview · development only”, tap each emoji. Confirm the popup closes and emoji particles animate without a friend account or network request.
+- Confirm this preview section is absent in release builds.
+- Confirm discovery cards have balanced space between the header and bottom toolbar; camera placement remains unchanged.
+- Save a quote, reopen Home to refresh cloud memories, then open its Memories day. Confirm one entry per saved photo; separately saved photos remain separate.
+- Open Streak on a compact screen and with larger text. Confirm content scrolls and the bottom-right Close button remains accessible.

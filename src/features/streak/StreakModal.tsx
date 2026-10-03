@@ -1,7 +1,9 @@
 import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
+import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
+import { HOME_AMBIENT_CHROME, HOME_AMBIENT_LAYOUT } from "@/theme/homeAmbient";
 import { getStreakTier } from "@/utils/streakMilestones";
 import { Ionicons } from "@expo/vector-icons";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,6 +15,8 @@ type Props = {
 export function StreakModal({ visible, onClose }: Props) {
   const { i18n, t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const reduceMotion = useReducedMotionPreference();
   const currentStreak = useStreakStore((s) => getDisplayStreak(s));
   const longestStreak = useStreakStore((s) => s.longestStreak);
   const lastQuoteDate = useStreakStore((s) => s.lastQuoteDate);
@@ -36,64 +40,53 @@ export function StreakModal({ visible, onClose }: Props) {
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType={reduceMotion ? "none" : "fade"}
       onRequestClose={onClose}>
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("home.ambient.closeMenu")}
         onPress={onClose}
-        className="flex-1 items-center justify-end bg-black/60"
-        style={{ paddingBottom: Math.max(insets.bottom, 24) }}>
+        style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.7)", paddingHorizontal: 24, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }}>
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="w-full rounded-3xl border border-white/10 bg-[#111] px-6 py-8 mx-4"
-          style={{ maxWidth: 400 }}>
-          {/* Header */}
-          <View className="mb-6 flex-row items-center justify-between">
-            <Text className="text-lg font-bold text-white">
+          accessibilityViewIsModal
+          style={{ width: "100%", maxWidth: 400, maxHeight: Math.max(180, height - insets.top - insets.bottom - 32), borderRadius: HOME_AMBIENT_LAYOUT.radius, borderWidth: 1, borderColor: HOME_AMBIENT_CHROME.border, backgroundColor: "#15121c", overflow: "hidden" }}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
+            <Text accessibilityRole="header" style={{ color: HOME_AMBIENT_CHROME.text, fontSize: 20, fontWeight: "700" }}>
               {t("streak.modalTitle")}
             </Text>
-            <Pressable
-              onPress={onClose}
-              hitSlop={12}
-              className="h-8 w-8 items-center justify-center rounded-full bg-white/10"
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-              <Ionicons name="close" size={18} color="#fff" />
-            </Pressable>
-          </View>
 
-          {/* Current streak */}
-          <View className="mb-6 items-center">
-            <View className="mb-3 h-20 w-20 items-center justify-center rounded-[28px] border border-white/15 bg-white/8">
-              <Ionicons name={tier.icon} size={36} color={tier.color} />
+            <View style={{ alignItems: "center", paddingVertical: 24 }}>
+              <View style={{ width: 76, height: 76, borderRadius: 26, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: `${tier.color}40`, backgroundColor: `${tier.color}12`, marginBottom: 12 }}>
+                <Ionicons name={tier.icon} size={36} color={tier.color} />
+              </View>
+              <Text style={{ fontSize: 64, lineHeight: 72, fontWeight: "700", color: HOME_AMBIENT_CHROME.text }}>{currentStreak}</Text>
+              <Text style={{ marginTop: 4, fontSize: 16, color: HOME_AMBIENT_CHROME.muted }}>
+                {t("streak.modalDayStreak", { count: currentStreak })}
+              </Text>
             </View>
-            <Text className="text-6xl font-bold text-white">{currentStreak}</Text>
-            <Text className="mt-1 text-base text-white/60">
-              {t("streak.modalDayStreak", { count: currentStreak })}
+
+            <Text style={{ color: HOME_AMBIENT_CHROME.muted, fontSize: 14, lineHeight: 21, textAlign: "center", marginBottom: 24 }}>
+              {statusMessage}
             </Text>
-          </View>
 
-          {/* Status message */}
-          <Text className="mb-6 text-center text-sm text-white/70">
-            {statusMessage}
-          </Text>
-
-          {/* Stats row */}
-          <View className="flex-row gap-3">
-            <View className="flex-1 items-center rounded-2xl border border-white/10 bg-white/5 py-4">
-              <Ionicons name="trophy-outline" size={20} color="#ffd700" />
-              <Text className="mt-2 text-xl font-bold text-white">{longestStreak}</Text>
-              <Text className="mt-0.5 text-xs text-white/50">
-                {t("profile.streakLongestLabel")}
-              </Text>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <View style={{ flex: 1, alignItems: "center", borderRadius: 18, backgroundColor: HOME_AMBIENT_CHROME.surface, borderColor: HOME_AMBIENT_CHROME.border, borderWidth: 1, paddingVertical: 18, paddingHorizontal: 8 }}>
+                <Ionicons name="trophy-outline" size={22} color={tier.color} />
+                <Text style={{ marginTop: 10, color: HOME_AMBIENT_CHROME.text, fontSize: 22, fontWeight: "700" }}>{longestStreak}</Text>
+                <Text style={{ marginTop: 4, color: HOME_AMBIENT_CHROME.muted, fontSize: 12, textAlign: "center" }}>{t("profile.streakLongestLabel")}</Text>
+              </View>
+              <View style={{ flex: 1, alignItems: "center", borderRadius: 18, backgroundColor: HOME_AMBIENT_CHROME.surface, borderColor: HOME_AMBIENT_CHROME.border, borderWidth: 1, paddingVertical: 18, paddingHorizontal: 8 }}>
+                <Ionicons name="calendar-outline" size={22} color={HOME_AMBIENT_CHROME.muted} />
+                <Text style={{ marginTop: 10, color: HOME_AMBIENT_CHROME.text, fontSize: 14, lineHeight: 20, fontWeight: "600", textAlign: "center" }}>{lastDateLabel ?? t("profile.streakNoLastQuote")}</Text>
+                <Text style={{ marginTop: 4, color: HOME_AMBIENT_CHROME.muted, fontSize: 12, textAlign: "center" }}>{t("profile.streakLastQuoteLabel")}</Text>
+              </View>
             </View>
-            <View className="flex-1 items-center rounded-2xl border border-white/10 bg-white/5 py-4">
-              <Ionicons name="calendar-outline" size={20} color="rgba(255,255,255,0.6)" />
-              <Text className="mt-2 text-sm font-semibold text-white">
-                {lastDateLabel ?? t("profile.streakNoLastQuote")}
-              </Text>
-              <Text className="mt-0.5 text-xs text-white/50">
-                {t("profile.streakLastQuoteLabel")}
-              </Text>
-            </View>
+          </ScrollView>
+          <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 20, borderTopWidth: 1, borderTopColor: HOME_AMBIENT_CHROME.border, alignItems: "flex-end" }}>
+            <Pressable accessibilityRole="button" onPress={onClose} style={({ pressed }) => ({ minHeight: HOME_AMBIENT_LAYOUT.hitArea, paddingHorizontal: 24, borderRadius: 24, justifyContent: "center", backgroundColor: "rgba(255,255,255,0.12)", opacity: pressed ? 0.7 : 1 })}>
+              <Text style={{ color: HOME_AMBIENT_CHROME.text, fontWeight: "600", fontSize: 15 }}>{t("home.ambient.closeMenu")}</Text>
+            </Pressable>
           </View>
         </Pressable>
       </Pressable>

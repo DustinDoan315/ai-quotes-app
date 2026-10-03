@@ -56,6 +56,15 @@ export function useHomeReactions({ activeQuote, userId }: UseHomeReactionsOption
       return;
     }
 
+    playBurst(type);
+  }
+
+  function previewReaction(type: UserPhotoReactionType) {
+    if (typeof __DEV__ === 'undefined' || !__DEV__) return;
+    playBurst(type);
+  }
+
+  function playBurst(type: UserPhotoReactionType) {
     const emoji = PHOTO_REACTION_EMOJIS[type];
     const bursts: EmojiBurst[] = [];
     const count = 24;
@@ -84,5 +93,5 @@ export function useHomeReactions({ activeQuote, userId }: UseHomeReactionsOption
     }, durationMs + (count - 1) * delayStepMs + 100);
   }
 
-  return { emojiBursts, handleReact, shouldShowReactions };
+  return { emojiBursts, handleReact, previewReaction, shouldShowReactions };
 }

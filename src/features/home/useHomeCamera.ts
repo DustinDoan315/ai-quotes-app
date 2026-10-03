@@ -1,3 +1,4 @@
+import { formatLocalDateKey } from "@/utils/dateKey";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Crypto from "expo-crypto";
@@ -27,7 +28,6 @@ import {
   validateEditableQuote,
 } from "@/services/ai/rewriteReview";
 import { compressImageForUpload } from "@/utils/imageProcessor";
-import { formatLocalDateKey } from "@/utils/dateKey";
 import { pickPhotoForQuote } from "@/utils/pickPhotoForQuote";
 import { isStreakMilestone } from "@/utils/streakMilestones";
 import {
@@ -480,7 +480,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       const now = nowDate.toISOString();
       if (quoteText) {
         addMemory({
-          id: `${today}-${Date.now().toString(36)}`,
+          id: result.photoId,
           photoId: result.photoId,
           ownerUserId: userId,
           ownerGuestId: guestId,

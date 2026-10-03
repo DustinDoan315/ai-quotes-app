@@ -14,3 +14,18 @@ it('capture with no committed card cannot send a reaction', async () => {
   const hook = useHomeReactions({ userId: 'viewer', activeQuote: null });
   await hook.handleReact('love'); expect(sendUserPhotoReaction).not.toHaveBeenCalled();
 });
+
+it('development preview plays locally without a friend or network request', () => {
+  (globalThis as any).__DEV__ = true;
+  const hook = useHomeReactions({ userId: null, activeQuote: null });
+  hook.previewReaction('love');
+  expect(jest.getTimerCount()).toBe(1);
+  expect(sendUserPhotoReaction).not.toHaveBeenCalled();
+});
+it('release builds cannot run reaction previews', () => {
+  (globalThis as any).__DEV__ = false;
+  const hook = useHomeReactions({ userId: null, activeQuote: null });
+  hook.previewReaction('love');
+  expect(jest.getTimerCount()).toBe(0);
+  expect(sendUserPhotoReaction).not.toHaveBeenCalled();
+});

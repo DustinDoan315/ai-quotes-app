@@ -8,3 +8,10 @@ it('centers the card on the device when chrome leaves enough space', () => {
   expect(layout.contentTop + layout.cardWidth / 2).toBe(422);
   expect(layout.cardWidth).toBe(374);
 });
+
+it('balances feed spacing between header and footer without changing camera position', () => {
+  const input = { width: 390, height: 844, topInset: 47, bottomInset: 34, headerHeight: 56, footerHeight: 188 };
+  const feed = getHomeViewportLayout({ ...input, presentation: 'feed' });
+  expect(feed.contentTop - 115).toBe(598 - feed.contentTop - feed.cardWidth);
+  expect(feed.contentTop).toBeLessThan(getHomeViewportLayout(input).contentTop);
+});

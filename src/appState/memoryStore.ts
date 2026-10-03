@@ -1,3 +1,4 @@
+import { mergeMemories } from "@/domain/memories/mergeMemories";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatLocalDateKey, parseLocalDateKey } from "@/utils/dateKey";
 import { create } from "zustand";
@@ -78,10 +79,10 @@ export const useMemoryStore = create<MemoryState>()(
       },
       addMemory: (memory) =>
         set((state) => ({
-          memories: [memory, ...state.memories].sort(byCreatedAtDesc),
+          memories: mergeMemories([memory, ...state.memories]).sort(byCreatedAtDesc),
         })),
       replaceMemories: (memories) =>
-        set({ memories: [...memories].sort(byCreatedAtDesc) }),
+        set({ memories: mergeMemories(memories).sort(byCreatedAtDesc) }),
       setPhotoFavorite: (photoId, value) => set(state => ({
         memories: state.memories.map(memory => memory.photoId === photoId ? { ...memory, isFavorite: value } : memory),
       })),
