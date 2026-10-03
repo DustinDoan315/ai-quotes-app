@@ -1,3 +1,5 @@
+import { createHomeFriendFixture, HOME_DEMO_FRIEND_ID } from "@/features/home/homeFriendFixture";
+import { HomeReactionRow } from "@/features/home/HomeReactionRow";
 import { mergeMemories } from "@/domain/memories/mergeMemories";
 import { useUIStore } from "@/appState/uiStore";
 import { useMemoryStore } from "@/appState";
@@ -22,7 +24,6 @@ import { getHomeViewportLayout } from "@/domain/home/homeViewportLayout";
 import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
 import { HOME_AMBIENT_LAYOUT } from "@/theme/homeAmbient";
 import { validateEditableQuote } from "@/services/ai/rewriteReview";
-import { PHOTO_REACTION_EMOJIS, type UserPhotoReactionType } from "@/services/media/userPhotoReactions";
 import { StreakModal } from "@/features/streak/StreakModal";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
 import { HomeEmojiOverlay } from "@/features/home/HomeEmojiOverlay";
@@ -66,6 +67,7 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const [milestone, setMilestone] = useState<number | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [demoFriendEnabled, setDemoFriendEnabled] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(56);
   const [footerHeight, setFooterHeight] = useState(188);
   const [streakModalVisible, setStreakModalVisible] = useState(false);
@@ -93,8 +95,8 @@ export default function HomeScreen() {
     hasError: feedHasError,
   } = useQuotePhotoFeed();
   const quoteStacks = useMemo(
-    () => groupQuotePhotoCardsIntoStacks(feedItems),
-    [feedItems],
+    () => groupQuotePhotoCardsIntoStacks([...createHomeFriendFixture(feedItems[0], demoFriendEnabled, __DEV__), ...feedItems]),
+    [feedItems, demoFriendEnabled],
   );
   const { palette } = useHomeBackgroundPalette();
   const activeShare = useHomeActiveShare();
@@ -303,6 +305,7 @@ export default function HomeScreen() {
     activeQuote: ambient.active?.card ?? null,
     userId: profile?.user_id ?? null,
   });
+  const isDemoFriend = __DEV__ && demoFriendEnabled && ambient.active?.card.userId === HOME_DEMO_FRIEND_ID;
   const isOnFeed = ambient.isOnFeed;
   const currentFeedIndex = Math.max(0, ambient.stackIndex);
   const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || isAiToolLoading || Boolean(rewriteReviewText || futureReviewText) || exportLocked;
@@ -481,18 +484,19 @@ export default function HomeScreen() {
           {ambient.active || selectedImageUri ? <HomeMomentToolbar
             context={ambient.active ? isOwned ? 'mine' : 'friends' : 'draft'}
             index={ambient.active?.index ?? 0} count={ambient.active?.count ?? 1}
-            heartMode={ambient.active && !busy && !ambient.isDragging && ambient.active.card.imageUrl ? heart.mode : 'hidden'}
+            heartMode={ambient.active && !busy && !ambient.isDragging && ambient.active.card.imageUrl ? isDemoFriend ? 'reaction' : heart.mode : 'hidden'}
             isFavorite={heart.isFavorite} isHeartBusy={heart.isBusy}
-            canShare={!busy && !ambient.isDragging && (ambient.active ? Boolean(ambient.active.card.imageUrl) && activeShare.canShare(ambient.active.card.id) : Boolean(dailyQuoteText && selectedImageUri && !hideQuote && quoteDraftForSave === null))}
+            canShare={!isDemoFriend && !busy && !ambient.isDragging && (ambient.active ? Boolean(ambient.active.card.imageUrl) && activeShare.canShare(ambient.active.card.id) : Boolean(dailyQuoteText && selectedImageUri && !hideQuote && quoteDraftForSave === null))}
             isSharing={exportLocked}
             canPrevious={!busy && !ambient.isDragging && Boolean(ambient.active && ambient.active.index > 0)}
             canNext={!busy && !ambient.isDragging && Boolean(ambient.active && ambient.active.index < ambient.active.count - 1)}
-            onHeart={() => { if (!busy && !ambient.isDragging) void heart.press(); }}
-            onShare={() => { if (busy || ambient.isDragging) return; if (ambient.active) void activeShare.share(ambient.active.card.id); else void shareMoment(); }}
+            onHeart={() => { if (!busy && !ambient.isDragging) { if (isDemoFriend) previewReaction('love'); else void heart.press(); } }}
+            onShare={() => { if (isDemoFriend || busy || ambient.isDragging) return; if (ambient.active) void activeShare.share(ambient.active.card.id); else void shareMoment(); }}
             onPrevious={() => { const card = ambient.visibleStacks[currentFeedIndex]?.quotes[(ambient.active?.index ?? 0) - 1]; if (card) ambient.selectQuote(card.id); }}
             onNext={() => { const card = ambient.visibleStacks[currentFeedIndex]?.quotes[(ambient.active?.index ?? 0) + 1]; if (card) ambient.selectQuote(card.id); }}
           /> : null}
         </View>
+        {ambient.active && (isDemoFriend || shouldShowReactions) ? <HomeReactionRow disabled={busy || ambient.isDragging} onReact={type => { if (busy || ambient.isDragging) return; if (isDemoFriend) previewReaction(type); else void handleReact(type); }} /> : null}
         <View style={{ height: HOME_AMBIENT_LAYOUT.regionGap }} />
         <HomeAmbientDock mode={busy ? 'busy' : isOnFeed ? 'feed' : selectedImageUri ? 'draft' : 'capture'}
           canCapture={isOnFeed || !cameraPermissionGranted || cameraReady} canSave={canSaveDraft}
@@ -508,11 +512,11 @@ export default function HomeScreen() {
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
               {pastMemories[0] ? <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push({ pathname: '/memories/day', params: { date: pastMemories[0].date } } as never)); }}><Text style={{ color: 'white' }}>{t('memories.thisDayInMemoriesLabel')}</Text></Pressable> : null}
-              {__DEV__ ? <View style={{ paddingVertical: 12 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>Reaction preview · development only</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={`Preview ${emoji}`} style={{ padding: 14 }} onPress={() => { setMenuVisible(false); previewReaction(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View>
-              </View> : null}
-              {shouldShowReactions && ambient.active ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={t('home.reactions.withEmoji', { emoji })} style={{ padding: 16 }} onPress={() => { setMenuVisible(false); void handleReact(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View> : null}
+              {__DEV__ ? <Pressable accessibilityRole="button" style={{ padding: 18, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16 }} onPress={() => {
+                if (!feedItems[0]) { useUIStore.getState().showToast('Save a photo first to test the friend feed.', 'info'); return; }
+                setMenuVisible(false);
+                protectDraft(() => { ambient.returnToCapture(); listRef.current?.scrollToOffset({ offset: 0, animated: false }); setDemoFriendEnabled(value => !value); });
+              }}><Text style={{ color: 'white' }}>{demoFriendEnabled ? 'Remove demo friend' : 'Test friend feed'} · DEV</Text></Pressable> : null}
             </ScrollView>
             <View style={{ flexShrink: 0, alignItems: 'flex-end', paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' }}>
               <Pressable accessibilityRole="button" style={{ height: 48, minWidth: 112, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#ffffff', backgroundColor: '#ffffff' }} onPress={() => setMenuVisible(false)}><Text style={{ color: '#141a24', fontWeight: '700' }}>{t('home.ambient.closeMenu')}</Text></Pressable>

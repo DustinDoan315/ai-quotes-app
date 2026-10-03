@@ -48,8 +48,8 @@ No database policy or migration change is included. A real authenticated favorit
 
 ## Discovery polish and development reaction preview
 
-- Open the Inkly menu in a development build. Under “Reaction preview · development only”, tap each emoji. Confirm the popup closes and emoji particles animate without a friend account or network request.
-- Confirm this preview section is absent in release builds.
+- In a development build with a saved photo, open the Inkly menu and enable “Test friend feed · DEV”. Swipe into the demo friend stack. Test both cards, the friend attribution, vibe changes, heart, and emoji buttons under the card. Reactions animate locally without network requests. Demo sharing is disabled. Use “Remove demo friend · DEV” to remove the fixture.
+- Confirm both the demo toggle and fixture cards are absent in release builds. Real friends use the same emoji row under their feed cards.
 - Confirm discovery cards have balanced space between the header and bottom toolbar; camera placement remains unchanged.
 - Save a quote, reopen Home to refresh cloud memories, then open its Memories day. Confirm one entry per saved photo; separately saved photos remain separate.
 - Open Streak on a compact screen and with larger text. Confirm content scrolls and the bottom-right Close button remains accessible.
