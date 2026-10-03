@@ -1,6 +1,7 @@
 import {
   buildRewriteSystemPrompt,
   getRewriteToneInstruction,
+  isRewriteTone,
   type RewriteTone,
 } from "../_shared/quoteVoice.ts";
 import {
@@ -27,8 +28,6 @@ type RewriteQuoteRequestBody = {
   tone: RewriteTone;
   language?: "vi" | "en";
 };
-
-const VALID_TONES: RewriteTone[] = ["funny", "savage", "calm"];
 
 const normalizeForComparison = (value: string): string =>
   value
@@ -68,7 +67,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Missing valid persona traits" }, 400);
     }
 
-    if (!VALID_TONES.includes(body.tone)) {
+    if (!isRewriteTone(body.tone)) {
       return jsonResponse({ error: "Invalid rewrite tone" }, 400);
     }
 

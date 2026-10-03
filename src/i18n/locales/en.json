@@ -143,6 +143,8 @@
       "editCaption": "Edit caption text",
       "adjustCaption": "Adjust caption",
       "adjustCaptionHint": "Drag to move, pinch or drag the corner handle to resize. Use the pencil to edit the text.",
+      "rewriteAction": "Rewrite",
+      "loadingNaturalRewrite": "Writing another caption…",
       "editQuoteHint": "Tap the quote to edit it.",
       "editQuoteGuidance": "Keep it to one sentence, under 180 characters, and safe to use.",
       "editQuoteSave": "Save",

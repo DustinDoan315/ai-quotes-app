@@ -61,10 +61,11 @@ Success response:
 
 ### `POST /functions/v1/quote-rewrite`
 
-Rewrites a quote in a target tone.
+Rewrites a caption while preserving its original meaning. `natural` requests another everyday native caption for the same moment, keeping its specific details, emotion, and voice. It does not invent objects or events, add a new mood, or force motivational advice. Emoji remain optional; long dash separators are avoided.
 
-Supported tones:
+Supported tones (validated before AI usage is charged):
 
+- `natural`
 - `funny`
 - `savage`
 - `calm`
@@ -73,9 +74,9 @@ Request body:
 
 ```json
 {
-  "quote": "You are still showing up.",
+  "quote": "just me and a slower morning",
   "personaTraits": ["curious", "optimistic"],
-  "tone": "calm",
+  "tone": "natural",
   "language": "en"
 }
 ```
@@ -84,9 +85,9 @@ Success response:
 
 ```json
 {
-  "quote": "You do not need to rush to prove your progress.",
+  "quote": "taking the morning at my own pace",
   "language": "en",
-  "tone": "calm"
+  "tone": "natural"
 }
 ```
 
@@ -117,12 +118,12 @@ Success response:
 
 - `personaTraits` is required and normalized to 8 items max.
 - Trait strings are trimmed and limited to 40 characters.
-- Source quotes are non-empty and at most 180 characters; generated quotes must also be one sentence.
+- Source quotes are non-empty and at most 180 characters; generated captions remain at most 180 characters and may be short natural fragments. Multiple sentence endings remain rejected by shared validation.
 - Explanations are capped at 320 characters.
 - Invalid or missing payload fields return `400`.
 - Missing `OPENAI_API_KEY` returns `500`.
 - `momentContext` remains optional for backwards compatibility. It is honored when supplied, but it is not required for initial quote generation.
-- `quote-rewrite` is the optional post-generation path for changing the quote mood to calm, funny, or savage; it is not part of the initial capture flow.
+- `quote-rewrite` is the optional post-generation path for natural wording variations or legacy calm, funny, and savage mood changes; it is not part of the initial capture flow. All four explicit tone values remain supported; missing or unknown tone returns `400`.
 
 ## Local Setup
 

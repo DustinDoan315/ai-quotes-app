@@ -1,5 +1,9 @@
 type Language = "en" | "vi";
-export type RewriteTone = "funny" | "savage" | "calm";
+export type RewriteTone = "natural" | "funny" | "savage" | "calm";
+
+export const isRewriteTone = (value: unknown): value is RewriteTone =>
+  value === "natural" || value === "funny" || value === "savage" ||
+  value === "calm";
 
 const captionVoice = (language: Language): string =>
   language === "en"
@@ -63,6 +67,8 @@ export const getRewriteToneInstruction = (
 ): string => {
   if (language === "en") {
     switch (tone) {
+      case "natural":
+        return "Write another everyday native English caption for this same moment. Preserve its specific scene, details, original meaning, emotion, and personal voice. Change the wording meaningfully, not just punctuation or emoji. Do not invent objects, events, or a new mood; do not turn it into motivational advice or force a funny, calm, or savage tone. An emoji is optional only when it fits the existing feeling. Use simple conversational punctuation, no long dashes.";
       case "funny":
         return "Make it playful, witty, and expressive, like a lighthearted caption to a friend. Occasional readable word stretching or a fitting emoji can help, but keep it natural and respect the original feeling.";
       case "savage":
@@ -72,6 +78,8 @@ export const getRewriteToneInstruction = (
     }
   }
   switch (tone) {
+    case "natural":
+      return "Viết một caption tiếng Việt đời thường khác cho cùng khoảnh khắc. Giữ chi tiết cụ thể, ý nghĩa gốc, cảm xúc và giọng riêng của người viết. Đổi cách diễn đạt rõ ràng, không chỉ đổi dấu câu hay emoji. Không bịa thêm đồ vật, sự kiện hoặc tâm trạng mới; không biến thành lời khuyên động lực hay ép giọng hài, bình yên hoặc sắc bén. Chỉ thêm emoji nếu hợp cảm xúc hiện có, không bắt buộc. Dùng dấu câu tự nhiên, không dùng gạch ngang dài.";
     case "funny":
       return "Viết dí dỏm, biểu cảm và gần gũi như caption gửi cho bạn. Có thể thỉnh thoảng kéo dài một từ dễ đọc hoặc dùng emoji phù hợp, nhưng giữ tự nhiên và tôn trọng cảm xúc gốc.";
     case "savage":

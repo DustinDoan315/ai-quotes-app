@@ -148,8 +148,6 @@ export default function HomeScreen() {
     dailyQuoteText,
     quoteFontSize,
     quoteColorScheme,
-    setQuoteFontSize,
-    setQuoteColorScheme,
     handleSubmitQuoteEdit,
     handleInvalidQuoteEdit,
   } = useHomeCamera({
@@ -275,14 +273,8 @@ export default function HomeScreen() {
     isGenerating ||
     (!!selectedImageUri && !hasSavedCurrentPhoto);
   const {
-    aiResult,
-    selectedAiTool,
     pendingAiTool,
     clearAiToolState,
-    handleFutureQuotePress,
-    handleApproveFutureQuote,
-    handleCancelFutureQuote,
-    futureReviewText,
     handleRewriteQuote,
     handleApproveRewrite,
     handleCancelRewrite,
@@ -302,7 +294,7 @@ export default function HomeScreen() {
   const isDemoFriend = __DEV__ && demoFriendEnabled && ambient.active?.card.userId === HOME_DEMO_FRIEND_ID;
   const isOnFeed = ambient.isOnFeed;
   const currentFeedIndex = Math.max(0, ambient.stackIndex);
-  const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || isAiToolLoading || Boolean(rewriteReviewText || futureReviewText) || exportLocked;
+  const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || isAiToolLoading || Boolean(rewriteReviewText) || exportLocked;
   const canSaveDraft = Boolean(selectedImageUri && !hasSavedCurrentPhoto && validateEditableQuote(quoteDraftForSave ?? dailyQuoteText ?? '').isValid);
   const isOwned = Boolean(ambient.active && ((authUserId && ambient.active.card.userId === authUserId) || (!ambient.active.card.userId && guestId && ambient.active.card.guestId === guestId)));
   function protectDraft(action: () => void, clear = true) {
@@ -316,8 +308,8 @@ export default function HomeScreen() {
   }
   const flatListExtraData = useMemo(
     () =>
-      `${ambient.active?.card.id ?? ""}|${exportLocked}|${selectedAiTool ?? ""}|${pendingAiTool ?? ""}|${aiResult?.title ?? ""}`,
-    [ambient.active?.card.id, exportLocked, selectedAiTool, pendingAiTool, aiResult?.title],
+      `${ambient.active?.card.id ?? ""}|${exportLocked}|${pendingAiTool ?? ""}|${rewriteReviewText ?? ""}`,
+    [ambient.active?.card.id, exportLocked, pendingAiTool, rewriteReviewText],
   );
 
   function handleOpenMemories() {
@@ -433,8 +425,6 @@ export default function HomeScreen() {
               generationStage,
               quoteFontSize,
               quoteColorScheme,
-              onChangeQuoteFontSize: setQuoteFontSize,
-              onChangeQuoteColorScheme: setQuoteColorScheme,
               onRetryGeneration: handleRetryGeneration,
               captureRefView,
               watermarkForExport,
@@ -450,24 +440,12 @@ export default function HomeScreen() {
               onClearImage: handleClearCurrentImage,
               onFinishPhotoStack: finishPhotoStack,
               onRewriteQuote: handleRewriteQuote,
-              onFutureQuotePress: handleFutureQuotePress,
-              selectedAiTool,
-              pendingAiTool,
-              aiResultTitle: aiResult?.title ?? null,
-              aiResultBody: aiResult?.body ?? null,
               aiToolsLoading: isAiToolLoading,
               aiToolsLoadingLabel,
               cardPalette: draftPalette,
-              pendingQuoteText: rewriteReviewText ?? futureReviewText ?? null,
-              pendingQuoteTitle: futureReviewText
-                ? t("home.aiTools.futureReviewTitle")
-                : null,
-              onApprovePendingQuote: rewriteReviewText
-                ? handleApproveRewrite
-                : handleApproveFutureQuote,
-              onCancelPendingQuote: rewriteReviewText
-                ? handleCancelRewrite
-                : handleCancelFutureQuote,
+              pendingQuoteText: rewriteReviewText,
+              onApprovePendingQuote: handleApproveRewrite,
+              onCancelPendingQuote: handleCancelRewrite,
             }}
           />
         }

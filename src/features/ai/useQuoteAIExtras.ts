@@ -66,7 +66,7 @@ export const useRewriteQuote = () => {
   const [loading, setLoading] = useState(false);
 
   const previewRewrite = useCallback(
-    async (tone: RewriteTone) => {
+    async (tone: RewriteTone = "natural") => {
       if (!dailyQuote) {
         return null;
       }

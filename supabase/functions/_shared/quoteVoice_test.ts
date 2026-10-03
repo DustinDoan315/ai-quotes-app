@@ -3,6 +3,7 @@ import {
   buildGenerationSystemPrompt,
   buildRewriteSystemPrompt,
   getRewriteToneInstruction,
+  isRewriteTone,
 } from "./quoteVoice.ts";
 
 const assert = (value: boolean, reason: string) => {
@@ -129,4 +130,53 @@ Deno.test("caption voice does not relax length or safety validation", () => {
     !validateGeneratedQuote("You need medical advice 😩").ok,
     "Safety remains enforced",
   );
+});
+
+for (const language of ["en", "vi"] as const) {
+  Deno.test(`${language} natural rewrite preserves moment and voice without forced mood`, () => {
+    const prompt = getRewriteToneInstruction("natural", language);
+    for (
+      const phrase of language === "en"
+        ? [
+          "specific scene",
+          "details",
+          "meaning",
+          "emotion",
+          "voice",
+          "another everyday",
+          "Do not invent",
+          "motivational",
+          "emoji",
+          "long dashes",
+        ]
+        : [
+          "khoảnh khắc",
+          "chi tiết",
+          "ý nghĩa",
+          "cảm xúc",
+          "giọng",
+          "đời thường",
+          "Không bịa",
+          "động lực",
+          "emoji",
+          "gạch ngang dài",
+        ]
+    ) {
+      assert(prompt.includes(phrase), `Natural rewrite must protect ${phrase}`);
+    }
+  });
+}
+
+Deno.test("rewrite tone validation accepts natural and legacy tones, rejects unknown payload values", () => {
+  for (const tone of ["natural", "funny", "calm", "savage"]) {
+    assert(isRewriteTone(tone), `Must preserve supported tone ${tone}`);
+  }
+  for (
+    const tone of [null, undefined, "", "Natural", "happy", 3, {}, ["natural"]]
+  ) {
+    assert(
+      !isRewriteTone(tone),
+      "Unknown tone must be rejected before AI usage",
+    );
+  }
 });

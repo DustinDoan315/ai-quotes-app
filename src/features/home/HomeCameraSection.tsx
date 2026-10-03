@@ -1,7 +1,6 @@
 import { useCaptionEditHint } from "@/hooks/useCaptionEditHint";
 import { InklyShareWatermark } from "@/components/InklyShareWatermark";
-import { AiToolsRow } from "@/features/home/AiToolsRow";
-import { QuoteStyleControls } from "@/features/home/QuoteStyleControls";
+import { RewriteCaptionButton } from "@/features/home/RewriteCaptionButton";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
@@ -21,8 +20,6 @@ import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
 import type { HomeBackgroundPalette } from "@/types/homeBackground";
-import type { RewriteTone } from "@/services/ai/types";
-import type { HomeAiTool } from "@/features/home/useHomeAiReview";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, type CameraMountError } from "expo-camera";
 import { Image } from "expo-image";
@@ -31,7 +28,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { QuoteInkBloom } from "@/components/QuoteInkBloom";
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -50,7 +46,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type {
   QuoteColor,
   QuoteFontSize,
-} from "@/features/home/QuoteStyleControls";
+} from "@/features/quotes/quoteStyle";
 
 export type HomeCameraSectionProps = {
   frameWidth?: number;
@@ -80,8 +76,6 @@ export type HomeCameraSectionProps = {
   generationStage: GenerationStage;
   quoteFontSize: QuoteFontSize;
   quoteColorScheme: QuoteColor;
-  onChangeQuoteFontSize: (size: QuoteFontSize) => void;
-  onChangeQuoteColorScheme: (color: QuoteColor) => void;
   onRetryGeneration: () => void;
   captureRefView: React.RefObject<View | null>;
   watermarkForExport: boolean;
@@ -96,12 +90,7 @@ export type HomeCameraSectionProps = {
   onToggleFacing: () => void;
   onClearImage: () => void;
   onFinishPhotoStack: () => void;
-  onRewriteQuote: (tone: RewriteTone) => void;
-  onFutureQuotePress: () => void;
-  selectedAiTool: HomeAiTool | null;
-  pendingAiTool: HomeAiTool | null;
-  aiResultTitle: string | null;
-  aiResultBody: string | null;
+  onRewriteQuote: () => void;
   aiToolsLoading: boolean;
   aiToolsLoadingLabel: string | null;
   cardPalette: HomeBackgroundPalette;
@@ -139,8 +128,6 @@ export const HomeCameraSection = ({
   generationStage,
   quoteFontSize,
   quoteColorScheme,
-  onChangeQuoteFontSize,
-  onChangeQuoteColorScheme,
   onRetryGeneration,
   captureRefView,
   watermarkForExport,
@@ -156,11 +143,6 @@ export const HomeCameraSection = ({
   onClearImage,
   onFinishPhotoStack,
   onRewriteQuote,
-  onFutureQuotePress,
-  selectedAiTool,
-  pendingAiTool,
-  aiResultTitle,
-  aiResultBody,
   aiToolsLoading,
   aiToolsLoadingLabel,
   cardPalette,
@@ -192,12 +174,10 @@ export const HomeCameraSection = ({
   // change it.
   const [cameraContentHeight, setCameraContentHeight] = useState(0);
   // Controls live below the photo canvas and share its available height.
-  const reservesEditControls = Boolean(
-    dailyQuoteText && !hideQuote && selectedImageUri,
-  );
+  const showsRewriteAction = Boolean(dailyQuoteText && !hideQuote && selectedImageUri && !isGenerating && !pendingQuoteText);
   const controlsHeight = selectedImageUri === null && externalCameraControls ? 0 : selectedImageUri === null
     ? 104 + (canCreatePhotoStack && photoStackCount > 0 ? 52 : 0)
-    : reservesEditControls ? 64 : 0;
+    : dailyQuoteText && !hideQuote && !isGenerating ? 52 : 0;
   // 80pt action row + 8pt top padding + 1pt border + the device's bottom inset.
   const availableCameraHeight = Math.max(
     0,
@@ -235,7 +215,6 @@ export const HomeCameraSection = ({
       : 0;
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const previousImageUriRef = useRef(selectedImageUri);
-  const [showAdvancedControls, setShowAdvancedControls] = useState(false);
   const [quoteDraft, setQuoteDraft] = useState(dailyQuoteText ?? "");
   const chrome = useMemo(
     () => getHomeVibeFeedChrome(cardPalette),
@@ -267,9 +246,7 @@ export const HomeCameraSection = ({
     }
     return "#FFFFFF";
   }, [quoteColorScheme]);
-  const isFutureLoading = aiToolsLoading && pendingAiTool === "future";
-  const isRewriteLoading =
-    aiToolsLoading && pendingAiTool !== null && pendingAiTool !== "future";
+  const isRewriteLoading = aiToolsLoading;
 
   const createdTimeLabel = useMemo(
     () =>
@@ -283,7 +260,7 @@ export const HomeCameraSection = ({
   const showQuoteOverlay = Boolean(
     !hideQuote && dailyQuoteText && !isGenerating && selectedImageUri,
   );
-  const canMoveQuote = !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto;
+  const canMoveQuote = !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto && !aiToolsLoading;
   const captionControls = useCaptionEditHint(
     showQuoteOverlay && canMoveQuote && !watermarkForExport,
     selectedImageUri,
@@ -332,7 +309,7 @@ export const HomeCameraSection = ({
   }, [dailyQuoteText, isEditingQuote, onQuoteDraftChange, selectedImageUri]);
 
   const openQuoteEditor = () => {
-    if (!dailyQuoteText || isSavingPhoto || interactionLocked) {
+    if (!dailyQuoteText || isSavingPhoto || interactionLocked || isGenerating || aiToolsLoading) {
       return;
     }
     captionControls.dismissControls();
@@ -792,8 +769,7 @@ export const HomeCameraSection = ({
                     </View>
                   </View>
                 ) : null}
-                {(isGenerating || generationProgress > 0) &&
-                !isFutureLoading ? (
+                {(isGenerating || generationProgress > 0) ? (
                   <QuoteInkBloom
                     accentColor={chrome.cornerColor}
                     progress={generationProgress}
@@ -828,40 +804,6 @@ export const HomeCameraSection = ({
                     </Pressable>
                   </View>
                 ) : null}
-                {isFutureLoading ? (
-                  <View className="absolute inset-0 z-[8] items-center justify-center bg-black/75 px-8">
-                    <MotiView
-                      from={{ opacity: 0.6, scale: 0.96 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: "timing", duration: 500 }}
-                      className="w-full max-w-[280px] rounded-[28px] border border-white/15 bg-slate-950/90 px-6 py-7"
-                    >
-                      <View className="mb-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
-                        <MotiView
-                          from={{ translateX: -180 }}
-                          animate={{ translateX: 180 }}
-                          transition={{
-                            type: "timing",
-                            duration: 950,
-                            loop: true,
-                          }}
-                          style={{
-                            height: "100%",
-                            width: "55%",
-                            borderRadius: 999,
-                            backgroundColor: "#8B5CF6",
-                          }}
-                        />
-                      </View>
-                      <Text className="text-center text-lg font-semibold text-white">
-                        {t("home.aiTools.futureResult")}
-                      </Text>
-                      <Text className="mt-2 text-center text-sm leading-5 text-white/70">
-                        {aiToolsLoadingLabel ?? t("home.aiTools.loadingFuture")}
-                      </Text>
-                    </MotiView>
-                  </View>
-                ) : null}
                 {isRewriteLoading ? (
                   <View className="absolute inset-0 z-[8] items-center justify-center bg-black/60 px-8">
                     <MotiView
@@ -888,7 +830,7 @@ export const HomeCameraSection = ({
                         />
                       </View>
                       <Text className="text-center text-lg font-semibold text-white">
-                        {aiToolsLoadingLabel ?? t("home.aiTools.loadingFuture")}
+                        {aiToolsLoadingLabel ?? t("home.aiTools.loadingNaturalRewrite")}
                       </Text>
                     </MotiView>
                   </View>
@@ -990,59 +932,13 @@ export const HomeCameraSection = ({
           </View>
         ) : null}
 
-      <View className="w-full flex-1 items-center px-2">
-        <ScrollView
-          className="w-full"
-          contentContainerStyle={{ alignItems: "center" }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {dailyQuoteText && !hideQuote && selectedImageUri ? (
-            <View className="my-3 w-full max-w-md self-center">
-              <Pressable
-                onPress={() => setShowAdvancedControls((visible) => !visible)}
-                className="self-center rounded-full border border-white/20 bg-white/10 px-4 py-2"
-                style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
-              >
-                <Text className="text-xs font-semibold text-white">
-                  {showAdvancedControls
-                    ? t("home.captureFlow.hideEditing")
-                    : t("home.captureFlow.editAndStyle")}
-                </Text>
-              </Pressable>
-              {showAdvancedControls ? (
-                <View className="mt-4">
-                  <QuoteStyleControls
-                    quoteFontSize={quoteFontSize}
-                    quoteColorScheme={quoteColorScheme}
-                    onChangeQuoteFontSize={onChangeQuoteFontSize}
-                    onChangeQuoteColorScheme={onChangeQuoteColorScheme}
-                  />
-                  <View className="mt-5">
-                    <AiToolsRow
-                      selectedAiTool={selectedAiTool}
-                      pendingAiTool={pendingAiTool}
-                      aiToolsLoading={aiToolsLoading}
-                      onRewriteQuote={onRewriteQuote}
-                      onFutureQuotePress={onFutureQuotePress}
-                    />
-                    {aiResultTitle && aiResultBody ? (
-                      <View className="mt-4 rounded-2xl border border-violet-500/25 bg-violet-950/20 px-4 py-4">
-                        <Text className="text-[11px] font-semibold uppercase tracking-wide text-violet-300">
-                          {aiResultTitle}
-                        </Text>
-                        <Text className="mt-2 text-sm leading-5 text-white/90">
-                          {aiResultBody}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
-        </ScrollView>
-      </View>
+      {showsRewriteAction ? <View style={{ marginTop: 8, alignItems: "center" }}>
+        <RewriteCaptionButton
+          onRewriteQuote={onRewriteQuote}
+          aiToolsLoading={aiToolsLoading}
+          disabled={interactionLocked || isSavingPhoto || isEditingQuote}
+        />
+      </View> : null}
     </View>
   );
 };

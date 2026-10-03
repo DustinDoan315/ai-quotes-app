@@ -39,7 +39,7 @@ export type ExplainQuoteResponse = {
   reason?: string;
 };
 
-export type RewriteTone = "funny" | "savage" | "calm";
+export type RewriteTone = "natural" | "funny" | "savage" | "calm";
 
 export type RewriteQuoteRequest = {
   quote: string;

@@ -127,3 +127,12 @@ The original Home layout change did not alter database policies. The later custo
 - Friend cards and memory cards never show editing controls.
 - Share Free and Pro drafts while controls are selected: exported photo contains no border, pencil, handle, or helper text. Saving/generating/reviewing a rewrite also disables the controls.
 - VoiceOver: caption announces adjustment instructions, pencil announces text editing, and resize handle supports increment/decrement actions. Both English and Vietnamese labels work.
+
+### Single natural Rewrite action
+
+- Generating: photo and progress only; no size/color panel, tone chips, Next, or advanced-style toggle.
+- Generated draft: one compact Rewrite button beneath the card; caption tap/pencil/move/resize still work. New draft text is white and medium base size.
+- Rewrite preserves the photo's original meaning/mood and offers noticeably different natural wording. Preview appears before changing the current quote; Cancel keeps the original, Apply uses the reviewed text.
+- Repeated rapid taps start one request. Changing/clearing the photo or leaving Home while a rewrite is pending cannot apply a stale result.
+- Error/AI limit: no quote replacement; existing toast/paywall remains and retry is possible.
+- Applying does not add a duplicate result box. Existing saved cards keep their stored size/color. Rewrite stays clear of the fixed bottom dock on small screens; pending review does not shift the card frame.

@@ -117,12 +117,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStage, setGenerationStage] =
     useState<GenerationStage>("idle");
-  const [quoteFontSize, setQuoteFontSize] = useState<
-    "small" | "medium" | "large"
-  >("medium");
-  const [quoteColorScheme, setQuoteColorScheme] = useState<
-    "light" | "amber" | "pink"
-  >("light");
+  const quoteFontSize = "medium" as const;
+  const quoteColorScheme = "light" as const;
   const cameraRef = useRef<CameraView | null>(null);
   const isCapturingRef = useRef(false);
   const isSavingPhotoRef = useRef(false);
@@ -665,8 +661,6 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     generationStage,
     quoteFontSize,
     quoteColorScheme,
-    setQuoteFontSize,
-    setQuoteColorScheme,
     handleSubmitQuoteEdit,
     handleInvalidQuoteEdit,
     dailyQuoteText: dailyQuote?.text ?? null,
