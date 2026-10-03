@@ -51,3 +51,9 @@ describe("groupQuotePhotoCardsIntoStacks", () => {
     expect(stacks[0]?.quotes.map((card) => card.id)).toEqual(["pro-1", "pro-2"]);
   });
 });
+
+it("uses unique identities when two owners reuse a stack ID", () => {
+  const stacks = groupQuotePhotoCardsIntoStacks([createCard("a", "same", "one"), createCard("b", "same", "two")]);
+  expect(stacks).toHaveLength(2);
+  expect(new Set(stacks.map(stack => stack.id)).size).toBe(2);
+});

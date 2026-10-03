@@ -22,6 +22,7 @@ export type MemoryState = {
   }) => QuoteMemory;
   addMemory: (memory: QuoteMemory) => void;
   toggleFavorite: (id: string) => void;
+  setPhotoFavorite: (photoId: string, value: boolean) => void;
   setVisibility: (id: string, visibility: QuoteVisibility) => void;
   replaceMemories: (memories: QuoteMemory[]) => void;
   migrateGuestMemoriesToUser: (guestId: string | null, userId: string) => void;
@@ -81,6 +82,9 @@ export const useMemoryStore = create<MemoryState>()(
         })),
       replaceMemories: (memories) =>
         set({ memories: [...memories].sort(byCreatedAtDesc) }),
+      setPhotoFavorite: (photoId, value) => set(state => ({
+        memories: state.memories.map(memory => memory.photoId === photoId ? { ...memory, isFavorite: value } : memory),
+      })),
       toggleFavorite: (id) =>
         set((state) => ({
           memories: state.memories.map((m) =>

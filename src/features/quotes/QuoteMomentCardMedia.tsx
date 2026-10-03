@@ -8,6 +8,7 @@ import type { HomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 
 interface QuoteMomentCardMediaProps {
   item: QuotePhotoCard;
+  presentation?: "default" | "home";
   chrome: HomeVibeFeedChrome | null;
   aspectRatio: number;
   watermarkForExport: boolean;
@@ -22,6 +23,7 @@ interface QuoteMomentCardMediaProps {
 
 export const QuoteMomentCardMedia = ({
   item,
+  presentation = "default",
   chrome,
   aspectRatio,
   watermarkForExport,
@@ -45,9 +47,9 @@ export const QuoteMomentCardMedia = ({
           cachePolicy="memory-disk"
           transition={0}
         />
-      ) : null}
+      ) : <View style={{ position: "absolute", inset: 0, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "white" }}>{t("home.ambient.photoUnavailable")}</Text></View>}
       <View className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/35 via-transparent to-black/10" />
-      {chrome ? (
+      {chrome && presentation !== "home" ? (
         <>
           <View pointerEvents="none" style={chrome.photoBorder} />
           <View
@@ -104,7 +106,7 @@ export const QuoteMomentCardMedia = ({
       <View className="absolute inset-x-0 bottom-0 z-10 px-5 pb-4 pt-3">
         <View className="mb-2 flex-row items-center justify-between">
           <View className="flex-1 flex-row items-center pr-2">
-            <View className="h-9 w-9 overflow-hidden rounded-full border border-white/25 bg-white/15">
+            {presentation !== "home" ? <View className="h-9 w-9 overflow-hidden rounded-full border border-white/25 bg-white/15">
               {displayAvatar ? (
                 <Image
                   source={{ uri: displayAvatar }}
@@ -118,8 +120,8 @@ export const QuoteMomentCardMedia = ({
                   </Text>
                 </View>
               )}
-            </View>
-            <View className="ml-2.5 min-w-0 flex-1">
+            </View> : null}
+            <View className={presentation === "home" ? "min-w-0 flex-1 flex-row items-center" : "ml-2.5 min-w-0 flex-1"}>
               <Text
                 className="text-sm font-semibold text-white"
                 numberOfLines={1}
@@ -127,16 +129,17 @@ export const QuoteMomentCardMedia = ({
                 {displayName}
               </Text>
               <View className="flex-row items-center">
+                {presentation === "home" ? <Text className="mx-1 text-sm text-white/65">·</Text> : null}
                 <Text className="text-[10px] text-white/55" numberOfLines={1}>
                   {createdDateLabel}
                 </Text>
-                <Text className="mx-1 text-[10px] text-white/35">/</Text>
-                <Text
+                {presentation !== "home" ? <Text className="mx-1 text-[10px] text-white/35">/</Text> : null}
+                {presentation !== "home" ? <Text
                   className="text-[11px] font-medium text-white/65"
                   numberOfLines={1}
                 >
                   {createdTimeLabel}
-                </Text>
+                </Text> : null}
               </View>
             </View>
           </View>
@@ -181,7 +184,7 @@ export const QuoteMomentCardMedia = ({
       {item.quote ? (
         <QuotePositionLayer position={item.quotePosition}>
           <View
-            className="rounded-2xl border border-white/25 bg-black/30 px-4 py-3"
+            className={presentation === "home" ? "rounded-2xl bg-black/70 px-4 py-3" : "rounded-2xl border border-white/25 bg-black/30 px-4 py-3"}
             style={{ maxWidth: "88%" }}
           >
             <Text

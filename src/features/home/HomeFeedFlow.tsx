@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { QuoteCardSkeleton } from "@/features/quotes/QuoteCardSkeleton";
 import { QuoteMomentsFeed } from "@/features/quotes/QuoteMomentsFeed";
 import { QuoteStackEntry } from "@/features/quotes/quoteStack/QuoteStackEntry";
@@ -5,9 +6,22 @@ import type { QuoteStack } from "@/features/quotes/quoteStack/types";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { MotiView } from "moti";
 import type { ComponentProps, ReactElement, RefObject } from "react";
-import { FlatList, RefreshControl, View } from "react-native";
+import { Pressable, Text, FlatList, RefreshControl, View } from "react-native";
 
 type Props = {
+  frameWidth: number;
+  contentTop: number;
+  contentHeight: number;
+  viewerUserId: string | null;
+  viewerGuestId: string | null;
+  activeQuoteId: string | null;
+  interactionLocked: boolean;
+  horizontalLocked: boolean;
+  hasError: boolean;
+  onBeginDrag: () => void;
+  onCommitPage: (page: number) => void;
+  onSelectQuote: (id: string) => void;
+  onRegisterShare: (id: string, share: () => Promise<void>) => () => void;
   listRef: RefObject<FlatList<QuoteStack> | null>;
   quoteStacks: QuoteStack[];
   isCaptureFlowActive: boolean;
@@ -33,6 +47,7 @@ type Props = {
 };
 
 export function HomeFeedFlow({
+  frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId, activeQuoteId, interactionLocked, horizontalLocked, hasError, onBeginDrag, onCommitPage, onSelectQuote, onRegisterShare,
   listRef,
   quoteStacks,
   isCaptureFlowActive,
@@ -52,6 +67,7 @@ export function HomeFeedFlow({
   isOnFeed,
   onActiveQuoteIdChange,
 }: Props) {
+  const { t } = useTranslation();
   const reduceMotion = useReducedMotionPreference();
 
   return (
@@ -59,7 +75,13 @@ export function HomeFeedFlow({
       ref={listRef}
       style={{ flex: 1, backgroundColor: "transparent" }}
       showsVerticalScrollIndicator={false}
-      scrollEnabled={!isCaptureFlowActive}
+      scrollEnabled={!isCaptureFlowActive && !interactionLocked}
+      onScrollBeginDrag={onBeginDrag}
+      onMomentumScrollEnd={e => onCommitPage(e.nativeEvent.contentOffset.y / viewportHeight)}
+      onScrollEndDrag={e => {
+        const page = e.nativeEvent.contentOffset.y / viewportHeight;
+        if (Math.abs(page - Math.round(page)) < 0.015) onCommitPage(page);
+      }}
       snapToAlignment="start"
       snapToOffsets={snapOffsets}
       decelerationRate="fast"
@@ -70,7 +92,7 @@ export function HomeFeedFlow({
       refreshControl={
         <RefreshControl
           refreshing={isFeedRefreshing}
-          onRefresh={refreshFeed}
+          onRefresh={interactionLocked ? undefined : refreshFeed}
           tintColor="#ffffff"
         />
       }
@@ -81,10 +103,15 @@ export function HomeFeedFlow({
       onViewableItemsChanged={onViewableItemsChanged}
       ListHeaderComponent={header}
       ListEmptyComponent={
-        isFeedLoading ? (
+        hasError ? (
+          <View style={{ height: viewportHeight, paddingTop: contentTop, alignItems: "center" }}>
+            <Text style={{ color: "white" }}>{t("home.feedRefreshError")}</Text>
+            <Pressable accessibilityRole="button" onPress={() => void refreshFeed()} style={{ padding: 16 }}><Text style={{ color: "white" }}>{t("home.captureFlow.retry")}</Text></Pressable>
+          </View>
+        ) : isFeedLoading ? (
           <View>
-            <QuoteCardSkeleton screenHeight={viewportHeight} />
-            <QuoteCardSkeleton screenHeight={viewportHeight} />
+            <QuoteCardSkeleton screenHeight={viewportHeight} frameWidth={frameWidth} contentTop={contentTop} contentHeight={contentHeight} />
+            <QuoteCardSkeleton screenHeight={viewportHeight} frameWidth={frameWidth} contentTop={contentTop} contentHeight={contentHeight} />
           </View>
         ) : (
           <QuoteMomentsFeed
@@ -109,6 +136,16 @@ export function HomeFeedFlow({
         >
           <QuoteStackEntry
             stack={item}
+            presentation="home"
+            frameWidth={frameWidth}
+            contentTop={contentTop}
+            contentHeight={contentHeight}
+            viewerUserId={viewerUserId}
+            viewerGuestId={viewerGuestId}
+            activeQuoteId={isOnFeed && index === currentFeedIndex ? activeQuoteId : null}
+            interactionLocked={interactionLocked || horizontalLocked}
+            onSelectQuote={onSelectQuote}
+            onRegisterShare={onRegisterShare}
             screenHeight={viewportHeight}
             authorName={authorName}
             authorAvatarUrl={authorAvatarUrl}

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { supabase } from "@/config/supabase";
-import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
+import { parseHomeVibeKey } from "@/domain/home/homeVibeKey";
 import type { HomeVibeKey } from "@/types/homeBackground";
 import type { QuoteMemory, QuoteVisibility } from "@/types/memory";
 import { formatLocalDateKey } from "@/utils/dateKey";
@@ -184,9 +184,7 @@ export const listQuotePhotoCards = async (
         (row.style_font_id as "small" | "medium" | "large") ?? "medium",
       styleColorSchemeId:
         (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
-      homeVibeKey: row.home_vibe_key
-        ? getHomeBackgroundPaletteByKey(row.home_vibe_key).vibeKey
-        : null,
+      homeVibeKey: parseHomeVibeKey(row.home_vibe_key),
       photoStackId: row.photo_stack_id ?? null,
       photoOrientation: row.photo_orientation ?? "portrait",
       quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y, row.quote_scale, row.quote_rotation),
@@ -317,9 +315,7 @@ export const listQuotePhotoCardsForDay = async (
         (row.style_font_id as "small" | "medium" | "large") ?? "medium",
       styleColorSchemeId:
         (row.style_color_scheme_id as "light" | "amber" | "pink") ?? "light",
-      homeVibeKey: row.home_vibe_key
-        ? getHomeBackgroundPaletteByKey(row.home_vibe_key).vibeKey
-        : null,
+      homeVibeKey: parseHomeVibeKey(row.home_vibe_key),
       photoStackId: row.photo_stack_id ?? null,
       photoOrientation: row.photo_orientation ?? "portrait",
       quotePosition: parseQuotePosition(row.quote_position_x, row.quote_position_y, row.quote_scale, row.quote_rotation),
@@ -372,15 +368,16 @@ export async function updateUserPhotoFavorite(
   photoId: string,
   isFavorite: boolean,
 ): Promise<boolean> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("user_photos")
     .update({ is_favorite: isFavorite })
-    .eq("id", photoId);
+    .eq("id", photoId)
+    .select("id,is_favorite");
   if (error) {
     console.error("Failed to update photo favorite", { error, photoId });
     return false;
   }
-  return true;
+  return data?.length === 1 && data[0].id === photoId && data[0].is_favorite === isFavorite;
 }
 
 export async function updateUserPhotoVisibility(

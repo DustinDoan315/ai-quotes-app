@@ -1,3 +1,4 @@
+import { useUIStore } from "@/appState/uiStore";
 import { createSubscriptionGuards } from "@/domain/subscription/subscriptionGuards";
 import { getCapabilitiesForPlan } from "@/domain/subscription/subscriptionCapabilities";
 import { openPaywall } from "@/features/paywall/openPaywall";
@@ -12,9 +13,11 @@ import { useTranslation } from "react-i18next";
 import { Platform, Share, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 
-export function useQuoteMomentShare() {
+export function useQuoteMomentShare(onSharingChange?: (sharing: boolean) => void) {
   const { t } = useTranslation();
   const captureRefView = useRef<View>(null);
+  const sharingLock = useRef(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [watermarkForExport, setWatermarkForExport] = useState(false);
   const customerInfo = useSubscriptionStore((s) => s.customerInfo);
   const plan = useSubscriptionStore((s) => s.plan);
@@ -37,6 +40,7 @@ export function useQuoteMomentShare() {
   );
 
   const shareMoment = useCallback(async (quoteId?: string) => {
+    if (sharingLock.current) return;
     const target = captureRefView.current;
     if (!target) {
       return;
@@ -52,10 +56,12 @@ export function useQuoteMomentShare() {
       return;
     }
 
-    const showWatermark = capabilities.hasWatermark;
-    setWatermarkForExport(showWatermark);
-    await waitTwoFrames();
+    sharingLock.current = true;
+    setIsSharing(true);
     try {
+      onSharingChange?.(true);
+      setWatermarkForExport(capabilities.hasWatermark);
+      await waitTwoFrames();
       const uri = await captureRef(target, {
         format: "png",
         quality: 1,
@@ -72,12 +78,19 @@ export function useQuoteMomentShare() {
       if (result.ok) {
         incrementExportUsage();
         analyticsEvents.quoteMomentShared(quoteId ?? "");
+      } else {
+        useUIStore.getState().showToast(t("home.ambient.shareError"), "error");
       }
     } catch {
+      useUIStore.getState().showToast(t("home.ambient.shareError"), "error");
     } finally {
       setWatermarkForExport(false);
+      sharingLock.current = false;
+      setIsSharing(false);
+      onSharingChange?.(false);
     }
   }, [
+    onSharingChange,
     snapshot,
     dailyExportCount,
     resetIfNewDay,
@@ -89,6 +102,7 @@ export function useQuoteMomentShare() {
 
   return {
     captureRefView,
+    isSharing,
     watermarkForExport,
     shareMoment,
   };

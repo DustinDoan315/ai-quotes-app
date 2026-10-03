@@ -22,6 +22,7 @@ export type EmojiBurst = {
 type UseHomeFeedStateOptions = {
   quoteStacks: QuoteStackLike[];
   userId: string | null;
+  activeQuote?: QuoteStackLike["quotes"][number] | null;
 };
 
 export function canReactToQuotePhoto(
@@ -40,10 +41,13 @@ export function canReactToQuotePhoto(
 export function useHomeFeedState(options: UseHomeFeedStateOptions) {
   const { quoteStacks, userId } = options;
   const [currentFeedIndex, setCurrentFeedIndex] = useState(0);
-  const [activeQuoteId, setActiveQuoteId] = useState<string | null>(null);
+  const [legacyActiveQuoteId, setActiveQuoteId] = useState<string | null>(null);
   const [emojiBursts, setEmojiBursts] = useState<EmojiBurst[]>([]);
-  const [isOnFeed, setIsOnFeed] = useState(false);
-  const activeQuote =
+  const [legacyIsOnFeed, setIsOnFeed] = useState(false);
+  const controlled = options.activeQuote !== undefined;
+  const activeQuoteId = controlled ? options.activeQuote?.id ?? null : legacyActiveQuoteId;
+  const isOnFeed = controlled ? Boolean(options.activeQuote) : legacyIsOnFeed;
+  const activeQuote = options.activeQuote ??
     quoteStacks
       .flatMap((stack) => stack.quotes)
       .find((quote) => quote.id === activeQuoteId);
@@ -57,13 +61,14 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
     );
 
   useEffect(() => {
-    if (!isOnFeed) {
+    if (controlled || !isOnFeed) {
       return;
     }
 
-    const nextId = quoteStacks[currentFeedIndex]?.quotes[0]?.id ?? null;
-    setActiveQuoteId((prev) => (prev === nextId ? prev : nextId));
-  }, [currentFeedIndex, isOnFeed, quoteStacks]);
+    const stack = quoteStacks[currentFeedIndex];
+    setActiveQuoteId((prev) => stack?.quotes.some(quote => quote.id === prev)
+      ? prev : (stack?.quotes[0]?.id ?? null));
+  }, [controlled, currentFeedIndex, isOnFeed, quoteStacks]);
 
   const viewabilityConfig = useRef({
     viewAreaCoveragePercentThreshold: 50,
@@ -71,15 +76,15 @@ export function useHomeFeedState(options: UseHomeFeedStateOptions) {
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: { index: number | null }[] }) => {
-      const hasItems = viewableItems.length > 0;
+      const first = viewableItems.find(item => item.index != null);
+      const hasItems = Boolean(first);
       setIsOnFeed(hasItems);
       if (!hasItems) {
         setActiveQuoteId(null);
         return;
       }
 
-      const first = viewableItems[0];
-      if (first.index == null) {
+      if (first?.index == null) {
         return;
       }
 

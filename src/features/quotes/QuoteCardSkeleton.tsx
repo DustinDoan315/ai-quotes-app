@@ -9,9 +9,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-type Props = { screenHeight: number };
+type Props = { screenHeight: number; frameWidth?: number; contentTop?: number; contentHeight?: number };
 
-export function QuoteCardSkeleton({ screenHeight }: Props) {
+export function QuoteCardSkeleton({ screenHeight, frameWidth, contentTop, contentHeight }: Props) {
   const frame = useQuoteCardFrame();
   const shimmerOpacity = useSharedValue(0.4);
 
@@ -25,10 +25,10 @@ export function QuoteCardSkeleton({ screenHeight }: Props) {
 
   return (
     <View
-      style={{ height: screenHeight }}
+      style={{ height: screenHeight, ...(contentTop != null ? { paddingTop: contentTop, paddingBottom: Math.max(0, screenHeight - contentTop - (contentHeight ?? frameWidth ?? frame.width)) } : {}) }}
       className="items-center justify-center">
       <Animated.View
-        style={[shimmerStyle, { width: frame.width }]}
+        style={[shimmerStyle, { width: frameWidth ?? frame.width }]}
         className="overflow-hidden rounded-3xl border border-white/10 bg-black/50">
         <View style={{ aspectRatio: QUOTE_DISPLAY_ASPECT }} className="relative bg-white/5">
           <View className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-3">

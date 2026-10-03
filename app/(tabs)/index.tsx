@@ -1,3 +1,4 @@
+import { useUIStore } from "@/appState/uiStore";
 import { useMemoryStore } from "@/appState";
 import {
   selectBootstrapReady,
@@ -7,7 +8,19 @@ import { getDisplayStreak, useStreakStore } from "@/appState/streakStore";
 import { useUserStore } from "@/appState/userStore";
 import { MilestoneCelebration } from "@/components/MilestoneCelebration";
 import { ServiceUnavailableScreen } from "@/components/ServiceUnavailableScreen";
-import { HomeActionBar } from "@/features/home/HomeActionBar";
+import { HomeAmbientHeader } from "@/features/home/HomeAmbientHeader";
+import { HomeAmbientBackground } from "@/features/home/HomeAmbientBackground";
+import { HomeMomentToolbar } from "@/features/home/HomeMomentToolbar";
+import { HomeAmbientDock } from "@/features/home/HomeAmbientDock";
+import { useHomeAmbientController } from "@/features/home/useHomeAmbientController";
+import { useHomeActiveShare } from "@/hooks/useHomeActiveShare";
+import { useHomeMomentHeart } from "@/hooks/useHomeMomentHeart";
+import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
+import { getHomeViewportLayout } from "@/domain/home/homeViewportLayout";
+import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
+import { HOME_AMBIENT_LAYOUT } from "@/theme/homeAmbient";
+import { validateEditableQuote } from "@/services/ai/rewriteReview";
+import { PHOTO_REACTION_EMOJIS, type UserPhotoReactionType } from "@/services/media/userPhotoReactions";
 import { StreakModal } from "@/features/streak/StreakModal";
 import { HomeCaptureFlow } from "@/features/home/HomeCaptureFlow";
 import { HomeEmojiOverlay } from "@/features/home/HomeEmojiOverlay";
@@ -30,6 +43,11 @@ import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  Text,
+  ScrollView,
   FlatList,
   useWindowDimensions,
   View,
@@ -45,10 +63,13 @@ export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [milestone, setMilestone] = useState<number | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(56);
+  const [footerHeight, setFooterHeight] = useState(188);
   const [streakModalVisible, setStreakModalVisible] = useState(false);
   const [quoteDraftForSave, setQuoteDraftForSave] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
   const [measuredFeedViewportHeight, setMeasuredFeedViewportHeight] = useState(0);
   const displayStreak = useStreakStore((state) => getDisplayStreak(state));
   const profile = useUserStore((s) => s.profile);
@@ -66,12 +87,24 @@ export default function HomeScreen() {
     isRefreshing: isFeedRefreshing,
     refresh: refreshFeed,
     refreshSilently,
+    patchFavorite,
+    setFavoritePending,
+    hasError: feedHasError,
   } = useQuotePhotoFeed();
   const quoteStacks = useMemo(
     () => groupQuotePhotoCardsIntoStacks(feedItems),
     [feedItems],
   );
   const { palette } = useHomeBackgroundPalette();
+  const activeShare = useHomeActiveShare();
+  const { captureRefView, watermarkForExport, shareMoment, isSharing: draftSharing } = useQuoteMomentShare();
+  const exportLocked = activeShare.isSharing || draftSharing;
+  const identity = `${authUserId ?? ''}:${profile?.user_id ?? ''}:${guestId ?? ''}`;
+  const identityRef = useRef(identity);
+  const identityEpoch = useRef(0);
+  if (identityRef.current !== identity) { identityRef.current = identity; identityEpoch.current += 1; }
+  const ambient = useHomeAmbientController(quoteStacks, identity, exportLocked);
+  const reduceMotion = useReducedMotionPreference();
   const {
     isLoading,
     isGranted: cameraPermissionGranted,
@@ -83,6 +116,8 @@ export default function HomeScreen() {
     handleCameraReady,
     handleCameraMountError,
     isCapturing,
+    isPickingImage,
+    draftVibeKey,
     isSavingPhoto,
     selectedImageUri,
     quotePosition,
@@ -120,9 +155,9 @@ export default function HomeScreen() {
     },
     onMilestoneReached: setMilestone,
     homeVibeKey: palette.vibeKey,
+    cameraEnabled: !ambient.isOnFeed && !ambient.isDragging && !exportLocked && !menuVisible && !streakModalVisible,
   });
-  const { captureRefView, watermarkForExport, shareMoment } =
-    useQuoteMomentShare();
+
   const listRef = useRef<FlatList<QuoteStack>>(null);
   const today = getTodayLocalDateKey();
   const memories = useMemoryStore((s: MemoryState) => s.memories);
@@ -200,9 +235,24 @@ export default function HomeScreen() {
   const authorName =
     profile?.display_name ?? profile?.username ?? guestDisplayName ?? "You";
   const authorAvatarUrl = profile?.avatar_url ?? null;
-  const actionBarBottomPadding = insets.bottom;
+
   // The action bar overlays the list, so its first page uses the full root height.
-  const viewportHeight = measuredFeedViewportHeight || screenHeight;
+  const liveViewportHeight = measuredFeedViewportHeight || screenHeight;
+  const heldGeometry = useRef({ height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight });
+  if (!exportLocked) heldGeometry.current = { height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight };
+  const viewportHeight = heldGeometry.current.height;
+  const layout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: heldGeometry.current.footerHeight });
+  const draftPalette = draftVibeKey ? getHomeBackgroundPaletteByKey(draftVibeKey) : palette;
+  const activePalette = ambient.active?.palette ?? draftPalette;
+  const patchMomentFavorite = useCallback((id: string, value: boolean) => {
+    patchFavorite(id, value);
+    useMemoryStore.getState().setPhotoFavorite(id, value);
+  }, [patchFavorite]);
+  const signIn = () => router.push({ pathname: '/login', params: { returnTo: '/(tabs)' } } as never);
+  const heart = useHomeMomentHeart({ card: ambient.active?.card ?? null, authUserId, signedInUserId: profile?.user_id ?? null, identityEpoch: identityEpoch.current, patchFavorite: patchMomentFavorite, onSignIn: signIn, onFavoritePending: setFavoritePending, onReactionSuccess: () => useUIStore.getState().showToast(t("home.ambient.loveSent"), "success") });
+  useEffect(() => {
+    if (!exportLocked && !ambient.isDragging) listRef.current?.scrollToOffset({ offset: ambient.page * viewportHeight, animated: false });
+  }, [ambient.page, viewportHeight, exportLocked, ambient.isDragging]);
   const onFeedViewportHeightChange = useCallback((height: number) => {
     setMeasuredFeedViewportHeight((current) =>
       Math.abs(current - height) < 1 ? current : height,
@@ -219,13 +269,14 @@ export default function HomeScreen() {
   const snapOffsets = useMemo(
     () =>
       Array.from(
-        { length: quoteStacks.length + 1 },
+        { length: ambient.visibleStacks.length + 1 },
         (_, i) => i * viewportHeight,
       ),
-    [quoteStacks.length, viewportHeight],
+    [ambient.visibleStacks.length, viewportHeight],
   );
   const isCaptureFlowActive =
     isCapturing ||
+    isPickingImage ||
     isSavingPhoto ||
     isGenerating ||
     (!!selectedImageUri && !hasSavedCurrentPhoto);
@@ -246,8 +297,7 @@ export default function HomeScreen() {
     aiToolsLoadingLabel,
   } = useHomeAiReview(dailyQuoteText);
   const {
-    currentFeedIndex,
-    isOnFeed,
+
     emojiBursts,
     setActiveQuoteId,
     handleReact,
@@ -255,32 +305,49 @@ export default function HomeScreen() {
     onViewableItemsChanged,
     shouldShowReactions,
   } = useHomeFeedState({
-    quoteStacks,
+    quoteStacks: ambient.visibleStacks,
+    activeQuote: ambient.active?.card ?? null,
     userId: profile?.user_id ?? null,
   });
+  const isOnFeed = ambient.isOnFeed;
+  const currentFeedIndex = Math.max(0, ambient.stackIndex);
+  const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || isAiToolLoading || Boolean(rewriteReviewText || futureReviewText) || exportLocked;
+  useEffect(() => { setActiveQuoteId(ambient.active?.card.id ?? null); }, [ambient.active?.card.id, setActiveQuoteId]);
+  const canSaveDraft = Boolean(selectedImageUri && !hasSavedCurrentPhoto && validateEditableQuote(quoteDraftForSave ?? dailyQuoteText ?? '').isValid);
+  const isOwned = Boolean(ambient.active && ((authUserId && ambient.active.card.userId === authUserId) || (!ambient.active.card.userId && guestId && ambient.active.card.guestId === guestId)));
+  function protectDraft(action: () => void, clear = true) {
+    if (busy) return;
+    if (selectedImageUri && !hasSavedCurrentPhoto) {
+      Alert.alert(t('home.ambient.discardTitle'), t('home.ambient.discardBody'), [
+        { text: t('home.ambient.cancel'), style: 'cancel' },
+        { text: t('home.ambient.discard'), style: 'destructive', onPress: () => { if (clear) handleClearCurrentImage(); action(); } },
+      ]);
+    } else action();
+  }
   const flatListExtraData = useMemo(
     () =>
-      `${selectedAiTool ?? ""}|${pendingAiTool ?? ""}|${aiResult?.title ?? ""}`,
-    [selectedAiTool, pendingAiTool, aiResult?.title],
+      `${ambient.active?.card.id ?? ""}|${exportLocked}|${selectedAiTool ?? ""}|${pendingAiTool ?? ""}|${aiResult?.title ?? ""}`,
+    [ambient.active?.card.id, exportLocked, selectedAiTool, pendingAiTool, aiResult?.title],
   );
 
   function handleOpenMemories() {
-    router.push("/memories" as never);
+    protectDraft(() => router.push("/memories" as never));
   }
 
   function handleCameraButtonPress() {
+    if (busy) return;
     if (isOnFeed) {
       listRef.current?.scrollToOffset({ offset: 0, animated: true });
     } else {
-      handleCapture();
+      void handleCapture();
     }
   }
 
   function handleOpenGalleryPress() {
-    if (isOnFeed) {
-      listRef.current?.scrollToOffset({ offset: 0, animated: true });
-    }
-    void handleOpenGallery();
+    protectDraft(() => {
+      if (isOnFeed) { ambient.returnToCapture(); listRef.current?.scrollToOffset({ offset: 0, animated: false }); }
+      void handleOpenGallery().then(replaced => { if (replaced) clearAiToolState(); });
+    }, false);
   }
 
   function handleClearCurrentImage() {
@@ -307,13 +374,30 @@ export default function HomeScreen() {
         onFeedViewportHeightChange(event.nativeEvent.layout.height)
       }
     >
+      <HomeAmbientBackground palette={activePalette} reduceMotion={reduceMotion} />
+      <View style={{ position: 'absolute', top: insets.top, left: 0, right: 0, zIndex: 20 }} onLayout={e => setHeaderHeight(e.nativeEvent.layout.height)} pointerEvents={busy || ambient.isDragging ? 'none' : 'auto'}>
+        <HomeAmbientHeader palette={activePalette} avatarUrl={authorAvatarUrl} onProfile={() => protectDraft(() => profile?.user_id ? router.push('/(tabs)/profile' as never) : signIn())} onMenu={() => setMenuVisible(true)} />
+      </View>
       <MilestoneCelebration
         milestone={milestone}
         onDismiss={() => setMilestone(null)}
       />
       <HomeFeedFlow
         listRef={listRef}
-        quoteStacks={quoteStacks}
+        quoteStacks={ambient.visibleStacks}
+        frameWidth={Math.max(1, layout.cardWidth)}
+        contentTop={layout.contentTop}
+        contentHeight={layout.contentHeight}
+        viewerUserId={authUserId}
+        viewerGuestId={guestId}
+        activeQuoteId={ambient.active?.card.id ?? null}
+        interactionLocked={busy}
+        horizontalLocked={ambient.isDragging}
+        hasError={feedHasError}
+        onBeginDrag={ambient.beginDrag}
+        onCommitPage={ambient.commitPage}
+        onSelectQuote={ambient.selectQuote}
+        onRegisterShare={activeShare.register}
         isCaptureFlowActive={isCaptureFlowActive}
         flatListExtraData={flatListExtraData}
         snapOffsets={snapOffsets}
@@ -332,25 +416,13 @@ export default function HomeScreen() {
         header={
           <HomeCaptureFlow
             viewportHeight={viewportHeight}
-            topInset={insets.top}
-            displayStreak={displayStreak}
-            pastMemory={pastMemories[0] ?? null}
-            onPressProfile={() => router.push("/(tabs)/profile" as never)}
-            onPressFriends={() => router.push("/(tabs)/friends" as never)}
-            onPressSignIn={() =>
-              router.push({
-                pathname: "/login",
-                params: { returnTo: "/(tabs)" },
-              } as never)
-            }
-            onPressStreak={() => setStreakModalVisible(true)}
-            onPressPastMemory={(date) =>
-              router.push({
-                pathname: "/memories/day",
-                params: { date },
-              } as never)
-            }
+            contentTop={layout.contentTop}
+            contentHeight={layout.contentHeight}
+            feedError={feedHasError && ambient.visibleStacks.length === 0}
+            onRetryFeed={() => void refreshFeed()}
             cameraSectionProps={{
+              frameWidth: layout.cardWidth,
+              interactionLocked: exportLocked,
               cameraRef,
               cameraSessionKey,
               pinchGesture,
@@ -399,7 +471,7 @@ export default function HomeScreen() {
               aiResultBody: aiResult?.body ?? null,
               aiToolsLoading: isAiToolLoading,
               aiToolsLoadingLabel,
-              cardPalette: palette,
+              cardPalette: draftPalette,
               pendingQuoteText: rewriteReviewText ?? futureReviewText ?? null,
               pendingQuoteTitle: futureReviewText
                 ? t("home.aiTools.futureReviewTitle")
@@ -414,26 +486,44 @@ export default function HomeScreen() {
           />
         }
       />
-      <HomeActionBar
-        shouldShowReactions={shouldShowReactions}
-        bottomInset={actionBarBottomPadding}
-        onOpenMemories={handleOpenMemories}
-        onCameraPress={handleCameraButtonPress}
-        onOpenGallery={handleOpenGalleryPress}
-        onSavePhoto={() => handleSavePhoto(quoteDraftForSave)}
-        onShareImage={() => {
-          void shareMoment();
-        }}
-        onReact={handleReact}
-        isGenerating={isGenerating}
-        isCapturing={isCapturing}
-        cameraReady={cameraReady}
-        cameraPermissionGranted={cameraPermissionGranted}
-        hasImage={!!selectedImageUri}
-        canSave={Boolean(dailyQuoteText && !hasSavedCurrentPhoto)}
-        canShare={Boolean(dailyQuoteText && selectedImageUri && !hideQuote)}
-        isSaving={isSavingPhoto}
-      />
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => setFooterHeight(e.nativeEvent.layout.height)}>
+        <View style={{ minHeight: HOME_AMBIENT_LAYOUT.actionRowMinHeight }}>
+          {ambient.active || selectedImageUri ? <HomeMomentToolbar
+            context={ambient.active ? isOwned ? 'mine' : 'friends' : 'draft'}
+            index={ambient.active?.index ?? 0} count={ambient.active?.count ?? 1}
+            heartMode={ambient.active && !busy && !ambient.isDragging && ambient.active.card.imageUrl ? heart.mode : 'hidden'}
+            isFavorite={heart.isFavorite} isHeartBusy={heart.isBusy}
+            canShare={!busy && !ambient.isDragging && (ambient.active ? Boolean(ambient.active.card.imageUrl) && activeShare.canShare(ambient.active.card.id) : Boolean(dailyQuoteText && selectedImageUri && !hideQuote && quoteDraftForSave === null))}
+            isSharing={exportLocked}
+            canPrevious={!busy && !ambient.isDragging && Boolean(ambient.active && ambient.active.index > 0)}
+            canNext={!busy && !ambient.isDragging && Boolean(ambient.active && ambient.active.index < ambient.active.count - 1)}
+            onHeart={() => { if (!busy && !ambient.isDragging) void heart.press(); }}
+            onShare={() => { if (busy || ambient.isDragging) return; if (ambient.active) void activeShare.share(ambient.active.card.id); else void shareMoment(); }}
+            onPrevious={() => { const card = ambient.visibleStacks[currentFeedIndex]?.quotes[(ambient.active?.index ?? 0) - 1]; if (card) ambient.selectQuote(card.id); }}
+            onNext={() => { const card = ambient.visibleStacks[currentFeedIndex]?.quotes[(ambient.active?.index ?? 0) + 1]; if (card) ambient.selectQuote(card.id); }}
+          /> : null}
+        </View>
+        <View style={{ height: HOME_AMBIENT_LAYOUT.regionGap }} />
+        <HomeAmbientDock mode={busy ? 'busy' : isOnFeed ? 'feed' : selectedImageUri ? 'draft' : 'capture'}
+          canCapture={isOnFeed || !cameraPermissionGranted || cameraReady} canSave={canSaveDraft}
+          busyLabel={isGenerating ? t('home.ambient.generating') : isSavingPhoto ? t('home.ambient.saving') : t('home.ambient.working')}
+          onGallery={handleOpenGalleryPress} onMemories={handleOpenMemories}
+          onPrimary={() => { if (busy) return; if (selectedImageUri && !isOnFeed) void handleSavePhoto(quoteDraftForSave); else handleCameraButtonPress(); }} />
+      </View>
+      <Modal visible={menuVisible} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={() => setMenuVisible(false)}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('home.ambient.closeMenu')} onPress={() => setMenuVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 28 }}>
+          <Pressable accessibilityViewIsModal onPress={() => {}} style={{ backgroundColor: '#171329', borderRadius: 24, padding: 20 }}>
+            <ScrollView>
+              <Text accessibilityRole="header" style={{ color: 'white', fontSize: 22, marginBottom: 12 }}>{t('home.ambient.menu')}</Text>
+              <Pressable style={{ paddingVertical: 16 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
+              <Pressable style={{ paddingVertical: 16 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
+              {pastMemories[0] ? <Pressable style={{ paddingVertical: 16 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push({ pathname: '/memories/day', params: { date: pastMemories[0].date } } as never)); }}><Text style={{ color: 'white' }}>{t('memories.thisDayInMemoriesLabel')}</Text></Pressable> : null}
+              {shouldShowReactions && ambient.active ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={t('home.reactions.withEmoji', { emoji })} style={{ padding: 16 }} onPress={() => { setMenuVisible(false); void handleReact(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View> : null}
+              <Pressable style={{ paddingVertical: 16 }} onPress={() => setMenuVisible(false)}><Text style={{ color: 'white' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
       <HomeEmojiOverlay bursts={emojiBursts} screenHeight={screenHeight} />
       <StreakModal
         visible={streakModalVisible}

@@ -1,10 +1,11 @@
 import type { QuoteStack } from "./types";
-import { QuoteMomentCard } from "@/features/quotes/QuoteMomentCard";
+import { QuoteMomentCard, type QuoteMomentCardProps } from "@/features/quotes/QuoteMomentCard";
 import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState, useCallback, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated, {
   runOnJS,
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -51,6 +52,17 @@ type Props = {
   readonly authorAvatarUrl: string | null;
   readonly isActive: boolean;
   readonly onActiveQuoteIdChange: (quoteId: string) => void;
+  readonly activeQuoteId?: string | null;
+  readonly interactionLocked?: boolean;
+  readonly onSelectQuote?: (quoteId: string) => void;
+  readonly presentation?: "default" | "home";
+  readonly frameWidth?: number;
+  readonly contentTop?: number;
+  readonly contentHeight?: number;
+  readonly viewerUserId?: string | null;
+  readonly viewerGuestId?: string | null;
+  readonly onRegisterShare?: QuoteMomentCardProps["onRegisterShare"];
+  readonly onSharingChange?: (sharing: boolean) => void;
 };
 
 export function QuoteStackEntry({
@@ -60,15 +72,21 @@ export function QuoteStackEntry({
   authorAvatarUrl,
   isActive,
   onActiveQuoteIdChange,
+  activeQuoteId, interactionLocked = false, onSelectQuote, presentation, frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId, onRegisterShare, onSharingChange,
 }: Props) {
   const frame = useQuoteCardFrame();
-  const itemWidth = frame.width;
+  const itemWidth = frameWidth ?? frame.width;
+  const controlled = activeQuoteId !== undefined;
+  const cardPresentation = { presentation, frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId };
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const quoteCount = stack.quotes.length;
-  const previousItem: QuotePhotoCard | undefined = stack.quotes[currentIndex - 1];
-  const topItem: QuotePhotoCard | undefined = stack.quotes[currentIndex];
-  const nextItem: QuotePhotoCard | undefined = stack.quotes[currentIndex + 1];
+  const renderIndex = controlled ? Math.max(0, stack.quotes.findIndex(quote => quote.id === activeQuoteId)) : currentIndex;
+  const previousItem: QuotePhotoCard | undefined = stack.quotes[renderIndex - 1];
+  const topItem: QuotePhotoCard | undefined = stack.quotes[renderIndex];
+  const nextItem: QuotePhotoCard | undefined = stack.quotes[renderIndex + 1];
+  const lockedRef = useRef(interactionLocked);
+  lockedRef.current = interactionLocked;
   // Shared values mirror for worklet access — avoids gesture recreation on every swipe
   const currentIndexSV = useSharedValue(0);
   const quoteCountSV = useSharedValue(quoteCount);
@@ -81,9 +99,9 @@ export function QuoteStackEntry({
     (index: number) => {
       const quote = stack.quotes[index];
       if (!quote) return;
-      onActiveQuoteIdChange(quote.id);
+      (onSelectQuote ?? onActiveQuoteIdChange)(quote.id);
     },
-    [onActiveQuoteIdChange, stack.quotes],
+    [onSelectQuote, onActiveQuoteIdChange, stack.quotes],
   );
 
   useEffect(() => {
@@ -105,6 +123,7 @@ export function QuoteStackEntry({
 
   useEffect(() => {
     if (!isActive) return;
+    if (controlled) return;
     currentIndexSV.value = 0;
     setCurrentIndex(0);
     translateX.value = 0;
@@ -114,12 +133,29 @@ export function QuoteStackEntry({
 
   useEffect(() => {
     if (!isActive) return;
+    if (controlled) return;
     const quote = stack.quotes[currentIndex];
     if (!quote) return;
     onActiveQuoteIdChange(quote.id);
   }, [currentIndex, isActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!controlled || !isActive) return;
+    cancelAnimation(translateX);
+    const found = stack.quotes.findIndex(quote => quote.id === activeQuoteId);
+    const index = found >= 0 ? found : 0;
+    currentIndexSV.value = index;
+    setCurrentIndex(index);
+    translateX.value = 0;
+    isAnimatingOut.value = false;
+  }, [controlled, activeQuoteId, isActive, stack.quotes, currentIndexSV, translateX, isAnimatingOut]);
+
+  useEffect(() => {
+    if (interactionLocked) { cancelAnimation(translateX); translateX.value = 0; isAnimatingOut.value = false; }
+  }, [interactionLocked, translateX, isAnimatingOut]);
+
   const advanceIndex = useCallback(() => {
+    if (lockedRef.current) return;
     const next = currentIndexSV.value + 1;
     currentIndexSV.value = next;
     setCurrentIndex(next);
@@ -129,6 +165,7 @@ export function QuoteStackEntry({
   }, [notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const decrementIndex = useCallback(() => {
+    if (lockedRef.current) return;
     const prev = currentIndexSV.value - 1;
     if (prev < 0) return;
     currentIndexSV.value = prev;
@@ -141,7 +178,7 @@ export function QuoteStackEntry({
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(isActive)
+        .enabled(isActive && !interactionLocked)
         .activeOffsetX([-5, 5])
         .failOffsetY([-40, 40])
         .onUpdate((e) => {
@@ -178,7 +215,7 @@ export function QuoteStackEntry({
             translateX.value = withSpring(0, SNAP_BACK_SPRING);
           }
         }),
-    [isActive, itemWidth, advanceIndex, decrementIndex], // eslint-disable-line react-hooks/exhaustive-deps
+    [isActive, interactionLocked, itemWidth, advanceIndex, decrementIndex], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const topCardStyle = useAnimatedStyle(() => ({
@@ -201,6 +238,8 @@ export function QuoteStackEntry({
           style={[StyleSheet.absoluteFill, previousCardStyle]}
           pointerEvents="none">
           <QuoteMomentCard
+            {...cardPresentation}
+            isActive={false}
             item={previousItem}
             screenHeight={screenHeight}
             authorName={authorName}
@@ -216,6 +255,8 @@ export function QuoteStackEntry({
           style={[StyleSheet.absoluteFill, nextCardStyle]}
           pointerEvents="none">
           <QuoteMomentCard
+            {...cardPresentation}
+            isActive={false}
             item={nextItem}
             screenHeight={screenHeight}
             authorName={authorName}
@@ -231,6 +272,10 @@ export function QuoteStackEntry({
             key={`top-${topItem.id}`}
             style={[StyleSheet.absoluteFill, topCardStyle]}>
             <QuoteMomentCard
+              {...cardPresentation}
+              isActive={isActive}
+              onRegisterShare={onRegisterShare}
+              onSharingChange={onSharingChange}
               item={topItem}
               screenHeight={screenHeight}
               authorName={authorName}

@@ -1,0 +1,11 @@
+import { resolveActiveHomeMoment, getHomeMomentIndexWindow } from '@/domain/home/activeHomeMoment';
+import { parseHomeVibeKey } from '@/domain/home/homeVibeKey';
+import type { QuoteStack } from '@/features/quotes/quoteStack/types';
+const stacks = [{ id: 's', ownerKey: 'friend', quotes: [{ id: 'a', homeVibeKey: 'sage' }, { id: 'b', homeVibeKey: 'aurora' }] }] as QuoteStack[];
+it('follows the horizontal card including premium saved palettes', () => expect(resolveActiveHomeMoment(stacks, 0, 'b')?.palette.vibeKey).toBe('aurora'));
+it('falls back to first card for stale or foreign IDs', () => expect(resolveActiveHomeMoment(stacks, 0, 'removed')?.card.id).toBe('a'));
+it('uses Mist for unknown saved vibes', () => expect(resolveActiveHomeMoment([{ ...stacks[0], quotes: [{ ...stacks[0].quotes[0], homeVibeKey: null }] }], 0, null)?.palette.vibeKey).toBe('mist'));
+it('handles empty feed', () => expect(resolveActiveHomeMoment([], 0, null)).toBeNull());
+it('centers/clamps five indicators', () => expect(getHomeMomentIndexWindow(6, 7)).toEqual({ indices: [2, 3, 4, 5, 6], label: '7 / 7' }));
+it('hides single-card count', () => expect(getHomeMomentIndexWindow(0, 1)).toEqual({ indices: [0], label: null }));
+it('preserves known keys and rejects unknown/blank keys', () => { expect(parseHomeVibeKey('prism')).toBe('prism'); expect(parseHomeVibeKey('future')).toBeNull(); expect(parseHomeVibeKey('')).toBeNull(); });

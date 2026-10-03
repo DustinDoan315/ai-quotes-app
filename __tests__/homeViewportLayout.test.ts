@@ -1,0 +1,4 @@
+import { getHomeViewportLayout } from '@/domain/home/homeViewportLayout';
+it('counts measured regions and safe areas exactly once', () => expect(getHomeViewportLayout({ width: 390, height: 844, topInset: 47, bottomInset: 34, headerHeight: 56, footerHeight: 188 })).toEqual({ contentTop: 115, contentHeight: 483, cardWidth: 350 }));
+it('clamps compact screen to the usable content', () => { const layout = getHomeViewportLayout({ width: 320, height: 568, topInset: 20, bottomInset: 0, headerHeight: 90, footerHeight: 240 }); expect(layout.cardWidth).toBe(layout.contentHeight); expect(layout.cardWidth).toBeLessThanOrEqual(280); });
+it('does not return negative geometry', () => expect(getHomeViewportLayout({ width: -1, height: 10, topInset: 100, bottomInset: 10, headerHeight: 200, footerHeight: 200 }).cardWidth).toBe(0));

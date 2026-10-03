@@ -35,6 +35,8 @@ import {
   type GenerationStage,
 } from "@/features/home/generationStage";
 import i18n from "@/i18n";
+import type { HomeVibeKey } from "@/types/homeBackground";
+import { parseHomeVibeKey } from "@/domain/home/activeHomeMoment";
 
 const EXPO_ZOOM_MIN = 0;
 const EXPO_ZOOM_MAX = 0.5;
@@ -79,12 +81,21 @@ type UseHomeCameraOptions = {
   onPhotoSaved?: () => void;
   onMilestoneReached?: (streak: number) => void;
   homeVibeKey?: string;
+  cameraEnabled?: boolean;
 };
 
 export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   const onPhotoSaved = options?.onPhotoSaved;
   const onMilestoneReached = options?.onMilestoneReached;
   const homeVibeKey = options?.homeVibeKey;
+  const [draftVibeKey, setDraftVibeKey] = useState<HomeVibeKey | null>(null);
+  const draftVibeRef = useRef<HomeVibeKey | null>(null);
+  const [isPickingImage, setIsPickingImage] = useState(false);
+  const isPickingImageRef = useRef(false);
+  function commitDraftVibe(key: HomeVibeKey | null) {
+    draftVibeRef.current = key;
+    setDraftVibeKey(key);
+  }
   const { isLoading, isGranted, requestPermission } = useCameraPermission();
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraSessionKey, setCameraSessionKey] = useState(0);
@@ -180,6 +191,10 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     }, []),
   );
 
+  useEffect(() => {
+    setCameraReady(false);
+  }, [options?.cameraEnabled, selectedImageUri, isPickingImage]);
+
   const captureZoomStart = useCallback(() => {
     zoomStartRef.current = zoomRef.current;
   }, []);
@@ -257,6 +272,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       return;
     }
     invalidateGeneration();
+    commitDraftVibe(null);
     setSelectedImageUri(null);
     setSelectedImageBase64(null);
     setPhotoOrientation("portrait");
@@ -339,7 +355,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   }
 
   async function handleCapture() {
-    if (isCapturingRef.current || isSavingPhotoRef.current) {
+    if (isCapturingRef.current || isSavingPhotoRef.current || isPickingImageRef.current || options?.cameraEnabled === false) {
       return;
     }
 
@@ -363,6 +379,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       return;
     }
 
+    const captureVibe = parseHomeVibeKey(homeVibeKey);
     isCapturingRef.current = true;
     setIsCapturing(true);
     try {
@@ -375,6 +392,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       invalidateGeneration();
+      commitDraftVibe(captureVibe);
       setSelectedImageUri(photo.uri);
       setSelectedImageBase64(null);
       setPhotoOrientation("portrait");
@@ -464,7 +482,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         quotePosition,
         styleFontId: quoteFontSize,
         styleColorSchemeId: quoteColorScheme,
-        homeVibeKey: homeVibeKey ?? null,
+        homeVibeKey: draftVibeRef.current,
         photoStackId,
       });
       if (!result) {
@@ -508,7 +526,8 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         photoStackIdRef.current = photoStackId;
         setPhotoStackCount((count) => count + 1);
       }
-      setSelectedImageUri(null);
+      commitDraftVibe(null);
+    setSelectedImageUri(null);
       setSelectedImageBase64(null);
       setPhotoOrientation("portrait");
       setQuotePosition(DEFAULT_QUOTE_POSITION);
@@ -559,10 +578,14 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
   }
 
   async function handleOpenGallery() {
+    if (isPickingImageRef.current || isCapturingRef.current) return;
     if (isSavingPhotoRef.current) {
       showToast(i18n.t("camera.info.photoSaveInProgress"), "info");
       return;
     }
+    const importVibe = parseHomeVibeKey(homeVibeKey);
+    isPickingImageRef.current = true;
+    setIsPickingImage(true);
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -576,6 +599,7 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
         return;
       }
       invalidateGeneration();
+      commitDraftVibe(importVibe);
       setSelectedImageUri(picked.uri);
       setSelectedImageBase64(null);
       setPhotoOrientation(orientationForImage(picked.width, picked.height));
@@ -584,9 +608,13 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
       setHideQuote(true);
       setHasSavedCurrentPhoto(false);
       void generateForImage(picked.uri, true);
+      return true;
     } catch (error) {
       console.error("Failed to pick image from gallery", error);
       showToast(i18n.t("camera.errors.failedToSavePhoto"), "error");
+    } finally {
+      isPickingImageRef.current = false;
+      setIsPickingImage(false);
     }
   }
 
@@ -622,7 +650,9 @@ export const useHomeCamera = (options?: UseHomeCameraOptions) => {
     cameraReady,
     cameraSessionKey,
     cameraError,
-    isCameraActive: isCameraActive && isGranted,
+    isCameraActive: isCameraActive && isGranted && options?.cameraEnabled !== false && !selectedImageUri && !isPickingImage,
+    draftVibeKey,
+    isPickingImage,
     handleCameraReady,
     handleCameraMountError,
     isCapturing,

@@ -56,7 +56,7 @@ export function groupQuotePhotoCardsIntoStacks(
     }
 
     const stack: QuoteStack = {
-      id: card.photoStackId ?? card.id,
+      id: `${ownerKey}:${card.photoStackId ?? card.id}`,
       quotes: [card],
       ownerKey,
       primaryVibeKey: card.homeVibeKey ?? null,

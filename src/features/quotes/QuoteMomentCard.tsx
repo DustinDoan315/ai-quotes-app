@@ -1,10 +1,11 @@
 import { QuoteMomentCardMedia } from "@/features/quotes/QuoteMomentCardMedia";
 import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
-import type { ReactNode } from "react";
+import { useEffect, useCallback, type ReactNode } from "react";
 import { QUOTE_DISPLAY_ASPECT } from "@/constants/quoteImageSize";
 import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { getHomeBackgroundPaletteByKey } from "@/theme/homeBackgrounds";
+import { HOME_AMBIENT_LAYOUT, getHomeAmbientColors } from "@/theme/homeAmbient";
 import { getHomeVibeFeedChrome } from "@/theme/homeVibeFeedFrame";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +19,15 @@ export interface QuoteMomentCardProps {
   authorAvatarUrl: string | null;
   counterLabel?: string | null;
   dotsContent?: ReactNode;
+  presentation?: "default" | "home";
+  frameWidth?: number;
+  contentTop?: number;
+  contentHeight?: number;
+  viewerUserId?: string | null;
+  viewerGuestId?: string | null;
+  isActive?: boolean;
+  onRegisterShare?: (quoteId: string, share: () => Promise<void>) => void | (() => void);
+  onSharingChange?: (sharing: boolean) => void;
 }
 
 export const QuoteMomentCard = ({
@@ -27,33 +37,45 @@ export const QuoteMomentCard = ({
   authorAvatarUrl,
   counterLabel,
   dotsContent,
+  presentation = "default", frameWidth, contentTop, contentHeight,
+  viewerUserId, viewerGuestId, isActive = true, onRegisterShare, onSharingChange,
 }: QuoteMomentCardProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const frame = useQuoteCardFrame();
   const authUserId = useUserStore((s) => s.authUserId);
   const guestId = useUserStore((s) => s.guestId);
+  const width = frameWidth ?? frame.width;
+  const isHome = presentation === "home";
   const { captureRefView, watermarkForExport, shareMoment } =
-    useQuoteMomentShare();
+    useQuoteMomentShare(onSharingChange);
   const bgPalette = item.homeVibeKey
     ? getHomeBackgroundPaletteByKey(item.homeVibeKey)
     : null;
+  const homeColors = getHomeAmbientColors(bgPalette ?? getHomeBackgroundPaletteByKey("mist"));
   const chrome = bgPalette ? getHomeVibeFeedChrome(bgPalette) : null;
+  const ownUser = viewerUserId === undefined ? authUserId : viewerUserId;
+  const ownGuest = viewerGuestId === undefined ? guestId : viewerGuestId;
   const baseDisplayName = item.authorDisplayName ?? authorName;
   const isMine =
-    (authUserId && item.userId && item.userId === authUserId) ||
-    (guestId && item.guestId && item.guestId === guestId);
-  const displayName = isMine ? "Me" : baseDisplayName;
-  const displayAvatar = item.authorAvatarUrl ?? authorAvatarUrl;
+    (ownUser && item.userId && item.userId === ownUser) ||
+    (!item.userId && ownGuest && item.guestId && item.guestId === ownGuest);
+  const displayName = isMine ? (isHome ? t("home.ambient.you", { defaultValue: "You" }) : "Me") : (item.authorDisplayName ?? (isHome ? t("home.ambient.friendAuthorFallback") : baseDisplayName));
+  const displayAvatar = item.authorAvatarUrl ?? (isHome && !isMine ? null : authorAvatarUrl);
+  const shareActive = useCallback(() => shareMoment(item.id), [shareMoment, item.id]);
+  useEffect(() => {
+    if (!isHome || !isActive || !item.imageUrl || !onRegisterShare) return;
+    return onRegisterShare(item.id, shareActive);
+  }, [isHome, isActive, item.imageUrl, item.id, onRegisterShare, shareActive]);
 
   const createdTimeLabel = new Date(item.createdAt).toLocaleTimeString(
-    undefined,
+    i18n.language,
     {
       hour: "2-digit",
       minute: "2-digit",
     },
   );
   const createdDateLabel = new Date(item.createdAt).toLocaleDateString(
-    undefined,
+    i18n.language,
     { month: "short", day: "numeric" },
   );
 
@@ -69,11 +91,12 @@ export const QuoteMomentCard = ({
   const mediaBlock = (
     <QuoteMomentCardMedia
       item={item}
+      presentation={presentation}
       chrome={chrome}
       aspectRatio={QUOTE_DISPLAY_ASPECT}
       watermarkForExport={watermarkForExport}
       displayName={displayName}
-      avatarFallbackName={baseDisplayName}
+      avatarFallbackName={displayName}
       displayAvatar={displayAvatar}
       createdTimeLabel={createdTimeLabel}
       createdDateLabel={createdDateLabel}
@@ -83,10 +106,14 @@ export const QuoteMomentCard = ({
   );
 
   const cardInner =
-    chrome && bgPalette ? (
+    isHome ? (
+      <View style={{ width, borderRadius: HOME_AMBIENT_LAYOUT.radius, overflow: "hidden", borderWidth: 1, borderColor: homeColors.edge, shadowColor: homeColors.edge, shadowOpacity: 0.35, shadowRadius: 12, backgroundColor: "#09090b" }}>
+        {mediaBlock}
+      </View>
+    ) : chrome && bgPalette ? (
       <View
         className="w-full overflow-hidden rounded-[28px]"
-        style={[chrome.outerShell, { width: frame.width }]}
+        style={[chrome.outerShell, { width }]}
       >
         <View className="relative overflow-hidden rounded-[28px] bg-black">
           <View pointerEvents="none" style={chrome.hairline} />
@@ -94,21 +121,21 @@ export const QuoteMomentCard = ({
         </View>
       </View>
     ) : (
-      <View style={{ width: frame.width }} className="overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50">
+      <View style={{ width }} className="overflow-hidden rounded-3xl border border-white/10 bg-black/50 shadow-lg shadow-black/50">
         {mediaBlock}
       </View>
     );
 
   return (
     <View
-      style={{ height: screenHeight }}
+      style={{ height: screenHeight, ...(contentTop != null ? { paddingTop: contentTop, paddingBottom: Math.max(0, screenHeight - contentTop - (contentHeight ?? width)) } : {}) }}
       className="items-center justify-center"
     >
-      <View className="relative items-center" style={{ width: frame.width }}>
+      <View className="relative items-center" style={{ width }}>
         <View ref={captureRefView} collapsable={false} className="w-full">
           {cardInner}
         </View>
-        {watermarkForExport || !counterLabel ? null : (
+        {isHome || watermarkForExport || !counterLabel ? null : (
           <View pointerEvents="none" className="absolute left-3 top-3 z-50">
             <View className="flex-row items-center rounded-full border border-white/15 bg-black/45 px-3 py-1">
               <Text className="text-[11px] font-semibold text-white/90">
@@ -117,7 +144,7 @@ export const QuoteMomentCard = ({
             </View>
           </View>
         )}
-        {watermarkForExport ? null : (
+        {isHome || watermarkForExport ? null : (
           <Pressable
             accessibilityLabel={t("home.momentsFeed.shareMomentA11y")}
             onPress={() => {
@@ -129,7 +156,7 @@ export const QuoteMomentCard = ({
             <Ionicons name="share-outline" size={22} color="#ffffff" />
           </Pressable>
         )}
-        {dotsContent ? (
+        {!isHome && dotsContent ? (
           <View
             pointerEvents="none"
             className="absolute bottom-3 self-center z-50"

@@ -1,0 +1,47 @@
+# Ambient Ink Home test cases
+
+Run automated checks with:
+
+```sh
+npx tsc --noEmit
+npm run lint
+npm test -- --runInBand
+```
+
+Automated coverage:
+
+| Area | Test file | Cases |
+| --- | --- | --- |
+| Active palette | `activeHomeMoment.test.ts` | Own Dawn, friend Sage, friend second Aurora, unknown vibe → Mist, stale IDs, bounded index window |
+| Two-axis selection | `homeActiveSelection.test.ts` | Canceled drag, horizontal reorder, refresh insertion, deletion, account switch, export lock |
+| Paging integration | `homeAmbientFlow.test.ts` | Full-root settled offsets, vertical dragging allowed, horizontal/export locks, Retry reachable without feed cards |
+| Background | `homeAmbientTransition.test.ts` | Rapid changes, stale completions, bounded layers, reduced motion |
+| Geometry | `homeViewportLayout.test.ts` | Safe areas, compact/short viewports, measured chrome, nonnegative frames |
+| Share registry | `homeActiveShare.test.ts` | Stale card ID, same-ID remount cleanup, duplicate requests, capture errors |
+| Export hook | `quoteMomentShare.test.ts` | Synchronous lock, blocked allowance, missing ref, frame/capture errors, watermark reset, successful accounting |
+| Attribution | `homeFriendCard.test.ts` | Missing friend metadata never uses viewer identity, saved transforms, active-only share registration |
+| Heart | `homeMomentHeart.test.ts` | Anonymous-auth ownership, legacy guest sign-in, private friends, friend favorite bit ignored, rollback, repeated taps, late account responses |
+| Favorite cache | `homeFavoriteCache.test.ts` | Stale reads during writes, rollback, fresh server reads including changes from Memories |
+| Reactions | `homeReactionSelection.test.ts` | Secondary emoji targets committed card regardless of neighboring viewability; capture has no reaction |
+| Draft flow | `homeDraftPalette.test.ts` | Delayed camera/import palette freeze, canceled replacement, failed save, generation retry, clear/success release, Pro stack continuation/Finish |
+| API | `userPhotosApi.test.ts` | Both list paths normalize unknown vibes, valid premium palettes preserved, exact favorite row/value confirmation and zero-row rejection |
+| Grouping | `groupQuotePhotoCardsIntoStacks.test.ts` | Two owners sharing a stack identifier stay separate |
+
+## Device handoff after your build
+
+Native build and device verification were intentionally not run. Record results below after building:
+
+- [ ] Compare with the selected reference on 390 × 844 and 320 × 568; header stays centered, card and dock do not overlap.
+- [ ] Test enlarged text and Vietnamese labels, portrait/landscape, and reduced motion.
+- [ ] Browse own Dawn → friend's Sage → second Aurora; background, pill, index and export all follow the visible card.
+- [ ] Test all ten saved palettes as a free viewer. New draft palette selection still follows subscription rules.
+- [ ] Rapid vertical/horizontal swipes, canceled drags, refresh insertion/deletion, and account switching.
+- [ ] Favorite your card, toggle in Memories, return Home; latest persisted value appears. Friends' heart sends love without changing their favorite.
+- [ ] Export own/friend/second-stack cards. Check friend attribution and saved transforms; screen header, dock, index, heart and editing controls stay out of the image.
+- [ ] Export allowance denial, share failure, missing/offline photo, and returning from the native share sheet.
+- [ ] Camera/gallery permission denial, canceled replacement, generation retry, quote editing, Save failure/success and Pro Finish.
+- [ ] Unsaved-draft discard/cancel before Memories/Profile/Friends; On This Day and secondary reactions remain available from Home menu.
+- [ ] Camera pauses on saved feed, menu and export; resumes on settled capture.
+- [ ] Check actual gradients/shadows/photo contrast on iOS/Android, including bright busy images. Capture reference screenshots.
+
+No database policy or migration change is included. A real authenticated favorite write/read and native export capture remain device checks.

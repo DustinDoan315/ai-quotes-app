@@ -51,6 +51,8 @@ import type {
 } from "@/features/home/QuoteStyleControls";
 
 export type HomeCameraSectionProps = {
+  frameWidth?: number;
+  interactionLocked?: boolean;
   cameraRef: React.RefObject<CameraView | null>;
   cameraSessionKey: number;
   pinchGesture: PinchGesture;
@@ -107,6 +109,8 @@ export type HomeCameraSectionProps = {
 };
 
 export const HomeCameraSection = ({
+  frameWidth,
+  interactionLocked = false,
   cameraRef,
   cameraSessionKey,
   pinchGesture,
@@ -193,7 +197,7 @@ export const HomeCameraSection = ({
   // 80pt action row + 8pt top padding + 1pt border + the device's bottom inset.
   const availableCameraHeight = Math.max(
     0,
-    cameraContentHeight - 89 - insets.bottom,
+    cameraContentHeight - (frameWidth == null ? 89 + insets.bottom : 0),
   );
   const frame = useMemo(() => {
     const height =
@@ -206,13 +210,14 @@ export const HomeCameraSection = ({
             ),
           )
         : cardFrame.height;
-    const width = Math.min(cardFrame.width, height * QUOTE_DISPLAY_ASPECT);
+    const width = Math.min(frameWidth ?? cardFrame.width, height * QUOTE_DISPLAY_ASPECT);
     return { width, height: width / QUOTE_DISPLAY_ASPECT };
   }, [
     availableCameraHeight,
     cameraContentHeight,
     cardFrame,
     controlsHeight,
+    frameWidth,
   ]);
   const cameraTopOffset =
     availableCameraHeight > 0
@@ -274,7 +279,7 @@ export const HomeCameraSection = ({
   const showQuoteOverlay = Boolean(
     !hideQuote && dailyQuoteText && !isGenerating && selectedImageUri,
   );
-  const canMoveQuote = !isEditingQuote && !pendingQuoteText && !isSavingPhoto;
+  const canMoveQuote = !interactionLocked && !isEditingQuote && !pendingQuoteText && !isSavingPhoto;
   const quoteEditValidation = useMemo(
     () => validateEditableQuote(quoteDraft),
     [quoteDraft],
@@ -319,7 +324,7 @@ export const HomeCameraSection = ({
   }, [dailyQuoteText, isEditingQuote, onQuoteDraftChange, selectedImageUri]);
 
   const openQuoteEditor = () => {
-    if (!dailyQuoteText || isSavingPhoto) {
+    if (!dailyQuoteText || isSavingPhoto || interactionLocked) {
       return;
     }
     setQuoteDraft(dailyQuoteText);
@@ -366,6 +371,7 @@ export const HomeCameraSection = ({
   return (
     <View
       className="flex-1 w-full flex-col"
+      pointerEvents={interactionLocked ? "none" : "auto"}
       onLayout={({ nativeEvent }) => {
         const next = Math.max(0, nativeEvent.layout.height);
         setCameraContentHeight((current) =>
@@ -380,9 +386,9 @@ export const HomeCameraSection = ({
         <View ref={captureRefView} collapsable={false}>
           <GestureDetector gesture={pinchGesture}>
             <View
-              className="overflow-hidden rounded-[28px]"
+              className="overflow-hidden rounded-[24px]"
               style={[
-                chrome.outerShell,
+                { ...chrome.outerShell, shadowOpacity: 0.22, shadowRadius: 14 },
                 {
                   aspectRatio: QUOTE_DISPLAY_ASPECT,
                   width: frame.width,
@@ -402,8 +408,8 @@ export const HomeCameraSection = ({
                   height={shellSize.height}
                 />
               ) : null}
-              <View className="absolute inset-[3px] z-[1] flex flex-col overflow-hidden rounded-[25px] bg-black">
-                <View pointerEvents="none" style={chrome.hairline} />
+              <View className="absolute inset-[1px] z-[1] flex flex-col overflow-hidden rounded-[23px] bg-black">
+
                 {selectedImageUri ? (
                   <View style={StyleSheet.absoluteFill}>
                     <Image
@@ -412,7 +418,7 @@ export const HomeCameraSection = ({
                       contentFit="cover"
                       transition={0}
                     />
-                    {canDeleteImage ? (
+                    {canDeleteImage && !interactionLocked ? (
                       <Pressable
                         onPress={onClearImage}
                         className="absolute right-3 top-3 z-20 h-9 w-9 items-center justify-center rounded-full bg-black/60"
@@ -494,27 +500,6 @@ export const HomeCameraSection = ({
                     ) : null}
                   </View>
                 )}
-                <View pointerEvents="none" style={chrome.photoBorder} />
-                <View
-                  pointerEvents="none"
-                  className="absolute left-2.5 top-2.5 z-[4] h-11 w-11 rounded-tl-2xl border-l-[3px] border-t-[3px]"
-                  style={{ borderColor: chrome.cornerColor }}
-                />
-                <View
-                  pointerEvents="none"
-                  className="absolute right-2.5 top-2.5 z-[4] h-11 w-11 rounded-tr-2xl border-r-[3px] border-t-[3px]"
-                  style={{ borderColor: chrome.cornerColor }}
-                />
-                <View
-                  pointerEvents="none"
-                  className="absolute bottom-2.5 left-2.5 z-[4] h-11 w-11 rounded-bl-2xl border-b-[3px] border-l-[3px]"
-                  style={{ borderColor: chrome.cornerColor }}
-                />
-                <View
-                  pointerEvents="none"
-                  className="absolute bottom-2.5 right-2.5 z-[4] h-11 w-11 rounded-br-2xl border-b-[3px] border-r-[3px]"
-                  style={{ borderColor: chrome.cornerColor }}
-                />
                 {showQuoteOverlay ? (
                   <View pointerEvents="none" className="absolute inset-0 z-[4]">
                     <Svg width="100%" height="100%">
@@ -609,9 +594,8 @@ export const HomeCameraSection = ({
                           onPress={openQuoteEditor}
                           className="rounded-2xl px-4 py-3"
                           style={{
-                            backgroundColor: "rgba(0,0,0,0.28)",
-                            borderWidth: 1,
-                            borderColor: "rgba(255,255,255,0.34)",
+                            backgroundColor: "rgba(0,0,0,0.70)",
+                            borderWidth: 0,
                             maxWidth: "100%",
                             paddingTop: 12,
                           }}
@@ -780,7 +764,7 @@ export const HomeCameraSection = ({
                             >
                               {dailyQuoteText}
                             </Text>
-                            <View className="mt-2 flex-row items-center gap-1">
+                            {!interactionLocked ? <View className="mt-2 flex-row items-center gap-1">
                               <Ionicons
                                 name="create-outline"
                                 size={11}
@@ -789,7 +773,7 @@ export const HomeCameraSection = ({
                               <Text className="text-left text-[11px] font-medium text-white/55">
                                 {t("home.aiTools.editQuoteHint")}
                               </Text>
-                            </View>
+                            </View> : null}
                           </>
                         )}
                       </Pressable>
