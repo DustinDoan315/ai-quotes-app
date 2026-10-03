@@ -128,7 +128,7 @@ export const QuoteMomentCard = ({
 
   return (
     <View
-      style={{ height: screenHeight, ...(contentTop != null ? { paddingTop: contentTop, paddingBottom: Math.max(0, screenHeight - contentTop - (contentHeight ?? width)) } : {}) }}
+      style={{ height: screenHeight, ...(contentTop != null ? { justifyContent: 'flex-start', paddingTop: contentTop, paddingBottom: Math.max(0, screenHeight - contentTop - (contentHeight ?? width)) } : {}) }}
       className="items-center justify-center"
     >
       <View className="relative items-center" style={{ width }}>

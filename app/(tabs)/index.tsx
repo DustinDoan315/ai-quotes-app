@@ -500,15 +500,17 @@ export default function HomeScreen() {
       </View>
       <Modal visible={menuVisible} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={() => setMenuVisible(false)}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('home.ambient.closeMenu')} onPress={() => setMenuVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 28 }}>
-          <Pressable accessibilityViewIsModal onPress={() => {}} style={{ backgroundColor: '#171329', borderRadius: 24, padding: 20 }}>
+          <Pressable accessibilityViewIsModal onPress={() => {}} style={{ backgroundColor: '#141a24', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', width: '100%', maxWidth: 420, alignSelf: 'center', maxHeight: '80%' }}>
             <ScrollView>
-              <Text accessibilityRole="header" style={{ color: 'white', fontSize: 22, marginBottom: 12 }}>{t('home.ambient.menu')}</Text>
-              <Pressable style={{ paddingVertical: 16 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
-              <Pressable style={{ paddingVertical: 16 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
-              {pastMemories[0] ? <Pressable style={{ paddingVertical: 16 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push({ pathname: '/memories/day', params: { date: pastMemories[0].date } } as never)); }}><Text style={{ color: 'white' }}>{t('memories.thisDayInMemoriesLabel')}</Text></Pressable> : null}
+              <Text accessibilityRole="header" style={{ color: 'white', fontSize: 24, fontWeight: '600', marginBottom: 24 }}>{t('home.ambient.menu')}</Text>
+              <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
+              <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
+              {pastMemories[0] ? <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push({ pathname: '/memories/day', params: { date: pastMemories[0].date } } as never)); }}><Text style={{ color: 'white' }}>{t('memories.thisDayInMemoriesLabel')}</Text></Pressable> : null}
               {shouldShowReactions && ambient.active ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={t('home.reactions.withEmoji', { emoji })} style={{ padding: 16 }} onPress={() => { setMenuVisible(false); void handleReact(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View> : null}
-              <Pressable style={{ paddingVertical: 16 }} onPress={() => setMenuVisible(false)}><Text style={{ color: 'white' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
             </ScrollView>
+            <View style={{ alignItems: 'flex-end', paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' }}>
+              <Pressable accessibilityRole="button" style={{ minHeight: 48, paddingHorizontal: 22, justifyContent: 'center', borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.12)' }} onPress={() => setMenuVisible(false)}><Text style={{ color: 'white', fontWeight: '600' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
