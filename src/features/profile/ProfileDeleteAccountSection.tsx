@@ -24,23 +24,21 @@ export function ProfileDeleteAccountSection({
         accessibilityRole="button"
         accessibilityLabel={t("profile.deleteAccountTitle")}
         accessibilityState={{ expanded }}
-        style={({ pressed }) => ({
-          minHeight: 56,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          gap: 10,
-          opacity: pressed ? 0.7 : 1,
-        })}>
-        <Ionicons name="trash-outline" size={18} color="#fca5a5" />
-        <Text className="flex-1 text-sm font-medium text-red-200">
-          {t("profile.deleteAccountTitle")}
-        </Text>
-        <Ionicons
-          name={expanded ? "chevron-up" : "chevron-down"}
-          size={16}
-          color="rgba(255,255,255,0.5)"
-        />
+        disabled={deleting}
+        style={({ pressed }) => ({ opacity: deleting ? 0.5 : pressed ? 0.7 : 1 })}>
+        <View style={{ minHeight: 60, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 12 }}>
+          <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: "rgba(248,113,113,0.10)", alignItems: "center", justifyContent: "center" }}>
+            <Ionicons name="trash-outline" size={18} color="#fca5a5" />
+          </View>
+          <Text className="text-sm font-medium text-red-200" style={{ flex: 1 }}>
+            {t("profile.deleteAccountTitle")}
+          </Text>
+          <Ionicons
+            name={expanded ? "chevron-up" : "chevron-down"}
+            size={18}
+            color="rgba(255,255,255,0.6)"
+          />
+        </View>
       </Pressable>
       {expanded ? (
         <View className="px-4 pb-4">
