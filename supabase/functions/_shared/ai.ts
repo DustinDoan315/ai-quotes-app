@@ -118,7 +118,11 @@ export const readQuoteInput = (value: unknown): QuoteValidationResult => {
 export const validateGeneratedQuote = (
   value: unknown,
 ): QuoteValidationResult => {
-  const parsed = readQuoteInput(value);
+  const parsed = readQuoteInput(
+    typeof value === "string"
+      ? value.replace(/\s*(?:[—–]+|-{2,})\s*/g, ", ").replace(/^[,\s]+|[,\s]+$/g, "")
+      : value,
+  );
   if (!parsed.ok) return parsed;
 
   const sentenceEndings = parsed.quote.match(/[.!?]+(?=\s|$)/g) ?? [];

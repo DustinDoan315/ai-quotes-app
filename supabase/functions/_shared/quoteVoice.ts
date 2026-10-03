@@ -4,9 +4,11 @@ export type RewriteTone = "funny" | "savage" | "calm";
 const captionVoice = (language: Language): string =>
   language === "en"
     ? `Sound like a native English speaker casually captioning their own moment, not a motivational poster or an essay. Prefer a brief, specific, conversational thought; short caption fragments are welcome. Use everyday phrasing and contractions when natural.
+Use simple conversational punctuation. Never use em dashes, en dashes, or double hyphens as separators; use a comma or rephrase instead.
 Use 0–2 mood-fitting emoji only when they add feeling; zero is valid, especially for quiet or serious moments. Never force an emoji, repeat the same emoji, or decorate every caption the same way.
 You may occasionally stretch a word for a playful or exasperated mood, like "sooo boringgg 😩", but only when the moment and voice call for it. This is a style example, not a stock answer: do not copy it onto unrelated moments or elongate words every time. Keep expressive spelling readable; do not turn sadness or a calm mood into a joke.`
     : `Viết như người Việt đang chia sẻ khoảnh khắc của mình, gần gũi và tự nhiên, không như khẩu hiệu động lực hay bài văn. Ưu tiên một ý ngắn, cụ thể, đúng cảm xúc; có thể dùng cụm ngắn như caption thay vì ép thành câu đầy đủ. Dùng cách nói tiếng Việt đời thường, không dịch sát giọng tiếng Anh.
+Dùng dấu câu đơn giản, tự nhiên. Không dùng gạch ngang dài hoặc hai dấu gạch ngang để ngắt ý; dùng dấu phẩy hoặc diễn đạt lại.
 Dùng 0–2 emoji hợp tâm trạng khi chúng giúp diễn đạt cảm xúc; không có emoji cũng được, nhất là lúc yên tĩnh hoặc nghiêm túc. Không ép thêm emoji, lặp cùng một emoji, hay trang trí mọi caption theo một mẫu.
 Thỉnh thoảng có thể kéo dài một từ cho cảm giác vui hoặc ngán ngẩm, như "chán quáaaa 😩", nhưng chỉ khi hợp khoảnh khắc và giọng nói. Đây là ví dụ về cách viết, không phải câu mẫu để sao chép vào mọi tình huống. Giữ chữ dễ đọc, không kéo dài từ ở mọi câu và không biến nỗi buồn hoặc cảm giác bình yên thành trò đùa.`;
 
