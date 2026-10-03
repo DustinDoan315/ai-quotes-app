@@ -8,8 +8,8 @@ export type IdentityLinkingErrorCode =
 
 /**
  * An actionable authentication error returned when an anonymous account cannot
- * be upgraded without changing its Inkly user ID. The caller can present the
- * message directly without trying an unsafe account merge or fallback login.
+ * be upgraded without changing its Inkly user ID. Existing-identity conflicts
+ * use normal provider sign-in; this error remains for unresolved linking failures.
  */
 export class IdentityLinkingError extends Error {
   readonly code: IdentityLinkingErrorCode;
@@ -140,16 +140,26 @@ async function signInOrLinkIdentity(
 }> {
   const {
     data: { session: currentSession },
+    error: sessionError,
   } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    return { user: null, session: null, error: sessionError, upgradedAnonymousUser: false };
+  }
 
   if (currentSession?.user.is_anonymous) {
     const { data, error } = await supabase.auth.linkIdentity(credentials);
-    return {
-      user: data.user ?? null,
-      session: data.session ?? null,
-      error: error ? classifyIdentityLinkingError(error) : null,
-      upgradedAnonymousUser: !error && data.user?.id === currentSession.user.id,
-    };
+    const linkingError = error ? classifyIdentityLinkingError(error) : null;
+    if (!(linkingError instanceof IdentityLinkingError && linkingError.code === "identity_already_linked")) {
+      return {
+        user: data.user ?? null,
+        session: data.session ?? null,
+        error: linkingError,
+        upgradedAnonymousUser: !error && data.user?.id === currentSession.user.id,
+      };
+    }
+    // The provider belongs to an existing account. Authenticate that account
+    // without clearing the guest session first or relabeling its memories.
   }
 
   const { data, error } = await supabase.auth.signInWithIdToken(credentials);
@@ -233,6 +243,14 @@ async function clearStoredSession(): Promise<void> {
 }
 
 function classifyIdentityLinkingError(error: AuthError): SocialSignInError {
+  if (error.code === "identity_already_exists") {
+    return new IdentityLinkingError("identity_already_linked");
+  }
+  if (error.code === "manual_linking_disabled") {
+    return new IdentityLinkingError("manual_identity_linking_disabled");
+  }
+  // Structured codes take precedence; message matching is for older servers.
+  if (error.code) return error;
   const message = error.message.toLowerCase();
   if (
     (message.includes("manual") && message.includes("link") && message.includes("disabled")) ||
