@@ -43,12 +43,9 @@ export function getHomeVibeFeedChrome(palette: HomeBackgroundPalette): {
   hairline: ViewStyle;
   photoBorder: ViewStyle;
   cornerColor: string;
-  brandShell: ViewStyle;
-  momentWrap: ViewStyle;
-  momentInner: ViewStyle;
   outerShell: ViewStyle;
 } {
-  const { primary, edge, bright } = pickAccent(palette);
+  const { primary, bright } = pickAccent(palette);
   const { op, radius } = RARITY_SHADOW[palette.rarity];
 
   const outerShell: ViewStyle =
@@ -90,42 +87,6 @@ export function getHomeVibeFeedChrome(palette: HomeBackgroundPalette): {
       borderColor: hexToRgba(primary, 0.78),
     },
     cornerColor: hexToRgba(bright, 0.92),
-    brandShell: {
-      borderWidth: 2,
-      borderColor: hexToRgba(primary, 0.78),
-      backgroundColor: "rgba(0,0,0,0.55)",
-      borderRadius: 16,
-      overflow: "hidden",
-      ...Platform.select<ViewStyle>({
-        ios: {
-          shadowColor: bright,
-          shadowOpacity: op * 0.55,
-          shadowRadius: radius * 0.45,
-          shadowOffset: { width: 0, height: 2 },
-        },
-        android: { elevation: 6 },
-        default: {},
-      }),
-    },
-    momentWrap: {
-      borderWidth: 2,
-      borderColor: hexToRgba(primary, 0.88),
-      borderRadius: 16,
-      overflow: "hidden",
-      ...Platform.select<ViewStyle>({
-        ios: {
-          shadowColor: bright,
-          shadowOpacity: op * 0.5,
-          shadowRadius: radius * 0.42,
-          shadowOffset: { width: 0, height: 2 },
-        },
-        android: { elevation: 5 },
-        default: {},
-      }),
-    },
-    momentInner: {
-      backgroundColor: hexToRgba(edge, 0.52),
-    },
     outerShell,
   };
 }

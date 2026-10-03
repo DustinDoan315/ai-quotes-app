@@ -1,3 +1,4 @@
+import { InklyShareWatermark } from "@/components/InklyShareWatermark";
 import { AiToolsRow } from "@/features/home/AiToolsRow";
 import { QuoteStyleControls } from "@/features/home/QuoteStyleControls";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
@@ -887,16 +888,7 @@ export const HomeCameraSection = ({
                     </MotiView>
                   </View>
                 ) : null}
-                {watermarkForExport ? (
-                  <View
-                    pointerEvents="none"
-                    className="absolute right-4 top-4 z-[10] rounded-full border border-white/25 bg-black/55 px-3 py-1.5"
-                  >
-                    <Text className="text-[10px] font-bold uppercase tracking-[0.18em] text-white">
-                      Inkly
-                    </Text>
-                  </View>
-                ) : null}
+                <InklyShareWatermark visible={watermarkForExport} />
               </View>
             </View>
           </GestureDetector>
