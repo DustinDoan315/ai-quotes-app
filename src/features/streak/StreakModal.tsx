@@ -84,8 +84,8 @@ export function StreakModal({ visible, onClose }: Props) {
             </View>
           </ScrollView>
           <View style={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 20, borderTopWidth: 1, borderTopColor: HOME_AMBIENT_CHROME.border, alignItems: "flex-end" }}>
-            <Pressable accessibilityRole="button" onPress={onClose} style={({ pressed }) => ({ minHeight: HOME_AMBIENT_LAYOUT.hitArea, paddingHorizontal: 24, borderRadius: 24, justifyContent: "center", backgroundColor: "rgba(255,255,255,0.12)", opacity: pressed ? 0.7 : 1 })}>
-              <Text style={{ color: HOME_AMBIENT_CHROME.text, fontWeight: "600", fontSize: 15 }}>{t("home.ambient.closeMenu")}</Text>
+            <Pressable accessibilityRole="button" onPress={onClose} style={({ pressed }) => ({ minHeight: HOME_AMBIENT_LAYOUT.hitArea, minWidth: 112, alignItems: "center", paddingHorizontal: 24, borderRadius: 16, borderWidth: 1, borderColor: "#ffffff", justifyContent: "center", backgroundColor: "#ffffff", opacity: pressed ? 0.7 : 1 })}>
+              <Text style={{ color: "#15121c", fontWeight: "700", fontSize: 15 }}>{t("home.ambient.closeMenu")}</Text>
             </Pressable>
           </View>
         </Pressable>

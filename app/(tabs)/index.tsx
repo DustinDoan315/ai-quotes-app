@@ -515,7 +515,7 @@ export default function HomeScreen() {
               {shouldShowReactions && ambient.active ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{(Object.entries(PHOTO_REACTION_EMOJIS) as [UserPhotoReactionType, string][]).map(([type, emoji]) => <Pressable key={type} accessibilityRole="button" accessibilityLabel={t('home.reactions.withEmoji', { emoji })} style={{ padding: 16 }} onPress={() => { setMenuVisible(false); void handleReact(type); }}><Text style={{ fontSize: 24 }}>{emoji}</Text></Pressable>)}</View> : null}
             </ScrollView>
             <View style={{ alignItems: 'flex-end', paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)' }}>
-              <Pressable accessibilityRole="button" style={{ minHeight: 48, paddingHorizontal: 22, justifyContent: 'center', borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.12)' }} onPress={() => setMenuVisible(false)}><Text style={{ color: 'white', fontWeight: '600' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
+              <Pressable accessibilityRole="button" style={({ pressed }) => ({ minHeight: 48, minWidth: 112, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center', borderRadius: 16, borderWidth: 1, borderColor: '#ffffff', backgroundColor: '#ffffff', opacity: pressed ? 0.8 : 1 })} onPress={() => setMenuVisible(false)}><Text style={{ color: '#141a24', fontWeight: '700' }}>{t('home.ambient.closeMenu')}</Text></Pressable>
             </View>
           </Pressable>
         </Pressable>
