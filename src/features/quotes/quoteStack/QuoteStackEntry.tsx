@@ -1,7 +1,7 @@
 import type { QuoteStack } from "./types";
 import { QuoteMomentCard, type QuoteMomentCardProps } from "@/features/quotes/QuoteMomentCard";
 import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
-import { useMemo, useEffect, useCallback, useRef } from "react";
+import { useMemo, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated, {
   runOnJS,
@@ -50,7 +50,9 @@ export function QuoteStackEntry({
   const cardPresentation = { presentation, frameWidth, contentTop, contentHeight, viewerUserId, viewerGuestId };
 
   const quoteCount = stack.quotes.length;
-  const renderIndex = Math.max(0, stack.quotes.findIndex(quote => quote.id === activeQuoteId));
+  const lastQuoteId = useRef<string | null>(null);
+  if (activeQuoteId) lastQuoteId.current = activeQuoteId;
+  const renderIndex = Math.max(0, stack.quotes.findIndex(quote => quote.id === lastQuoteId.current));
   const previousItem: QuotePhotoCard | undefined = stack.quotes[renderIndex - 1];
   const topItem: QuotePhotoCard | undefined = stack.quotes[renderIndex];
   const nextItem: QuotePhotoCard | undefined = stack.quotes[renderIndex + 1];
@@ -90,7 +92,7 @@ export function QuoteStackEntry({
     });
   }, [isActive, previousItem?.imageUrl, nextItem?.imageUrl]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isActive) return;
     cancelAnimation(translateX);
     const found = stack.quotes.findIndex(quote => quote.id === activeQuoteId);
@@ -109,8 +111,6 @@ export function QuoteStackEntry({
     const next = currentIndexSV.value + 1;
     currentIndexSV.value = next;
     notifyActive(next);
-    translateX.value = 0;
-    isAnimatingOut.value = false;
   }, [notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const decrementIndex = useCallback(() => {
@@ -119,8 +119,6 @@ export function QuoteStackEntry({
     if (prev < 0) return;
     currentIndexSV.value = prev;
     notifyActive(prev);
-    translateX.value = 0;
-    isAnimatingOut.value = false;
   }, [notifyActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const panGesture = useMemo(
@@ -178,58 +176,34 @@ export function QuoteStackEntry({
     transform: [{ translateX: translateX.value + itemWidth }],
   }));
 
+  // Keep each image mounted as it moves from neighbor to active card.
+  // Reset translation in the layout effect after the new selection is committed.
+  const visibleCards = stack.quotes.slice(Math.max(0, renderIndex - 1), renderIndex + 2);
   return (
-    <View style={{ width: itemWidth, height: screenHeight, overflow: "hidden" }}>
-      {previousItem ? (
-        <Animated.View
-          key={`previous-${previousItem.id}`}
-          style={[StyleSheet.absoluteFill, previousCardStyle]}
-          pointerEvents="none">
-          <QuoteMomentCard
-            {...cardPresentation}
-            isActive={false}
-            item={previousItem}
-            screenHeight={screenHeight}
-            authorName={authorName}
-            authorAvatarUrl={authorAvatarUrl}
-          />
-        </Animated.View>
-      ) : null}
-
-      {nextItem ? (
-        <Animated.View
-          key={`next-${nextItem.id}`}
-          style={[StyleSheet.absoluteFill, nextCardStyle]}
-          pointerEvents="none">
-          <QuoteMomentCard
-            {...cardPresentation}
-            isActive={false}
-            item={nextItem}
-            screenHeight={screenHeight}
-            authorName={authorName}
-            authorAvatarUrl={authorAvatarUrl}
-          />
-        </Animated.View>
-      ) : null}
-
-      {topItem ? (
-        <GestureDetector key={`top-gesture-${topItem.id}`} gesture={panGesture}>
-          <Animated.View
-            key={`top-${topItem.id}`}
-            style={[StyleSheet.absoluteFill, topCardStyle]}>
-            <QuoteMomentCard
-              {...cardPresentation}
-              isActive={isActive}
-              onRegisterShare={onRegisterShare}
-              item={topItem}
-              screenHeight={screenHeight}
-              authorName={authorName}
-              authorAvatarUrl={authorAvatarUrl}
-
-            />
-          </Animated.View>
-        </GestureDetector>
-      ) : null}
-    </View>
+    <GestureDetector gesture={panGesture}>
+      <View style={{ width: itemWidth, height: screenHeight, overflow: "hidden" }}>
+        {visibleCards.map(item => {
+          const isTop = item.id === topItem?.id;
+          const positionStyle = isTop ? topCardStyle
+            : item.id === previousItem?.id ? previousCardStyle : nextCardStyle;
+          return (
+            <Animated.View
+              key={item.id}
+              style={[StyleSheet.absoluteFill, positionStyle]}
+              pointerEvents={isTop ? "auto" : "none"}>
+              <QuoteMomentCard
+                {...cardPresentation}
+                isActive={isTop && isActive}
+                onRegisterShare={isTop ? onRegisterShare : undefined}
+                item={item}
+                screenHeight={screenHeight}
+                authorName={authorName}
+                authorAvatarUrl={authorAvatarUrl}
+              />
+            </Animated.View>
+          );
+        })}
+      </View>
+    </GestureDetector>
   );
 }

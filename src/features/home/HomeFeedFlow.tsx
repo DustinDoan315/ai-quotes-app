@@ -1,9 +1,7 @@
 import { QuoteStackEntry } from "@/features/quotes/quoteStack/QuoteStackEntry";
 import type { QuoteStack } from "@/features/quotes/quoteStack/types";
-import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
-import { MotiView } from "moti";
 import type { ComponentProps, ReactElement, RefObject } from "react";
-import { FlatList, RefreshControl } from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 
 type Props = {
   frameWidth: number;
@@ -51,7 +49,6 @@ export function HomeFeedFlow({
   currentFeedIndex,
   isOnFeed,
 }: Props) {
-  const reduceMotion = useReducedMotionPreference();
 
   return (
     <FlatList
@@ -79,21 +76,13 @@ export function HomeFeedFlow({
           tintColor="#ffffff"
         />
       }
+      removeClippedSubviews={false}
       initialNumToRender={3}
       maxToRenderPerBatch={4}
       windowSize={9}
       ListHeaderComponent={header}
       renderItem={({ item, index }) => (
-        <MotiView
-          from={reduceMotion ? { opacity: 1 } : { opacity: 0, translateY: 16 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          style={{ alignItems: "center" }}
-          transition={{
-            type: "timing",
-            duration: reduceMotion ? 0 : 240,
-            delay: reduceMotion || index === 0 ? 0 : 50,
-          }}
-        >
+        <View style={{ alignItems: "center" }}>
           <QuoteStackEntry
             stack={item}
             presentation="home"
@@ -111,7 +100,7 @@ export function HomeFeedFlow({
             authorAvatarUrl={authorAvatarUrl}
             isActive={isOnFeed && index === currentFeedIndex}
           />
-        </MotiView>
+        </View>
       )}
     />
   );
