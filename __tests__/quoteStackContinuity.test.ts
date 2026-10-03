@@ -107,3 +107,16 @@ it('keeps vertical feed images mounted and renders pages without a fade-in wrapp
   expect(page.type).toBe(View);
   expect(page.props.style.opacity).toBeUndefined();
 });
+
+it('yields vertical intent before activating a horizontal card swipe', () => {
+  render('a');
+  expect(mockGesture.activeOffsetX).toHaveBeenCalledWith([-20, 20]);
+  expect(mockGesture.failOffsetY).toHaveBeenCalledWith([-12, 12]);
+});
+
+it('does not capture horizontal gestures for a single-card feed stack', () => {
+  QuoteStackEntry({ stack: { ...stack, quotes: [stack.quotes[0]] }, screenHeight: 700,
+    authorName: 'Friend', authorAvatarUrl: null, isActive: true,
+    activeQuoteId: 'a', onSelectQuote: select, presentation: 'home' });
+  expect(mockGesture.enabled).toHaveBeenCalledWith(false);
+});

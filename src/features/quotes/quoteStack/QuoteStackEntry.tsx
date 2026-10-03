@@ -124,9 +124,10 @@ export function QuoteStackEntry({
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(isActive && !interactionLocked)
-        .activeOffsetX([-5, 5])
-        .failOffsetY([-40, 40])
+        .enabled(isActive && !interactionLocked && quoteCount > 1)
+        // Yield to vertical paging before claiming a deliberate horizontal swipe.
+        .activeOffsetX([-20, 20])
+        .failOffsetY([-12, 12])
         .onUpdate((e) => {
           "worklet";
           if (isAnimatingOut.value) return;
@@ -161,7 +162,7 @@ export function QuoteStackEntry({
             translateX.value = withSpring(0, SNAP_BACK_SPRING);
           }
         }),
-    [isActive, interactionLocked, itemWidth, advanceIndex, decrementIndex], // eslint-disable-line react-hooks/exhaustive-deps
+    [isActive, interactionLocked, quoteCount, itemWidth, advanceIndex, decrementIndex], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const topCardStyle = useAnimatedStyle(() => ({
