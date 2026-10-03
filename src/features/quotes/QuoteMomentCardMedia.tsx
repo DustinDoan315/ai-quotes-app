@@ -184,12 +184,18 @@ export const QuoteMomentCardMedia = ({
       {item.quote ? (
         <QuotePositionLayer position={item.quotePosition}>
           <View
-            className={presentation === "home" ? "rounded-2xl bg-black/70 px-4 py-3" : "rounded-2xl border border-white/25 bg-black/30 px-4 py-3"}
+            className={presentation === "home" ? "rounded-2xl bg-black/45 px-4 py-3" : "rounded-2xl border border-white/25 bg-black/30 px-4 py-3"}
             style={{ maxWidth: "88%" }}
           >
             <Text
               className="font-semibold leading-snug"
-              style={{ fontSize, color: textColor }}
+              style={{
+                fontSize,
+                color: textColor,
+                textShadowColor: "rgba(0,0,0,0.45)",
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 2,
+              }}
               numberOfLines={4}
             >
               {item.quote}

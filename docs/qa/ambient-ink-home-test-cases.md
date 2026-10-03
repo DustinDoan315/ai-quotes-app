@@ -101,3 +101,9 @@ The original Home layout change did not alter database policies. The later custo
 - Try another destination during a pending transfer: reject changing the destination. Never merge guest records by a guest ID alone.
 - Fresh provider linking keeps the same UUID and does not delete the upgraded account. Cancelled login then successful same-UUID linking clears only its unbound pending proof.
 - Previously lost guest credentials require trusted one-time recovery: use Profile's DEV-only Copy memory recovery info button. It includes IDs only and is absent from release builds.
+# Caption sizing and conversational wording — October 3
+
+- Pinch a new caption down to 55%, drag and rotate it, then save. Reopen it in Home, Memories, and export; the smaller transform should remain intact for both your own cards and friends’ cards.
+- New captions start slightly lower. Previously saved caption positions remain unchanged. Check white text remains readable against bright and dark photos with the softer background.
+- Generate and rewrite captions in English and Vietnamese for bored, playful, quiet, and sad moments. Expect natural everyday wording; short fragments, occasional stretched words, and up to two relevant emoji are allowed. Emoji and stretched words should not appear on every result, and calm rewrites should stay understated.
+- Confirm captions still respect the original feeling, photo, rewrite meaning, and 180-character limit. Existing saved quotes are not rewritten automatically.

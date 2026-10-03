@@ -596,7 +596,7 @@ export const HomeCameraSection = ({
                           onPress={openQuoteEditor}
                           className="rounded-2xl px-4 py-3"
                           style={{
-                            backgroundColor: "rgba(0,0,0,0.70)",
+                            backgroundColor: "rgba(0,0,0,0.45)",
                             borderWidth: 0,
                             maxWidth: "100%",
                             paddingTop: 12,
@@ -761,6 +761,9 @@ export const HomeCameraSection = ({
                               style={{
                                 fontSize: fontSizeValue,
                                 color: quoteTextColor,
+                                textShadowColor: "rgba(0,0,0,0.45)",
+                                textShadowOffset: { width: 0, height: 1 },
+                                textShadowRadius: 2,
                               }}
                               numberOfLines={4}
                             >

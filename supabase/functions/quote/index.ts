@@ -1,19 +1,20 @@
+import { buildGenerationSystemPrompt } from "../_shared/quoteVoice.ts";
 import {
-  MAX_BASE64_LENGTH,
-  OPENAI_API_KEY,
   callOpenAI,
   cleanBase64Image,
   extractOutputText,
   jsonResponse,
+  MAX_BASE64_LENGTH,
   normalizeLanguage,
   normalizeTraits,
+  OPENAI_API_KEY,
   parseStructuredQuote,
   requireAuth,
   shouldRetryQuote,
 } from "../_shared/ai.ts";
 import {
-  UsageLimitError,
   assertAndIncrementUsage,
+  UsageLimitError,
   usageLimitResponse,
 } from "../_shared/usage.ts";
 
@@ -24,27 +25,12 @@ type QuoteRequestBody = {
   language?: "vi" | "en";
 };
 
-type SupportedLanguage = "vi" | "en";
-
 const CREATIVE_MODEL = "gpt-4.1";
 const GENERATION_ERROR_MESSAGE =
   "Quote couldn't be generated. Tap Try again to retry.";
 
 const normalizeMomentContext = (value: unknown): string =>
   typeof value === "string" ? value.trim().slice(0, 180) : "";
-
-const buildSystemPrompt = (language: SupportedLanguage): string =>
-  language === "en"
-    ? `Write one personal, emotionally precise quote in English for a photo journal.
-
-If the user provides a stated feeling, honor it. When no stated feeling is provided, infer a fitting emotional mood from the photo and persona traits. Use the photo as the primary content signal; use persona traits only to shape voice.
-
-Return one natural complete sentence of at most 180 characters. Do not describe the image literally or mention a photo, camera, or scene. Avoid slogans, clichés, generic advice, profanity, and quotation marks.`
-    : `Viết một quote cá nhân, giàu cảm xúc bằng tiếng Việt cho nhật ký ảnh.
-
-Nếu người dùng nêu cảm xúc, hãy tôn trọng cảm xúc đó. Khi không có cảm xúc được nêu, hãy tự suy ra một tâm trạng phù hợp từ bức ảnh và các traits. Dùng bức ảnh làm tín hiệu nội dung chính; chỉ dùng traits để định hình giọng văn.
-
-Chỉ trả về một câu tự nhiên, hoàn chỉnh, tối đa 180 ký tự. Không mô tả ảnh theo nghĩa đen hoặc nhắc đến ảnh, camera, hay khung cảnh. Tránh khẩu hiệu, sáo rỗng, lời khuyên chung chung, thô tục và dấu ngoặc kép.`;
 
 const buildInput = (
   traitsDescription: string,
@@ -57,16 +43,18 @@ const buildInput = (
     content: [
       {
         type: "input_text",
-        text: `User's stated feeling (optional): ${momentContext || "none"}\nPersona traits (voice only): ${traitsDescription}\n${retryInstruction}`,
+        text: `User's stated feeling (optional): ${
+          momentContext || "none"
+        }\nPersona traits (voice only): ${traitsDescription}\n${retryInstruction}`,
       },
       ...(image
         ? [
-            {
-              type: "input_image",
-              image_url: `data:image/jpeg;base64,${image}`,
-              detail: "low",
-            },
-          ]
+          {
+            type: "input_image",
+            image_url: `data:image/jpeg;base64,${image}`,
+            detail: "low",
+          },
+        ]
         : []),
     ],
   },
@@ -134,13 +122,16 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Image too large" }, 400);
     }
     if (!OPENAI_API_KEY) {
-      return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
+      return jsonResponse(
+        { error: "Missing OPENAI_API_KEY in environment" },
+        500,
+      );
     }
 
     await assertAndIncrementUsage(authResult.userId);
 
     const language = normalizeLanguage(body.language);
-    const systemPrompt = buildSystemPrompt(language);
+    const systemPrompt = buildGenerationSystemPrompt(language);
     const traitsDescription = traits.join(", ");
     const momentContext = normalizeMomentContext(body.momentContext);
     let result = await generateMatchedQuote(
@@ -172,7 +163,9 @@ Deno.serve(async (req: Request) => {
       error instanceof Error ? error.message : error,
     );
     return jsonResponse(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       500,
     );
   }

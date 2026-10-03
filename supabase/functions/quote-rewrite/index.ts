@@ -1,18 +1,25 @@
 import {
-  MAX_QUOTE_LENGTH,
-  OPENAI_API_KEY,
+  buildRewriteSystemPrompt,
+  getRewriteToneInstruction,
+  type RewriteTone,
+} from "../_shared/quoteVoice.ts";
+import {
   callOpenAI,
   extractOutputText,
   jsonResponse,
+  MAX_QUOTE_LENGTH,
   normalizeLanguage,
   normalizeTraits,
+  OPENAI_API_KEY,
   readQuoteInput,
   requireAuth,
   validateGeneratedQuote,
 } from "../_shared/ai.ts";
-import { UsageLimitError, assertAndIncrementUsage, usageLimitResponse } from "../_shared/usage.ts";
-
-type RewriteTone = "funny" | "savage" | "calm";
+import {
+  assertAndIncrementUsage,
+  UsageLimitError,
+  usageLimitResponse,
+} from "../_shared/usage.ts";
 
 type RewriteQuoteRequestBody = {
   quote: string;
@@ -20,8 +27,6 @@ type RewriteQuoteRequestBody = {
   tone: RewriteTone;
   language?: "vi" | "en";
 };
-
-type SupportedLanguage = "vi" | "en";
 
 const VALID_TONES: RewriteTone[] = ["funny", "savage", "calm"];
 
@@ -31,61 +36,6 @@ const normalizeForComparison = (value: string): string =>
     .replace(/["']/g, "")
     .replace(/[^\p{L}\p{N}]+/gu, "")
     .trim();
-
-const getToneInstruction = (
-  tone: RewriteTone,
-  language: SupportedLanguage,
-): string => {
-  if (language === "en") {
-    switch (tone) {
-      case "funny":
-        return "Make it playful and witty without becoming silly or sarcastic.";
-      case "savage":
-        return "Make it sharp and bold without being insulting, cruel, or profane.";
-      case "calm":
-        return "Make it softer, steadier, and more grounding.";
-    }
-  }
-
-  switch (tone) {
-    case "funny":
-      return "Biến câu quote thành dí dỏm, nhẹ nhàng, thông minh, không lố.";
-    case "savage":
-      return "Biến câu quote thành sắc bén và mạnh mẽ nhưng không thô tục hay xúc phạm.";
-    case "calm":
-      return "Biến câu quote thành dịu hơn, vững vàng hơn và tạo cảm giác an tâm.";
-  }
-};
-
-const buildRewriteSystemPrompt = (language: SupportedLanguage): string => {
-  if (language === "en") {
-    return `
-Rewrite one motivational quote in English.
-
-Rules:
-- Maximum ${MAX_QUOTE_LENGTH} characters
-- Return only the rewritten quote
-- Keep it as one complete sentence
-- Keep the core meaning recognizable
-- Make the wording clearly different from the original quote
-- Do not wrap the quote in quotation marks
-- Avoid profanity, insults, and explicit content
-`.trim();
-  }
-
-  return `
-Viết lại một câu quote động lực bằng tiếng Việt.
-
-Quy tắc:
-- Tối đa ${MAX_QUOTE_LENGTH} ký tự
-- Chỉ trả về câu quote đã viết lại
-- Giữ thành một câu hoàn chỉnh
-- Giữ nguyên ý chính dễ nhận ra
-- Cách diễn đạt phải khác rõ ràng so với câu gốc
-- Không thêm dấu ngoặc kép quanh câu quote
-- Không thô tục, xúc phạm hay phản cảm
-`.trim();
-};
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
@@ -97,7 +47,10 @@ Deno.serve(async (req: Request) => {
 
   try {
     if (!OPENAI_API_KEY) {
-      return jsonResponse({ error: "Missing OPENAI_API_KEY in environment" }, 500);
+      return jsonResponse(
+        { error: "Missing OPENAI_API_KEY in environment" },
+        500,
+      );
     }
 
     const body = (await req.json()) as RewriteQuoteRequestBody;
@@ -121,7 +74,7 @@ Deno.serve(async (req: Request) => {
 
     const language = normalizeLanguage(body.language);
     const traitsDescription = normalizedTraits.join(", ");
-    const toneInstruction = getToneInstruction(body.tone, language);
+    const toneInstruction = getRewriteToneInstruction(body.tone, language);
 
     await assertAndIncrementUsage(authResult.userId);
 
@@ -132,7 +85,7 @@ Deno.serve(async (req: Request) => {
       input: [
         {
           role: "system",
-          content: buildRewriteSystemPrompt(language),
+          content: buildRewriteSystemPrompt(language, MAX_QUOTE_LENGTH),
         },
         {
           role: "user",
