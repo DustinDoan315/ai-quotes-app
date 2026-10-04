@@ -13,17 +13,10 @@ export function getHomeViewportLayout(input: HomeViewportLayoutInput) {
   const contentBottom = clean(input.height) - clean(input.bottomInset) - 12 - clean(input.footerHeight) - 12;
   const availableHeight = Math.max(0, contentBottom - availableTop);
   const edgeWidth = Math.min(600, Math.max(0, clean(input.width) - 16));
-  if (input.presentation === 'draft') {
-    return {
-      contentTop: availableTop,
-      contentHeight: availableHeight,
-      cardWidth: edgeWidth,
-    };
-  }
   const cardWidth = Math.min(edgeWidth, availableHeight);
   // Position within the usable area; the camera sits slightly above its center.
   const freeSpace = Math.max(0, contentBottom - availableTop - cardWidth);
-  const preferredTop = availableTop + freeSpace * (input.presentation === 'feed' ? 0.5 : 0.35);
+  const preferredTop = availableTop + freeSpace * (input.presentation === 'camera' || input.presentation == null ? 0.35 : 0.5);
   const contentTop = Math.max(availableTop, Math.min(preferredTop, contentBottom - cardWidth));
   return { contentTop, contentHeight: Math.max(0, contentBottom - contentTop), cardWidth };
 }

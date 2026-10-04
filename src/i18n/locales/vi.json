@@ -163,7 +163,9 @@
         "rewriteTooLong": "Bản viết lại vượt quá 180 ký tự.",
         "rewriteForbiddenContent": "Bản viết lại có nội dung không được phép sử dụng.",
         "rewriteMustDiffer": "Bản viết lại cần khác biệt rõ ràng so với câu ban đầu."
-      }
+      },
+      "captionGestureHint": "Kéo để di chuyển · Chụm để đổi cỡ · Chạm để sửa",
+      "captionHelp": "Hướng dẫn chỉnh chú thích"
     },
     "luckLabel": "May mắn",
     "vibes": {

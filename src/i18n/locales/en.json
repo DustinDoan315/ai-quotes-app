@@ -164,7 +164,9 @@
         "rewriteTooLong": "Rewrite exceeds 180 characters.",
         "rewriteForbiddenContent": "Rewrite contains content that can't be used.",
         "rewriteMustDiffer": "Rewrite must be meaningfully different from the original."
-      }
+      },
+      "captionGestureHint": "Drag to move · Pinch to resize · Tap to edit",
+      "captionHelp": "Caption help"
     },
     "luckLabel": "Luck",
     "vibes": {

@@ -1,3 +1,4 @@
+import { HomeDraftActions } from "@/features/home/HomeDraftActions";
 import { getHomeDraftPresentation } from "@/domain/home/homeDraftPresentation";
 import { createHomeFriendFixture, HOME_DEMO_FRIEND_ID } from "@/features/home/homeFriendFixture";
 import { HomeReactionRow } from "@/features/home/HomeReactionRow";
@@ -71,6 +72,8 @@ export default function HomeScreen() {
   const [demoFriendEnabled, setDemoFriendEnabled] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(56);
   const [footerHeight, setFooterHeight] = useState(188);
+  const [draftFooterHeight, setDraftFooterHeight] = useState(112);
+  const [captionHelpRevision, setCaptionHelpRevision] = useState(0);
   const [streakModalVisible, setStreakModalVisible] = useState(false);
   const [quoteDraftForSave, setQuoteDraftForSave] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
@@ -230,11 +233,11 @@ export default function HomeScreen() {
 
   // The action bar overlays the list, so its first page uses the full root height.
   const liveViewportHeight = measuredFeedViewportHeight || screenHeight;
-  const heldGeometry = useRef({ height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight });
-  if (!exportLocked) heldGeometry.current = { height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight };
+  const heldGeometry = useRef({ height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight, draftFooterHeight });
+  if (!exportLocked) heldGeometry.current = { height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight, draftFooterHeight };
   const viewportHeight = heldGeometry.current.height;
   const draftPresentation = getHomeDraftPresentation({ hasPhoto: Boolean(selectedImageUri), isOnFeed: ambient.isOnFeed, hasSavedPhoto: hasSavedCurrentPhoto, isSaving: isSavingPhoto, isSharing: exportLocked });
-  const layout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: draftPresentation.focused ? 0 : heldGeometry.current.footerHeight, presentation: draftPresentation.focused ? "draft" : "camera" });
+  const layout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: draftPresentation.focused ? heldGeometry.current.draftFooterHeight : heldGeometry.current.footerHeight, presentation: draftPresentation.focused ? "draft" : "camera" });
   const feedLayout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: heldGeometry.current.footerHeight, presentation: 'feed' });
   const draftPalette = draftVibeKey ? getHomeBackgroundPaletteByKey(draftVibeKey) : palette;
   const activePalette = ambient.active?.palette ?? draftPalette;
@@ -295,7 +298,7 @@ export default function HomeScreen() {
   const isDemoFriend = __DEV__ && demoFriendEnabled && ambient.active?.card.userId === HOME_DEMO_FRIEND_ID;
   const isOnFeed = ambient.isOnFeed;
   const currentFeedIndex = Math.max(0, ambient.stackIndex);
-  const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || isAiToolLoading || Boolean(rewriteReviewText) || exportLocked;
+  const busy = isCapturing || isPickingImage || isSavingPhoto || isGenerating || generationStage !== "idle" || isAiToolLoading || Boolean(rewriteReviewText) || exportLocked;
   const canSaveDraft = Boolean(selectedImageUri && !hasSavedCurrentPhoto && validateEditableQuote(quoteDraftForSave ?? dailyQuoteText ?? '').isValid);
   const isOwned = Boolean(ambient.active && ((authUserId && ambient.active.card.userId === authUserId) || (!ambient.active.card.userId && guestId && ambient.active.card.guestId === guestId)));
   function protectDraft(action: () => void, clear = true) {
@@ -413,6 +416,7 @@ export default function HomeScreen() {
             cameraSectionProps={{
               externalCameraControls: true,
               frameWidth: layout.cardWidth,
+              hintRevision: captionHelpRevision,
               interactionLocked: exportLocked,
               cameraRef,
               cameraSessionKey,
@@ -451,14 +455,9 @@ export default function HomeScreen() {
               onZoomPresetPress: handleZoomPreset,
               onToggleFacing: handleToggleFacing,
               onClearImage: handleExitDraft,
-              onSavePhoto: () => { if (!busy) void handleSavePhoto(quoteDraftForSave); },
-              onSharePhoto: () => { if (!busy) void shareMoment(); },
-              canSavePhoto: canSaveDraft && !busy,
-              canSharePhoto: !busy && Boolean(dailyQuoteText && selectedImageUri && !hideQuote && quoteDraftForSave === null),
               hasSavedPhoto: hasSavedCurrentPhoto,
               isSharing: exportLocked,
               onFinishPhotoStack: finishPhotoStack,
-              onRewriteQuote: handleRewriteQuote,
               aiToolsLoading: isAiToolLoading,
               cardPalette: draftPalette,
               pendingQuoteText: rewriteReviewText,
@@ -494,11 +493,20 @@ export default function HomeScreen() {
           onGallery={handleOpenGalleryPress} onMemories={handleOpenMemories}
           onPrimary={() => { if (busy) return; if (selectedImageUri && !isOnFeed) void handleSavePhoto(quoteDraftForSave); else handleCameraButtonPress(); }} />
       </View> : null}
+      {draftPresentation.focused ? <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => { if (!exportLocked) setDraftFooterHeight(current => Math.max(current, e.nativeEvent.layout.height)); }}>
+        <HomeDraftActions minHeight={draftFooterHeight} palette={draftPalette} onRewrite={handleRewriteQuote}
+          onSave={() => { if (!busy) void handleSavePhoto(quoteDraftForSave); }} onShare={() => { if (!busy) void shareMoment(); }}
+          canRewrite={Boolean(dailyQuoteText && !hideQuote && !hasSavedCurrentPhoto)} canSave={canSaveDraft && !busy && quoteDraftForSave === null}
+          canShare={!busy && Boolean(dailyQuoteText && !hideQuote && quoteDraftForSave === null)} hasSavedPhoto={hasSavedCurrentPhoto}
+          loading={isGenerating || generationStage !== 'idle' || isAiToolLoading} isSaving={isSavingPhoto} isSharing={exportLocked}
+          disabled={busy || quoteDraftForSave !== null} />
+      </View> : null}
       <Modal visible={menuVisible} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={() => setMenuVisible(false)}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('home.ambient.closeMenu')} onPress={() => setMenuVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 28 }}>
           <Pressable accessibilityViewIsModal onPress={() => {}} style={{ backgroundColor: '#141a24', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', width: '100%', maxWidth: 420, alignSelf: 'center', maxHeight: '80%' }}>
             <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} showsVerticalScrollIndicator={false}>
               <Text accessibilityRole="header" style={{ color: 'white', fontSize: 24, fontWeight: '600', marginBottom: 24 }}>{t('home.ambient.menu')}</Text>
+              {draftPresentation.focused && !hasSavedCurrentPhoto ? <Pressable accessibilityRole="button" style={{ padding: 18, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); setCaptionHelpRevision(value => value + 1); }}><Text style={{ color: 'white' }}>{t('home.aiTools.captionHelp')}</Text></Pressable> : null}
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push('/(tabs)/friends' as never)); }}><Text style={{ color: 'white' }}>{t('home.ambient.friends')}</Text></Pressable>
               <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); setStreakModalVisible(true); }}><Text style={{ color: 'white' }}>{t('home.ambient.streak', { count: displayStreak })}</Text></Pressable>
               {pastMemories[0] ? <Pressable accessibilityRole="button" style={{ paddingVertical: 18, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, marginBottom: 10 }} onPress={() => { setMenuVisible(false); protectDraft(() => router.push({ pathname: '/memories/day', params: { date: pastMemories[0].date } } as never)); }}><Text style={{ color: 'white' }}>{t('memories.thisDayInMemoriesLabel')}</Text></Pressable> : null}

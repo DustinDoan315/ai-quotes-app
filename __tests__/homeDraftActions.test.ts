@@ -1,5 +1,7 @@
 import { HomeDraftActions } from '@/features/home/HomeDraftActions';
 jest.mock('react-native', () => ({ Pressable: 'Pressable', Text: 'Text', View: 'View', StyleSheet: { create: (s: unknown) => s } }));
+jest.mock('moti', () => ({ MotiView: 'Motion' }));
+jest.mock('@/hooks/useReducedMotionPreference', () => ({ useReducedMotionPreference: () => false }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 const props = { onRewrite: jest.fn(), onSave: jest.fn(), onShare: jest.fn(), disabled: false, canRewrite: true, canSave: true, canShare: true, hasSavedPhoto: false, loading: false, isSaving: false, isSharing: false };

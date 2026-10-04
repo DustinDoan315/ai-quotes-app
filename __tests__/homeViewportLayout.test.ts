@@ -17,26 +17,21 @@ it('balances feed spacing while the camera sits slightly higher', () => {
   expect(feed.contentTop).toBeGreaterThan(getHomeViewportLayout(input).contentTop);
 });
 
-it('starts a draft immediately below the header instead of centering it', () => {
-  const layout = getHomeViewportLayout({ presentation: 'draft', width: 390, height: 844, topInset: 47, bottomInset: 34, headerHeight: 56, footerHeight: 100 });
-  expect(layout.contentTop).toBe(115);
+it('centers a draft between header and floating toolbar', () => {
+  const input = { presentation: 'draft' as const, width: 390, height: 844, topInset: 47, bottomInset: 34, headerHeight: 56, footerHeight: 112 };
+  const layout = getHomeViewportLayout(input);
   expect(layout.cardWidth).toBe(374);
-  expect(layout.contentHeight).toBe(571);
+  expect(layout.contentTop - 115).toBe(844 - 34 - 24 - 112 - layout.contentTop - layout.cardWidth);
 });
-it('keeps a compact draft full width in its scrollable area', () => {
+it('fits a compact draft above the measured toolbar', () => {
   const layout = getHomeViewportLayout({ presentation: 'draft', width: 320, height: 568, topInset: 20, bottomInset: 10, headerHeight: 56, footerHeight: 180 });
   expect(layout.contentTop).toBe(88);
-  expect(layout.contentHeight).toBe(266);
-  expect(layout.cardWidth).toBe(304);
-  expect(layout.cardWidth).toBeGreaterThan(layout.contentHeight);
+  expect(layout.cardWidth).toBe(266);
+  expect(layout.contentTop + layout.cardWidth).toBe(568 - 10 - 24 - 180);
 });
-it('accounts for expanded draft controls without hiding them behind the card', () => {
+it('reduces the draft for expanded accessible toolbar text', () => {
   const base = { presentation: 'draft' as const, width: 390, height: 568, topInset: 20, bottomInset: 0, headerHeight: 56 };
-  const smallerFooter = getHomeViewportLayout({ ...base, footerHeight: 120 });
-  const expandedFooter = getHomeViewportLayout({ ...base, footerHeight: 240 });
-  expect(expandedFooter.contentTop).toBe(smallerFooter.contentTop);
-  expect(expandedFooter.cardWidth).toBe(smallerFooter.cardWidth);
-  expect(expandedFooter.contentHeight).toBe(smallerFooter.contentHeight - 120);
+  expect(getHomeViewportLayout({ ...base, footerHeight: 240 }).cardWidth).toBe(getHomeViewportLayout({ ...base, footerHeight: 120 }).cardWidth - 120);
 });
 
 const devices = [
@@ -57,9 +52,10 @@ describe.each(devices)('$name responsive layout', device => {
       expect(layout.cardWidth).toBeLessThanOrEqual(600);
     }
   });
-  it('draft keeps its width while its controls can scroll', () => {
-    const layout = getHomeViewportLayout({ ...device, presentation: 'draft', headerHeight: 84, footerHeight: 0 });
-    expect(layout.cardWidth).toBe(Math.min(device.width - 16, 600));
-    expect(layout.contentTop + layout.contentHeight).toBe(device.height - device.bottomInset - 24);
+  it('draft fits and centers above its fixed controls', () => {
+    const layout = getHomeViewportLayout({ ...device, presentation: 'draft', headerHeight: 84, footerHeight: 112 });
+    expect(layout.cardWidth).toBeLessThanOrEqual(Math.min(device.width - 16, 600));
+    expect(layout.cardWidth).toBeLessThanOrEqual(layout.contentHeight);
+    expect(layout.contentTop + layout.contentHeight).toBe(device.height - device.bottomInset - 24 - 112);
   });
 });

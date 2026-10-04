@@ -1,7 +1,6 @@
 import { getHomeAmbientPillColors } from "@/theme/homeAmbient";
 import { useCaptionEditHint } from "@/hooks/useCaptionEditHint";
 import { InklyShareWatermark } from "@/components/InklyShareWatermark";
-import { HomeDraftActions } from "@/features/home/HomeDraftActions";
 import { QuoteGenerationGlow } from "@/features/home/QuoteGenerationGlow";
 import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
@@ -51,6 +50,7 @@ import type {
 
 export type HomeCameraSectionProps = {
   frameWidth?: number;
+  hintRevision?: number;
   externalCameraControls?: boolean;
   interactionLocked?: boolean;
   cameraRef: React.RefObject<CameraView | null>;
@@ -61,10 +61,6 @@ export type HomeCameraSectionProps = {
   cameraPermissionGranted: boolean;
   selectedImageUri: string | null;
   isSavingPhoto: boolean;
-  onSavePhoto: () => void;
-  onSharePhoto: () => void;
-  canSavePhoto: boolean;
-  canSharePhoto: boolean;
   hasSavedPhoto: boolean;
   isSharing: boolean;
   quotePosition: QuotePosition;
@@ -97,7 +93,6 @@ export type HomeCameraSectionProps = {
   onToggleFacing: () => void;
   onClearImage: () => void;
   onFinishPhotoStack: () => void;
-  onRewriteQuote: () => void;
   aiToolsLoading: boolean;
   cardPalette: HomeBackgroundPalette;
   pendingQuoteText?: string | null;
@@ -108,6 +103,7 @@ export type HomeCameraSectionProps = {
 
 export const HomeCameraSection = ({
   frameWidth,
+  hintRevision = 0,
   externalCameraControls = false,
   interactionLocked = false,
   cameraRef,
@@ -118,7 +114,7 @@ export const HomeCameraSection = ({
   cameraPermissionGranted,
   selectedImageUri,
   isSavingPhoto,
-  onSavePhoto, onSharePhoto, canSavePhoto, canSharePhoto, hasSavedPhoto, isSharing,
+  hasSavedPhoto, isSharing,
   quotePosition,
   onQuotePositionChange,
   canDeleteImage,
@@ -149,7 +145,6 @@ export const HomeCameraSection = ({
   onToggleFacing,
   onClearImage,
   onFinishPhotoStack,
-  onRewriteQuote,
   aiToolsLoading,
   cardPalette,
   pendingQuoteText = null,
@@ -281,6 +276,10 @@ export const HomeCameraSection = ({
     showQuoteOverlay && canMoveQuote && !watermarkForExport,
     selectedImageUri,
   );
+  const { showHint } = captionControls;
+  useEffect(() => {
+    if (hintRevision > 0) showHint();
+  }, [hintRevision, showHint]);
   const quoteEditValidation = useMemo(
     () => validateEditableQuote(quoteDraft),
     [quoteDraft],
@@ -576,6 +575,7 @@ export const HomeCameraSection = ({
                       <QuotePositionLayer
                         position={quotePosition}
                         controlsVisible={captionControls.controlsVisible && canMoveQuote && !watermarkForExport}
+                        hintText={t("home.aiTools.captionGestureHint")}
                         onInteraction={captionControls.activateControls}
                         onEditText={openQuoteEditor}
                         resizeAccessibilityLabel={t("home.aiTools.resizeCaption")}
@@ -585,7 +585,7 @@ export const HomeCameraSection = ({
                         }
                       >
                         <Pressable
-                          onPress={captionControls.activateControls}
+                          onPress={openQuoteEditor}
                           accessibilityRole="button"
                           accessibilityLabel={t("home.aiTools.adjustCaption")}
                           accessibilityHint={t("home.aiTools.adjustCaptionHint")}
@@ -900,12 +900,7 @@ export const HomeCameraSection = ({
           </View>
         ) : null}
 
-      {selectedImageUri ? <HomeDraftActions
-        onRewrite={onRewriteQuote} onSave={onSavePhoto} onShare={onSharePhoto}
-        canRewrite={Boolean(dailyQuoteText && !hideQuote && !hasSavedPhoto)} canSave={canSavePhoto} canShare={canSharePhoto}
-        hasSavedPhoto={hasSavedPhoto} loading={generationActive || aiToolsLoading} isSaving={isSavingPhoto} isSharing={isSharing}
-        disabled={interactionLocked || generationActive || aiToolsLoading || isSavingPhoto || isSharing || isEditingQuote || Boolean(pendingQuoteText)}
-      /> : null}
+
     </View>
   );
 };

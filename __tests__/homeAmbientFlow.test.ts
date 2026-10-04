@@ -39,7 +39,13 @@ it('locks paging and refresh while exporting; commits the settled full-root page
 it('makes Retry reachable inside the capture page when the feed has no stacks', () => {
   const retry = jest.fn();
   const tree = HomeCaptureFlow({ viewportHeight: 844, contentTop: 115, contentHeight: 483, feedError: true, onRetryFeed: retry, cameraSectionProps: {} as any });
-  const banner = tree.props.children.props.children[0];
+  const banner = tree.props.children.props.children.props.children[0];
   const button = banner.props.children.find((child: any) => child.type === Pressable);
   expect(button).toBeDefined(); button.props.onPress(); expect(retry).toHaveBeenCalledTimes(1);
+});
+
+it('keeps draft glow outside a clipping scroll view and hides unrelated feed errors', () => {
+  const tree = HomeCaptureFlow({ viewportHeight: 844, contentTop: 200, contentHeight: 440, feedError: true, cameraSectionProps: { selectedImageUri: 'photo.jpg' } as any });
+  expect(tree.props.children.type).not.toBe('ScrollView');
+  expect(tree.props.children.props.children.props.children[0]).toBeNull();
 });

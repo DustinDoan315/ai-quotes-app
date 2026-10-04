@@ -164,3 +164,14 @@ Automated geometry coverage: 320×568, 375×667, 390×844, 430×932, 360×640, a
 - Selected captions show 44-point edit/resize controls outside the text. Verify taps at minimum scale, resize diagonally, pinch/rotate, and drag near the top edge (controls flip below). Android controls remain inside the interaction parent.
 - Processing the selected photo immediately starts the edge glow; it continues through network generation and caption reveal. Reduce Motion shows a static edge. Export contains no editor controls or glow.
 - Verification: 316 tests / 59 suites, strict unused-local TypeScript, and scoped lint pass. Native animation/touch behavior still requires device verification.
+
+## Centered generation canvas and floating toolbar
+
+This supersedes the earlier draft layout and caption-handle checks.
+
+- Draft cards center vertically between the measured header and bottom toolbar; compact phones fit the available height. Generation and completion keep the same card geometry.
+- A single rounded, theme-colored toolbar stays above the bottom safe area. Save is primary; status fades into actions. Expanded text reserves its measured toolbar height through loading.
+- A broad translucent halo and slow perimeter highlight show preparation/generation; Reduce Motion retains a static illuminated edge. The fixed draft canvas does not clip the halo in a ScrollView.
+- No caption edit/resize icons or selection outline. First-use hint stays until a caption touch, then dismisses and persists. Tap edits, drag moves, pinch resizes, two-finger rotation remains available; VoiceOver supports edit and size actions.
+- Inkly menu → Caption help replays the hint for an editable draft. Saved coordinates and export contents remain unchanged; hints, halo, and toolbar do not appear in captured images.
+- Verification: 321 tests / 60 suites, strict TypeScript including unused locals/parameters, and scoped lint passed. Native animation, keyboard, and gesture verification remain required; no native build ran.
