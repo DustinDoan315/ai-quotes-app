@@ -14,6 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, View } from "react-native";
+import { HOME_AMBIENT_CHROME } from "@/theme/homeAmbient";
 
 type Props = {
   position: QuotePosition;
@@ -47,6 +48,7 @@ export function QuotePositionLayer({
   const [isTransforming, setIsTransforming] = useState(false);
   const resizeActive = useSharedValue(false);
   const resizeStartScale = useSharedValue(position.scale ?? 1);
+  const resizeControlsBelow = useSharedValue(false);
   const notifyInteraction = useCallback(() => onInteraction?.(), [onInteraction]);
   const startInteraction = useCallback(() => { setIsTransforming(true); onInteraction?.(); }, [onInteraction]);
   const finishInteraction = useCallback(() => { onInteraction?.(); setIsTransforming(false); }, [onInteraction]);
@@ -76,13 +78,19 @@ export function QuotePositionLayer({
       "worklet";
       resizeActive.value = true;
       resizeStartScale.value = scale.value;
+      const bounded = clampQuotePosition({ x: x.value, y: y.value, scale: scale.value, rotation: rotation.value }, frame, quote);
+      resizeControlsBelow.value = bounded.y * frame.height - quote.height * scale.value / 2 < 52;
       activeGestures.value += 1;
       interactionStarted.value = true;
       scheduleOnRN(startInteraction);
     })
     .onUpdate(event => {
       "worklet";
-      scale.value = resizeQuoteScale(resizeStartScale.value, event.translationX, event.translationY, quote, rotation.value);
+      const cos = Math.cos(rotation.value);
+      const sin = Math.sin(rotation.value);
+      const localX = event.translationX * cos + event.translationY * sin;
+      const localY = -event.translationX * sin + event.translationY * cos;
+      scale.value = resizeQuoteScale(resizeStartScale.value, localX, resizeControlsBelow.value ? localY : -localY, quote);
     })
     .onFinalize(() => {
       "worklet";
@@ -96,7 +104,7 @@ export function QuotePositionLayer({
       x.value = bounded.x;
       y.value = bounded.y;
       scheduleOnRN(reportPosition, x.value, y.value, scale.value, rotation.value);
-    }), [onPositionChange, resizeActive, resizeStartScale, scale, activeGestures, interactionStarted, startInteraction, finishInteraction, quote, rotation, frame, x, y, reportPosition]);
+    }), [onPositionChange, resizeActive, resizeStartScale, resizeControlsBelow, scale, activeGestures, interactionStarted, startInteraction, finishInteraction, quote, rotation, frame, x, y, reportPosition]);
 
   const transformGesture = useMemo(() => {
     const begin = () => {
@@ -171,20 +179,32 @@ export function QuotePositionLayer({
     return {
       transform: [
         { translateX: frame.width * centerX - quote.width / 2 },
-        { translateY: frame.height * centerY - quote.height / 2 },
+        { translateY: frame.height * centerY - quote.height / 2 - 48 },
         { rotate: `${rotation.value}rad` },
         { scale: scale.value },
       ],
     };
   });
 
+  // Counter-scale the entire control so both its visible surface and touch area stay 44 points.
+  // Keep its horizontal edge inside the caption; flip below near the top of the photo.
   const resizeControlStyle = useAnimatedStyle(() => {
-    const inverse = Math.min(1 / Math.max(MIN_QUOTE_SCALE, scale.value), Math.max(1, quote.width / 44), Math.max(1, quote.height / 44));
-    return { transform: [{ translateX: -22 * (inverse - 1) }, { translateY: -22 * (inverse - 1) }, { scale: inverse }] };
+    const inverse = 1 / Math.max(MIN_QUOTE_SCALE, scale.value);
+    const bounded = clampQuotePosition({ x: x.value, y: y.value, scale: scale.value, rotation: rotation.value }, frame, quote);
+    const below = resizeActive.value ? resizeControlsBelow.value : bounded.y * frame.height - quote.height * scale.value / 2 < 52;
+    return {
+      top: below ? quote.height + 52 : 0,
+      transform: [{ translateX: -22 * (inverse - 1) }, { translateY: (below ? 22 : -22) * (inverse - 1) }, { scale: inverse }],
+    };
   });
   const editControlStyle = useAnimatedStyle(() => {
-    const inverse = Math.min(1 / Math.max(MIN_QUOTE_SCALE, scale.value), Math.max(1, quote.width / 44), Math.max(1, quote.height / 44));
-    return { transform: [{ translateX: 22 * (inverse - 1) }, { translateY: 22 * (inverse - 1) }, { scale: inverse }] };
+    const inverse = 1 / Math.max(MIN_QUOTE_SCALE, scale.value);
+    const bounded = clampQuotePosition({ x: x.value, y: y.value, scale: scale.value, rotation: rotation.value }, frame, quote);
+    const below = resizeActive.value ? resizeControlsBelow.value : bounded.y * frame.height - quote.height * scale.value / 2 < 52;
+    return {
+      top: below ? quote.height + 52 : 0,
+      transform: [{ translateX: 22 * (inverse - 1) }, { translateY: (below ? 22 : -22) * (inverse - 1) }, { scale: inverse }],
+    };
   });
 
   return (
@@ -202,6 +222,13 @@ export function QuotePositionLayer({
     >
       <GestureDetector gesture={transformGesture}>
         <Animated.View
+          style={[
+            styles.positionedQuote,
+            frame.width > 0 ? { maxWidth: frame.width } : null,
+            positionedStyle,
+          ]}
+        >
+          <View
           onLayout={({ nativeEvent }) => {
             const { width, height } = nativeEvent.layout;
             setQuote((current) =>
@@ -210,15 +237,9 @@ export function QuotePositionLayer({
                 : { width, height },
             );
           }}
-          style={[
-            styles.positionedQuote,
-            frame.width > 0 ? { maxWidth: frame.width } : null,
-            positionedStyle,
-          ]}
-        >
-          {children}
+          >{children}</View>
           {onPositionChange ? <>
-            <View pointerEvents="none" style={[styles.selectionOutline, { opacity: showControls ? 1 : 0 }]} />
+            <View pointerEvents="none" style={[styles.selectionOutline, { top: 48, bottom: 48, opacity: showControls ? 1 : 0 }]} />
             <GestureDetector gesture={resizeGesture}>
               <Animated.View
                 pointerEvents={showControls ? "auto" : "none"}
@@ -236,7 +257,7 @@ export function QuotePositionLayer({
                   reportPosition(x.value, y.value, scale.value, rotation.value);
                 }}
                 style={[styles.resizeHandle, resizeControlStyle, { opacity: showControls ? 1 : 0 }]}>
-                <View style={styles.controlIcon}><Ionicons name="resize-outline" size={16} color="#FFFFFF" /></View>
+                <View style={styles.controlIcon}><Ionicons name="resize-outline" size={22} color={HOME_AMBIENT_CHROME.text} /></View>
               </Animated.View>
             </GestureDetector>
             {onEditText ? <Animated.View pointerEvents={showControls ? "auto" : "none"} accessibilityElementsHidden={!showControls} importantForAccessibility={showControls ? "auto" : "no-hide-descendants"} style={[styles.editHandle, editControlStyle, { opacity: showControls ? 1 : 0 }]}>
@@ -245,7 +266,7 @@ export function QuotePositionLayer({
                 accessibilityLabel={editAccessibilityLabel}
                 onPress={() => { notifyInteraction(); onEditText(); }}
                 style={styles.editButton}>
-                <View style={styles.controlIcon}><Ionicons name="pencil-outline" size={15} color="#FFFFFF" /></View>
+                <View style={styles.controlIcon}><Ionicons name="pencil-outline" size={21} color={HOME_AMBIENT_CHROME.text} /></View>
               </Pressable>
             </Animated.View> : null}
           </> : null}
@@ -256,14 +277,15 @@ export function QuotePositionLayer({
 }
 
 const styles = StyleSheet.create({
-  selectionOutline: { ...StyleSheet.absoluteFillObject, borderWidth: 1, borderColor: "rgba(196,181,253,0.8)", borderRadius: 18 },
-  resizeHandle: { position: "absolute", right: 0, bottom: 0, width: 44, height: 44, alignItems: "center", justifyContent: "center", zIndex: 2 },
-  editHandle: { position: "absolute", left: 0, top: 0, width: 44, height: 44, zIndex: 2 },
+  selectionOutline: { ...StyleSheet.absoluteFillObject, borderWidth: 1, borderColor: HOME_AMBIENT_CHROME.muted, borderRadius: 18 },
+  resizeHandle: { position: "absolute", right: 0, width: 44, height: 44, alignItems: "center", justifyContent: "center", zIndex: 2 },
+  editHandle: { position: "absolute", left: 0, width: 44, height: 44, zIndex: 2 },
   editButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  controlIcon: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: "rgba(221,214,254,0.9)", backgroundColor: "#6D28D9", alignItems: "center", justifyContent: "center" },
+  controlIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: HOME_AMBIENT_CHROME.swatchBorder, backgroundColor: "#202522", alignItems: "center", justifyContent: "center" },
   positionedQuote: {
     position: "absolute",
     left: 0,
     top: 0,
+    paddingVertical: 48,
   },
 });

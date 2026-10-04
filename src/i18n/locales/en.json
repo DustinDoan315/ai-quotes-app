@@ -110,7 +110,8 @@
       "matching": "Finding what fits...",
       "writing": "Writing your reflection...",
       "revealing": "Revealing your quote...",
-      "takePhotoPrompt": "Take a photo to get your vibe"
+      "takePhotoPrompt": "Take a photo to get your vibe",
+      "shareAction": "Share"
     },
     "captureFlow": {
       "retryTitle": "We couldn’t create the quote yet",

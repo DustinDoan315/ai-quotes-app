@@ -14,7 +14,7 @@ export function HomeDraftActions(p: Props) {
     accessibilityRole="button" accessibilityLabel={label}
     accessibilityState={{ disabled: p.disabled || !enabled, busy: type === "save" ? p.isSaving : type === "share" ? p.isSharing : p.loading }}
     disabled={p.disabled || !enabled} onPress={callback}
-    style={({ pressed }) => [styles.button, type === "save" && styles.save, { opacity: p.disabled || !enabled ? 0.4 : pressed ? 0.75 : 1 }]}>
+    style={[styles.button, type === "save" && styles.save, { opacity: p.disabled || !enabled ? 0.55 : 1 }]}>
     <Ionicons name={icon} size={17} color={type === "save" ? "#171329" : C.text} />
     <Text style={[styles.label, type === "save" && styles.saveLabel]}>{label}</Text>
   </Pressable>;
@@ -22,13 +22,13 @@ export function HomeDraftActions(p: Props) {
     {p.loading ? <Text accessibilityLiveRegion="polite" style={styles.status}>{t("home.generating.findingWords")}</Text> : <>
       {action("rewrite", p.canRewrite, p.onRewrite, "sparkles-outline", t("home.aiTools.rewriteAction"))}
       {action("save", p.canSave && !p.hasSavedPhoto, p.onSave, "checkmark", t(p.hasSavedPhoto ? "home.ambient.saved" : "home.ambient.save"))}
-      {action("share", p.canShare, p.onShare, "share-outline", t("home.ambient.share"))}
+      {action("share", p.canShare, p.onShare, "share-outline", t("home.generating.shareAction"))}
     </>}
   </View>;
 }
 const styles = StyleSheet.create({
-  row: { minHeight: 56, paddingTop: 8, flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 8 },
-  button: { minHeight: 44, maxWidth: "100%", paddingVertical: 10, paddingHorizontal: 12, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, flexShrink: 0 },
+  row: { minHeight: 68, paddingTop: 16, paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 8 },
+  button: { minHeight: 48, minWidth: 88, maxWidth: "100%", paddingVertical: 10, paddingHorizontal: 12, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "rgba(0,0,0,0.32)", borderWidth: 1, borderColor: C.border, flexShrink: 0 },
   save: { backgroundColor: C.text, borderColor: C.text },
   label: { color: C.text, fontSize: 13, fontWeight: "600", textAlign: "center", flexShrink: 1 },
   saveLabel: { color: "#171329", fontWeight: "700" },

@@ -156,3 +156,11 @@ Automated geometry coverage: 320×568, 375×667, 390×844, 430×932, 360×640, a
 - Below 360 points or above 1.2× text scaling, the vibe pill moves beneath the centered brand. Check English and Vietnamese labels at the largest system text setting.
 - On a device, rotate where supported, open the keyboard to edit a caption, dismiss it, and verify the save/share controls remain reachable. Check export dimensions after any viewport change.
 - Native screenshots and touch/keyboard checks remain required; automated geometry does not verify native text rendering or gestures.
+
+## Generated-card control regression
+
+- New captions start at 72% of card height, above the author/date footer. Existing saved caption coordinates remain unchanged.
+- Rewrite/Save/Share retain visible button surfaces; the trash control stays in the top-right with a 48-point target. Check Vietnamese labels too.
+- Selected captions show 44-point edit/resize controls outside the text. Verify taps at minimum scale, resize diagonally, pinch/rotate, and drag near the top edge (controls flip below). Android controls remain inside the interaction parent.
+- Processing the selected photo immediately starts the edge glow; it continues through network generation and caption reveal. Reduce Motion shows a static edge. Export contains no editor controls or glow.
+- Verification: 316 tests / 59 suites, strict unused-local TypeScript, and scoped lint pass. Native animation/touch behavior still requires device verification.

@@ -26,7 +26,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { CameraView, type CameraMountError } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -169,7 +169,7 @@ export const HomeCameraSection = ({
   const reduceMotion = useReducedMotionPreference();
   const revealOpacity = useSharedValue(1);
   const revealY = useSharedValue(0);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (generationStage === "revealing" && !reduceMotion && !interactionLocked && !isSharing) {
       revealOpacity.value = 0;
       revealY.value = 6;
@@ -275,7 +275,8 @@ export const HomeCameraSection = ({
   const showQuoteOverlay = Boolean(
     !hideQuote && dailyQuoteText && (!isGenerating || generationStage === "revealing") && selectedImageUri,
   );
-  const canMoveQuote = !hasSavedPhoto && !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto && !aiToolsLoading;
+  const generationActive = generationStage !== "idle" || isGenerating;
+  const canMoveQuote = !generationActive && !hasSavedPhoto && !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto && !aiToolsLoading;
   const captionControls = useCaptionEditHint(
     showQuoteOverlay && canMoveQuote && !watermarkForExport,
     selectedImageUri,
@@ -800,10 +801,10 @@ export const HomeCameraSection = ({
             </View>
           </GestureDetector>
         </View>
-        <QuoteGenerationGlow active={Boolean(selectedImageUri && (isGenerating || aiToolsLoading) && !interactionLocked && !isSharing && !watermarkForExport)} accentColor={getHomeAmbientPillColors(cardPalette).border} width={frame.width} height={frame.height} />
+        <QuoteGenerationGlow active={Boolean(selectedImageUri && (generationActive || aiToolsLoading) && !interactionLocked && !isSharing && !watermarkForExport)} accentColor={getHomeAmbientPillColors(cardPalette).border} width={frame.width} height={frame.height} />
         {selectedImageUri && canDeleteImage && !interactionLocked && !isSharing ? <View pointerEvents="box-none" style={{ position: "absolute", top: 0, width: frame.width, height: frame.height, alignSelf: "center", zIndex: 20 }}>
           <Pressable accessibilityRole="button" accessibilityLabel={t("home.ambient.discardPhoto")} onPress={onClearImage}
-            style={({ pressed }) => ({ position: "absolute", top: 8, right: 8, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.45)", opacity: pressed ? 0.75 : 1 })}>
+            style={{ position: "absolute", top: 12, right: 12, width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.65)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)" }}>
             <Ionicons name="trash-outline" size={19} color="#FFFFFF" />
           </Pressable>
         </View> : null}
@@ -902,8 +903,8 @@ export const HomeCameraSection = ({
       {selectedImageUri ? <HomeDraftActions
         onRewrite={onRewriteQuote} onSave={onSavePhoto} onShare={onSharePhoto}
         canRewrite={Boolean(dailyQuoteText && !hideQuote && !hasSavedPhoto)} canSave={canSavePhoto} canShare={canSharePhoto}
-        hasSavedPhoto={hasSavedPhoto} loading={isGenerating || aiToolsLoading} isSaving={isSavingPhoto} isSharing={isSharing}
-        disabled={interactionLocked || isGenerating || aiToolsLoading || isSavingPhoto || isSharing || isEditingQuote || Boolean(pendingQuoteText)}
+        hasSavedPhoto={hasSavedPhoto} loading={generationActive || aiToolsLoading} isSaving={isSavingPhoto} isSharing={isSharing}
+        disabled={interactionLocked || generationActive || aiToolsLoading || isSavingPhoto || isSharing || isEditingQuote || Boolean(pendingQuoteText)}
       /> : null}
     </View>
   );

@@ -37,7 +37,7 @@ describe("quote position", () => {
     expect(parseQuotePosition(0.4, 0.84, 0.9)).toEqual({
       x: 0.4, y: 0.84, scale: 0.9,
     });
-    expect(DEFAULT_QUOTE_POSITION).toEqual({ x: 0.5, y: 0.87 });
+    expect(DEFAULT_QUOTE_POSITION).toEqual({ x: 0.5, y: 0.72 });
     expect(parseQuotePosition(null, Number.NaN)).toEqual(DEFAULT_QUOTE_POSITION);
     expect(parseQuotePosition(-0.1, 1.1)).toEqual(DEFAULT_QUOTE_POSITION);
   });

@@ -4,7 +4,7 @@ export const MIN_QUOTE_SCALE = 0.55;
 
 export type QuoteBoxSize = { width: number; height: number };
 
-export const DEFAULT_QUOTE_POSITION: QuotePosition = { x: 0.5, y: 0.87 };
+export const DEFAULT_QUOTE_POSITION: QuotePosition = { x: 0.5, y: 0.72 };
 
 export function parseQuotePosition(x: unknown, y: unknown, scale?: unknown, rotation?: unknown): QuotePosition {
   if (

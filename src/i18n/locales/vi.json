@@ -109,7 +109,8 @@
       "matching": "Đang tìm điều phù hợp...",
       "writing": "Đang viết câu phản chiếu...",
       "revealing": "Đang hiện câu trích dẫn...",
-      "takePhotoPrompt": "Chụp ảnh để nhận câu trích dẫn của bạn"
+      "takePhotoPrompt": "Chụp ảnh để nhận câu trích dẫn của bạn",
+      "shareAction": "Chia sẻ"
     },
     "captureFlow": {
       "retryTitle": "Chưa thể tạo câu trích dẫn",
