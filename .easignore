@@ -1,0 +1,95 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# local env files
+.env
+.env*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Package manager — bun is the standard; drop npm/yarn artifacts
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# Planning / scratch docs (not source)
+plan_fix.md
+planning to release.md
+
+# generated native folders
+/android
+
+app-example
+
+# test & coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE / editor (uncomment to ignore)
+# .idea/
+# .vscode/
+
+# Sentry (can contain auth tokens)
+.sentryclirc
+
+# Turbo / Vercel (if used)
+.turbo
+.vercel
+.worktrees/
+
+# Local agent tooling and release-only inputs are not app build inputs.
+.claude/
+.cursor/
+.codex/
+.superpowers/
+.vscode/
+docs/
+tasks/
+store-assets/
+videos/
+build/

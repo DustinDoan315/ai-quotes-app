@@ -1,6 +1,3 @@
-export const APPLE_STANDARD_EULA_URL =
-  "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
-
 const INKLY_PRIVACY_POLICY_URL =
   "https://inkly-web-taupe.vercel.app/privacy";
 const INKLY_TERMS_OF_SERVICE_URL =

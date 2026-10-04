@@ -99,7 +99,6 @@ export type HomeCameraSectionProps = {
   onFinishPhotoStack: () => void;
   onRewriteQuote: () => void;
   aiToolsLoading: boolean;
-  aiToolsLoadingLabel: string | null;
   cardPalette: HomeBackgroundPalette;
   pendingQuoteText?: string | null;
   pendingQuoteTitle?: string | null;
@@ -152,7 +151,6 @@ export const HomeCameraSection = ({
   onFinishPhotoStack,
   onRewriteQuote,
   aiToolsLoading,
-  aiToolsLoadingLabel,
   cardPalette,
   pendingQuoteText = null,
   pendingQuoteTitle = null,

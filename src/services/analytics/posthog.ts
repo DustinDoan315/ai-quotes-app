@@ -28,30 +28,3 @@ export const trackEvent = (
     console.error("PostHog tracking error:", error);
   }
 };
-
-export const identifyUser = (
-  userId: string,
-  properties?: PostHogEventProperties,
-) => {
-  if (!posthog) {
-    return;
-  }
-
-  try {
-    posthog.identify(userId, properties);
-  } catch (error) {
-    console.error("PostHog identify error:", error);
-  }
-};
-
-export const resetUser = () => {
-  if (!posthog) {
-    return;
-  }
-
-  try {
-    posthog.reset();
-  } catch (error) {
-    console.error("PostHog reset error:", error);
-  }
-};

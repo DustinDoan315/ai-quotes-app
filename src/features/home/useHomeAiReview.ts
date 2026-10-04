@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useRewriteQuote } from "@/features/ai/useQuoteAIExtras";
-import i18n from "@/i18n";
 
 export type HomeAiTool = "rewrite";
 
@@ -88,7 +87,6 @@ export function useHomeAiReview(dailyQuoteText: string | null) {
     pendingAiTool,
     isAiToolLoading: isRewritingQuote,
     isRewritingQuote,
-    aiToolsLoadingLabel: isRewritingQuote ? i18n.t("home.aiTools.loadingNaturalRewrite") : null,
     handleRewriteQuote,
     handleApproveRewrite,
     handleCancelRewrite,

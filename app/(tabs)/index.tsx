@@ -282,7 +282,6 @@ export default function HomeScreen() {
     handleCancelRewrite,
     rewriteReviewText,
     isAiToolLoading,
-    aiToolsLoadingLabel,
   } = useHomeAiReview(dailyQuoteText);
   const {
     emojiBursts,
@@ -461,7 +460,6 @@ export default function HomeScreen() {
               onFinishPhotoStack: finishPhotoStack,
               onRewriteQuote: handleRewriteQuote,
               aiToolsLoading: isAiToolLoading,
-              aiToolsLoadingLabel,
               cardPalette: draftPalette,
               pendingQuoteText: rewriteReviewText,
               onApprovePendingQuote: handleApproveRewrite,

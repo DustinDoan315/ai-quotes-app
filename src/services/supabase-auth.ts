@@ -70,27 +70,6 @@ export type UserProfile = {
   updated_at: string;
 };
 
-export async function signUp(
-  email: string,
-  password: string,
-  metadata?: { username?: string; display_name?: string },
-): Promise<{ user: User | null; session: Session | null; error: AuthError | null }> {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { username: metadata?.username, display_name: metadata?.display_name } },
-  });
-  return { user: data.user, session: data.session, error };
-}
-
-export async function signIn(
-  email: string,
-  password: string,
-): Promise<{ user: User | null; session: Session | null; error: AuthError | null }> {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  return { user: data.user, session: data.session, error };
-}
-
 export async function signInAnonymously(): Promise<{
   user: User | null;
   session: Session | null;
@@ -319,11 +298,6 @@ export async function getSessionSafely(): Promise<{
   }
 }
 
-export async function getSession(): Promise<Session | null> {
-  const { session } = await getSessionSafely();
-  return session;
-}
-
 export async function getCurrentUser(): Promise<User | null> {
   const {
     data: { user },
@@ -331,7 +305,7 @@ export async function getCurrentUser(): Promise<User | null> {
   return user;
 }
 
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+async function getUserProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from("user_profiles")
     .select("*")

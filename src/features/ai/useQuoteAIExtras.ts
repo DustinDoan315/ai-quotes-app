@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { explainQuote, generateFutureQuote, rewriteQuote } from "@/services/ai/client";
+import { rewriteQuote } from "@/services/ai/client";
 import {
   getQuoteValidationMessageKey,
   validateRewriteReviewQuote,
@@ -14,48 +14,6 @@ import i18n from "@/i18n";
 const localizeQuoteValidationReason = (reason: string): string => {
   const messageKey = getQuoteValidationMessageKey(reason);
   return messageKey ? i18n.t(messageKey) : reason;
-};
-
-export const useExplainQuote = (quoteText: string | null) => {
-  const persona = useUserStore((s) => s.persona);
-  const quoteLanguage = useUserStore((s) => s.quoteLanguage ?? "en");
-  const showToast = useUIStore((s) => s.showToast);
-  const [explanation, setExplanation] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const explain = useCallback(async () => {
-    if (!quoteText) return null;
-    const traits =
-      persona && persona.traits && persona.traits.length > 0
-        ? persona.traits
-        : ["curious", "optimistic"];
-    setLoading(true);
-    try {
-      const response = await explainQuote({
-        quote: quoteText,
-        personaTraits: traits,
-        language: quoteLanguage,
-      });
-      if (!response.isValid) {
-        if (response.reason === "ai_limit") {
-          showToast(
-            `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
-            "info",
-          );
-          openPaywall({ reason: "ai_limit", source: "ai_generate" });
-        } else if (response.reason) {
-          showToast(localizeQuoteValidationReason(response.reason), "error");
-        }
-        return null;
-      }
-      setExplanation(response.explanation);
-      return response.explanation;
-    } finally {
-      setLoading(false);
-    }
-  }, [quoteText, persona, quoteLanguage, showToast]);
-
-  return { explanation, loading, explain };
 };
 
 export const useRewriteQuote = () => {
@@ -138,49 +96,4 @@ export const useRewriteQuote = () => {
   );
 
   return { loading, previewRewrite, applyRewrittenQuote };
-};
-
-export const useFutureQuote = () => {
-  const persona = useUserStore((s) => s.persona);
-  const quoteLanguage = useUserStore((s) => s.quoteLanguage ?? "en");
-  const showToast = useUIStore((s) => s.showToast);
-  const [loading, setLoading] = useState(false);
-
-  const generate = useCallback(
-    async (sourceQuote: string) => {
-      const traits =
-        persona && persona.traits && persona.traits.length > 0
-          ? persona.traits
-          : ["curious", "optimistic"];
-      setLoading(true);
-      try {
-        const response = await generateFutureQuote({
-          quote: sourceQuote,
-          personaTraits: traits,
-          language: quoteLanguage,
-        });
-        if (!response.isValid) {
-          if (response.reason === "ai_limit") {
-            showToast(
-              `${i18n.t("subscription.aiLimitReachedTitle")} ${i18n.t("subscription.aiLimitReachedBody")}`,
-              "info",
-            );
-            openPaywall({ reason: "ai_limit", source: "ai_generate" });
-          } else if (response.reason) {
-            showToast(
-              localizeQuoteValidationReason(response.reason),
-              "error",
-            );
-          }
-          return null;
-        }
-        return response.quote;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [persona, quoteLanguage, showToast],
-  );
-
-  return { loading, generate };
 };

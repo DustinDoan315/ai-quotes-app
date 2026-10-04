@@ -156,7 +156,7 @@ export const useMemoryStore = create<MemoryState>()(
       partialize: (state) => ({
         memories: state.memories,
       }),
-      onRehydrateStorage: () => (state, err) => {
+      onRehydrateStorage: () => (_state, err) => {
         if (err) return;
         useMemoryStore.getState().setHasHydrated(true);
       },
