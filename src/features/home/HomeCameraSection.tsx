@@ -373,7 +373,7 @@ export const HomeCameraSection = ({
 
   return (
     <View
-      className="flex-1 w-full flex-col"
+      className="w-full flex-col"
       pointerEvents={interactionLocked ? "none" : "auto"}
       onLayout={({ nativeEvent }) => {
         const next = Math.max(0, nativeEvent.layout.height);

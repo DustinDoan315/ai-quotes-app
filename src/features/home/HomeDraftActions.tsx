@@ -16,7 +16,7 @@ export function HomeDraftActions(p: Props) {
     disabled={p.disabled || !enabled} onPress={callback}
     style={({ pressed }) => [styles.button, type === "save" && styles.save, { opacity: p.disabled || !enabled ? 0.4 : pressed ? 0.75 : 1 }]}>
     <Ionicons name={icon} size={17} color={type === "save" ? "#171329" : C.text} />
-    <Text numberOfLines={1} style={[styles.label, type === "save" && styles.saveLabel]}>{label}</Text>
+    <Text style={[styles.label, type === "save" && styles.saveLabel]}>{label}</Text>
   </Pressable>;
   return <View style={styles.row}>
     {p.loading ? <Text accessibilityLiveRegion="polite" style={styles.status}>{t("home.generating.findingWords")}</Text> : <>
@@ -27,10 +27,10 @@ export function HomeDraftActions(p: Props) {
   </View>;
 }
 const styles = StyleSheet.create({
-  row: { minHeight: 56, paddingTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  button: { minHeight: 44, paddingHorizontal: 12, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, flexShrink: 1 },
+  row: { minHeight: 56, paddingTop: 8, flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 8 },
+  button: { minHeight: 44, maxWidth: "100%", paddingVertical: 10, paddingHorizontal: 12, borderRadius: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, flexShrink: 0 },
   save: { backgroundColor: C.text, borderColor: C.text },
-  label: { color: C.text, fontSize: 13, fontWeight: "600", flexShrink: 1 },
+  label: { color: C.text, fontSize: 13, fontWeight: "600", textAlign: "center", flexShrink: 1 },
   saveLabel: { color: "#171329", fontWeight: "700" },
   status: { color: C.muted, fontSize: 13, textAlign: "center", paddingHorizontal: 16 },
 });

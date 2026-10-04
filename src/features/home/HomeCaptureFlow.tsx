@@ -18,7 +18,7 @@ export function HomeCaptureFlow({ viewportHeight, contentTop, contentHeight, fee
         <Text style={{ color: "white", flex: 1 }}>{t("home.feedRefreshError")}</Text>
         <Pressable accessibilityRole="button" onPress={onRetryFeed} style={{ minHeight: 48, justifyContent: "center", paddingHorizontal: 12 }}><Text style={{ color: "white" }}>{t("home.captureFlow.retry")}</Text></Pressable>
       </View> : null}
-      <View style={{ height: Math.max(contentHeight, cameraSectionProps.selectedImageUri ? (cameraSectionProps.frameWidth ?? 260) + 64 : 260) }}><HomeCameraSection {...cameraSectionProps} /></View>
+      <View style={{ minHeight: contentHeight }}><HomeCameraSection {...cameraSectionProps} /></View>
     </ScrollView>
   </View>;
 }

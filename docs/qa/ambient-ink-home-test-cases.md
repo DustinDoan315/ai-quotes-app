@@ -146,3 +146,13 @@ The original Home layout change did not alter database policies. The later custo
 - Back and the top-right trash ask before discarding an unsaved photo. Cancel retains the draft; discard cancels any pending generation.
 - Saving marks the moment Saved and freezes its caption so sharing matches the stored moment.
 - Shared images include the watermark but no glow, trash, or action controls. Check all Home palettes, including Forest, Dawn, and Mist.
+
+## Responsive Home and generated drafts
+
+Automated geometry coverage: 320×568, 375×667, 390×844, 430×932, 360×640, and 768×1024, with device safe areas, header heights of 56/84, and dock heights of 188/260.
+
+- Camera/feed cards fit between the measured header and dock. Standard phones retain their edge spacing; short screens fit the available height. Tablet cards cap at 600 points.
+- Draft cards retain their width and scroll with naturally measured controls, including wrapped action labels and error/rewrite content.
+- Below 360 points or above 1.2× text scaling, the vibe pill moves beneath the centered brand. Check English and Vietnamese labels at the largest system text setting.
+- On a device, rotate where supported, open the keyboard to edit a caption, dismiss it, and verify the save/share controls remain reachable. Check export dimensions after any viewport change.
+- Native screenshots and touch/keyboard checks remain required; automated geometry does not verify native text rendering or gestures.

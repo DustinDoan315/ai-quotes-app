@@ -381,7 +381,7 @@ export default function HomeScreen() {
       <HomeFeedFlow
         listRef={listRef}
         quoteStacks={ambient.visibleStacks}
-        frameWidth={Math.max(1, layout.cardWidth)}
+        frameWidth={Math.max(1, feedLayout.cardWidth)}
         contentTop={feedLayout.contentTop}
         contentHeight={feedLayout.contentHeight}
         viewerUserId={authUserId}

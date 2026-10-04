@@ -1,6 +1,6 @@
 import { getHomeViewportLayout } from '@/domain/home/homeViewportLayout';
 it('counts measured regions and safe areas exactly once', () => expect(getHomeViewportLayout({ width: 390, height: 844, topInset: 47, bottomInset: 34, headerHeight: 56, footerHeight: 188 })).toEqual({ contentTop: 153.15, contentHeight: 444.85, cardWidth: 374 }));
-it('keeps compact cards near the screen edges', () => { const layout = getHomeViewportLayout({ width: 320, height: 568, topInset: 20, bottomInset: 0, headerHeight: 90, footerHeight: 240 }); expect(layout.cardWidth).toBe(304); expect(layout.contentTop).toBeGreaterThanOrEqual(122); });
+it('fits compact Home cards above the dock', () => { const layout = getHomeViewportLayout({ width: 320, height: 568, topInset: 20, bottomInset: 0, headerHeight: 90, footerHeight: 240 }); expect(layout.cardWidth).toBe(182); expect(layout.contentTop).toBeGreaterThanOrEqual(122); });
 it('does not return negative geometry', () => expect(getHomeViewportLayout({ width: -1, height: 10, topInset: 100, bottomInset: 10, headerHeight: 200, footerHeight: 200 }).cardWidth).toBe(0));
 
 it('raises the camera within the usable area and leaves more breathing room below', () => {
@@ -37,4 +37,29 @@ it('accounts for expanded draft controls without hiding them behind the card', (
   expect(expandedFooter.contentTop).toBe(smallerFooter.contentTop);
   expect(expandedFooter.cardWidth).toBe(smallerFooter.cardWidth);
   expect(expandedFooter.contentHeight).toBe(smallerFooter.contentHeight - 120);
+});
+
+const devices = [
+  { name: 'compact iPhone', width: 320, height: 568, topInset: 20, bottomInset: 0 },
+  { name: 'iPhone SE', width: 375, height: 667, topInset: 20, bottomInset: 0 },
+  { name: 'notched iPhone', width: 390, height: 844, topInset: 47, bottomInset: 34 },
+  { name: 'large iPhone', width: 430, height: 932, topInset: 59, bottomInset: 34 },
+  { name: 'Android', width: 360, height: 640, topInset: 24, bottomInset: 24 },
+  { name: 'tablet', width: 768, height: 1024, topInset: 24, bottomInset: 20 },
+];
+describe.each(devices)('$name responsive layout', device => {
+  it.each(['camera', 'feed'] as const)('%s fits between header and measured dock', presentation => {
+    for (const headerHeight of [56, 84]) for (const footerHeight of [188, 260]) {
+      const layout = getHomeViewportLayout({ ...device, presentation, headerHeight, footerHeight });
+      expect(layout.contentTop).toBeGreaterThanOrEqual(device.topInset + headerHeight + 12);
+      expect(layout.cardWidth).toBeLessThanOrEqual(layout.contentHeight);
+      expect(layout.contentTop + layout.cardWidth).toBeLessThanOrEqual(device.height - device.bottomInset - footerHeight - 24);
+      expect(layout.cardWidth).toBeLessThanOrEqual(600);
+    }
+  });
+  it('draft keeps its width while its controls can scroll', () => {
+    const layout = getHomeViewportLayout({ ...device, presentation: 'draft', headerHeight: 84, footerHeight: 0 });
+    expect(layout.cardWidth).toBe(Math.min(device.width - 16, 600));
+    expect(layout.contentTop + layout.contentHeight).toBe(device.height - device.bottomInset - 24);
+  });
 });
