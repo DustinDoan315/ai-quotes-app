@@ -1,10 +1,8 @@
 import {
   REMINDER_CATEGORY_ID,
   REMINDER_CHANNEL_ID,
-  REMINDER_NOTIFICATION_BODY,
-  REMINDER_NOTIFICATION_SUBTITLE,
-  REMINDER_NOTIFICATION_TITLE,
 } from "@/services/notifications/constants";
+import i18n from "@/i18n";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 
@@ -17,7 +15,11 @@ function canUseNotifications(): boolean {
 }
 
 function loadNotifications(): Promise<NotificationsModule> {
-  notificationsModulePromise ??= import("expo-notifications");
+  notificationsModulePromise ??= Promise.resolve().then(
+    // Load the native module only after the device/platform guard.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    () => require("expo-notifications") as NotificationsModule,
+  );
   return notificationsModulePromise;
 }
 
@@ -70,7 +72,7 @@ export async function setupNotificationCategories(): Promise<void> {
   await Notifications.setNotificationCategoryAsync(REMINDER_CATEGORY_ID, [
     {
       identifier: "open",
-      buttonTitle: "Open Inkly",
+      buttonTitle: i18n.t("profile.reminderOpenAction"),
       options: { opensAppToForeground: true },
     },
   ]);
@@ -83,8 +85,8 @@ export async function ensureReminderNotificationChannel(): Promise<void> {
   if (Platform.OS !== "android" || !Device.isDevice) return;
   const Notifications = await loadNotifications();
   await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL_ID, {
-    name: "Daily reminder",
-    description: "Your personalized daily quote reminder from Inkly.",
+    name: i18n.t("profile.reminderLabel"),
+    description: i18n.t("profile.reminderChannelDescription"),
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 150, 250],
     lightColor: "#F59E0B",
@@ -127,6 +129,7 @@ export async function syncDailyReminderSchedule(
   }
 
   await ensureReminderNotificationChannel();
+  await setupNotificationCategories();
 
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) {
@@ -135,12 +138,12 @@ export async function syncDailyReminderSchedule(
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: REMINDER_NOTIFICATION_TITLE,
+      title: i18n.t("profile.reminderNotifTitle"),
       // subtitle is iOS-only — shows between title and body in the notification
       ...(Platform.OS === "ios"
-        ? { subtitle: REMINDER_NOTIFICATION_SUBTITLE }
+        ? { subtitle: i18n.t("profile.reminderNotifSubtitle") }
         : {}),
-      body: REMINDER_NOTIFICATION_BODY,
+      body: i18n.t("profile.reminderNotifBody"),
       sound: true,
       // iOS: attach the category so the "Open Inkly" action button appears
       ...(Platform.OS === "ios"

@@ -49,24 +49,32 @@ function syncUiLanguageOnBoot(): (() => void) | undefined {
 
 function syncReminderOnBoot(): (() => void) | undefined {
   configureNotificationHandler();
-  void setupNotificationCategories();
-  void ensureReminderNotificationChannel();
+  let pendingSync = Promise.resolve();
+  let disposed = false;
 
   const applyReminderSync = () => {
-    const snapshot = useReminderStore.getState();
-    void syncDailyReminderSchedule(snapshot).then((patch) => {
+    if (!useReminderStore.persist.hasHydrated() || !useUserStore.persist.hasHydrated()) return;
+    pendingSync = pendingSync.then(async () => {
+      if (disposed) return;
+      await setupNotificationCategories();
+      await ensureReminderNotificationChannel();
+      const patch = await syncDailyReminderSchedule(useReminderStore.getState());
       useReminderStore.setState(patch);
+    }).catch((error: unknown) => {
+      console.warn("Failed to sync daily reminder:", error);
     });
   };
 
-  if (useReminderStore.persist.hasHydrated()) {
-    applyReminderSync();
-    return undefined;
-  }
-
-  return useReminderStore.persist.onFinishHydration(() => {
-    applyReminderSync();
-  });
+  const unsubscribeReminder = useReminderStore.persist.onFinishHydration(applyReminderSync);
+  const unsubscribeUser = useUserStore.persist.onFinishHydration(applyReminderSync);
+  i18n.on("languageChanged", applyReminderSync);
+  applyReminderSync();
+  return () => {
+    disposed = true;
+    unsubscribeReminder();
+    unsubscribeUser();
+    i18n.off("languageChanged", applyReminderSync);
+  };
 }
 
 async function bootstrapRevenueCat(session: Session | null): Promise<void> {
