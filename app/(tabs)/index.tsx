@@ -1,3 +1,4 @@
+import { getHomeDraftPresentation } from "@/domain/home/homeDraftPresentation";
 import { createHomeFriendFixture, HOME_DEMO_FRIEND_ID } from "@/features/home/homeFriendFixture";
 import { HomeReactionRow } from "@/features/home/HomeReactionRow";
 import { mergeMemories } from "@/domain/memories/mergeMemories";
@@ -232,7 +233,8 @@ export default function HomeScreen() {
   const heldGeometry = useRef({ height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight });
   if (!exportLocked) heldGeometry.current = { height: liveViewportHeight, width: screenWidth, top: insets.top, bottom: insets.bottom, headerHeight, footerHeight };
   const viewportHeight = heldGeometry.current.height;
-  const layout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: heldGeometry.current.footerHeight });
+  const draftPresentation = getHomeDraftPresentation({ hasPhoto: Boolean(selectedImageUri), isOnFeed: ambient.isOnFeed, hasSavedPhoto: hasSavedCurrentPhoto, isSaving: isSavingPhoto, isSharing: exportLocked });
+  const layout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: draftPresentation.focused ? 0 : heldGeometry.current.footerHeight, presentation: draftPresentation.focused ? "draft" : "camera" });
   const feedLayout = getHomeViewportLayout({ width: heldGeometry.current.width, height: viewportHeight, topInset: heldGeometry.current.top, bottomInset: heldGeometry.current.bottom, headerHeight: heldGeometry.current.headerHeight, footerHeight: heldGeometry.current.footerHeight, presentation: 'feed' });
   const draftPalette = draftVibeKey ? getHomeBackgroundPaletteByKey(draftVibeKey) : palette;
   const activePalette = ambient.active?.palette ?? draftPalette;
@@ -332,6 +334,18 @@ export default function HomeScreen() {
     }, false);
   }
 
+  function handleExitDraft() {
+    if (!draftPresentation.canExit) return;
+    if (!draftPresentation.confirmExit) {
+      handleClearCurrentImage();
+      return;
+    }
+    Alert.alert(t('home.ambient.discardTitle'), t('home.ambient.discardBody'), [
+      { text: t('home.ambient.cancel'), style: 'cancel' },
+      { text: t('home.ambient.discard'), style: 'destructive', onPress: handleClearCurrentImage },
+    ]);
+  }
+
   function handleClearCurrentImage() {
     clearAiToolState();
     clearSelectedImage();
@@ -357,8 +371,8 @@ export default function HomeScreen() {
       }
     >
       <HomeAmbientBackground palette={activePalette} reduceMotion={reduceMotion} />
-      <View style={{ position: 'absolute', top: insets.top, left: 0, right: 0, zIndex: 20 }} onLayout={e => setHeaderHeight(e.nativeEvent.layout.height)} pointerEvents={busy || ambient.isDragging ? 'none' : 'auto'}>
-        <HomeAmbientHeader palette={activePalette} avatarUrl={authorAvatarUrl} onProfile={() => protectDraft(() => profile?.user_id ? router.push('/(tabs)/profile' as never) : signIn())} onMenu={() => setMenuVisible(true)} />
+      <View style={{ position: 'absolute', top: insets.top, left: 0, right: 0, zIndex: 20 }} onLayout={e => setHeaderHeight(e.nativeEvent.layout.height)} pointerEvents={(busy && !draftPresentation.focused) || ambient.isDragging ? 'none' : 'auto'}>
+        <HomeAmbientHeader onBack={draftPresentation.focused ? handleExitDraft : undefined} disabled={draftPresentation.focused && !draftPresentation.canExit} palette={activePalette} avatarUrl={authorAvatarUrl} onProfile={() => protectDraft(() => profile?.user_id ? router.push('/(tabs)/profile' as never) : signIn())} onMenu={() => { if (!busy) setMenuVisible(true); }} />
       </View>
       <MilestoneCelebration
         milestone={milestone}
@@ -437,7 +451,13 @@ export default function HomeScreen() {
               onCameraMountError: handleCameraMountError,
               onZoomPresetPress: handleZoomPreset,
               onToggleFacing: handleToggleFacing,
-              onClearImage: handleClearCurrentImage,
+              onClearImage: handleExitDraft,
+              onSavePhoto: () => { if (!busy) void handleSavePhoto(quoteDraftForSave); },
+              onSharePhoto: () => { if (!busy) void shareMoment(); },
+              canSavePhoto: canSaveDraft && !busy,
+              canSharePhoto: !busy && Boolean(dailyQuoteText && selectedImageUri && !hideQuote && quoteDraftForSave === null),
+              hasSavedPhoto: hasSavedCurrentPhoto,
+              isSharing: exportLocked,
               onFinishPhotoStack: finishPhotoStack,
               onRewriteQuote: handleRewriteQuote,
               aiToolsLoading: isAiToolLoading,
@@ -450,7 +470,7 @@ export default function HomeScreen() {
           />
         }
       />
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => setFooterHeight(e.nativeEvent.layout.height)}>
+      {draftPresentation.showDock ? <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => setFooterHeight(e.nativeEvent.layout.height)}>
         <View style={{ minHeight: HOME_AMBIENT_LAYOUT.actionRowMinHeight }}>
           {!isOnFeed && !selectedImageUri ? <HomeCameraControls disabled={busy || ambient.isDragging} activePreset={activePreset} onZoom={handleZoomPreset} onFlip={handleToggleFacing} stackCount={canCreatePhotoStack ? photoStackCount : 0} onFinish={finishPhotoStack} /> : null}
           {ambient.active || selectedImageUri ? <HomeMomentToolbar
@@ -475,7 +495,7 @@ export default function HomeScreen() {
           busyLabel={isGenerating ? t('home.ambient.generating') : isSavingPhoto ? t('home.ambient.saving') : t('home.ambient.working')}
           onGallery={handleOpenGalleryPress} onMemories={handleOpenMemories}
           onPrimary={() => { if (busy) return; if (selectedImageUri && !isOnFeed) void handleSavePhoto(quoteDraftForSave); else handleCameraButtonPress(); }} />
-      </View>
+      </View> : null}
       <Modal visible={menuVisible} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={() => setMenuVisible(false)}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('home.ambient.closeMenu')} onPress={() => setMenuVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: 28 }}>
           <Pressable accessibilityViewIsModal onPress={() => {}} style={{ backgroundColor: '#141a24', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', width: '100%', maxWidth: 420, alignSelf: 'center', maxHeight: '80%' }}>

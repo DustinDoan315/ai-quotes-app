@@ -16,3 +16,25 @@ it('balances feed spacing while the camera sits slightly higher', () => {
   expect(feed.contentTop - 115).toBe(598 - feed.contentTop - feed.cardWidth);
   expect(feed.contentTop).toBeGreaterThan(getHomeViewportLayout(input).contentTop);
 });
+
+it('starts a draft immediately below the header instead of centering it', () => {
+  const layout = getHomeViewportLayout({ presentation: 'draft', width: 390, height: 844, topInset: 47, bottomInset: 34, headerHeight: 56, footerHeight: 100 });
+  expect(layout.contentTop).toBe(115);
+  expect(layout.cardWidth).toBe(374);
+  expect(layout.contentHeight).toBe(571);
+});
+it('keeps a compact draft full width in its scrollable area', () => {
+  const layout = getHomeViewportLayout({ presentation: 'draft', width: 320, height: 568, topInset: 20, bottomInset: 10, headerHeight: 56, footerHeight: 180 });
+  expect(layout.contentTop).toBe(88);
+  expect(layout.contentHeight).toBe(266);
+  expect(layout.cardWidth).toBe(304);
+  expect(layout.cardWidth).toBeGreaterThan(layout.contentHeight);
+});
+it('accounts for expanded draft controls without hiding them behind the card', () => {
+  const base = { presentation: 'draft' as const, width: 390, height: 568, topInset: 20, bottomInset: 0, headerHeight: 56 };
+  const smallerFooter = getHomeViewportLayout({ ...base, footerHeight: 120 });
+  const expandedFooter = getHomeViewportLayout({ ...base, footerHeight: 240 });
+  expect(expandedFooter.contentTop).toBe(smallerFooter.contentTop);
+  expect(expandedFooter.cardWidth).toBe(smallerFooter.cardWidth);
+  expect(expandedFooter.contentHeight).toBe(smallerFooter.contentHeight - 120);
+});

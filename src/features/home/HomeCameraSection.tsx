@@ -1,13 +1,15 @@
+import { getHomeAmbientPillColors } from "@/theme/homeAmbient";
 import { useCaptionEditHint } from "@/hooks/useCaptionEditHint";
 import { InklyShareWatermark } from "@/components/InklyShareWatermark";
-import { RewriteCaptionButton } from "@/features/home/RewriteCaptionButton";
+import { HomeDraftActions } from "@/features/home/HomeDraftActions";
+import { QuoteGenerationGlow } from "@/features/home/QuoteGenerationGlow";
+import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
 import { FeedCardVibeGradientShell } from "@/features/quotes/FeedCardVibeGradientShell";
 import { useQuoteCardFrame } from "@/features/quotes/useQuoteCardFrame";
 import { QuotePositionLayer } from "@/features/quotes/QuotePositionLayer";
 import type { QuotePosition } from "@/features/quotes/quotePosition";
 import { PinchGesture } from "@/features/home/useHomeCamera";
 import {
-  getGenerationStageLabelKey,
   type GenerationStage,
 } from "@/features/home/generationStage";
 import {
@@ -25,7 +27,6 @@ import { CameraView, type CameraMountError } from "expo-camera";
 import { Image } from "expo-image";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { QuoteInkBloom } from "@/components/QuoteInkBloom";
 import {
   Pressable,
   StyleSheet,
@@ -60,6 +61,12 @@ export type HomeCameraSectionProps = {
   cameraPermissionGranted: boolean;
   selectedImageUri: string | null;
   isSavingPhoto: boolean;
+  onSavePhoto: () => void;
+  onSharePhoto: () => void;
+  canSavePhoto: boolean;
+  canSharePhoto: boolean;
+  hasSavedPhoto: boolean;
+  isSharing: boolean;
   quotePosition: QuotePosition;
   onQuotePositionChange: (position: QuotePosition) => void;
   canDeleteImage: boolean;
@@ -112,6 +119,7 @@ export const HomeCameraSection = ({
   cameraPermissionGranted,
   selectedImageUri,
   isSavingPhoto,
+  onSavePhoto, onSharePhoto, canSavePhoto, canSharePhoto, hasSavedPhoto, isSharing,
   quotePosition,
   onQuotePositionChange,
   canDeleteImage,
@@ -160,7 +168,18 @@ export const HomeCameraSection = ({
     const messageKey = getQuoteValidationMessageKey(reason);
     return messageKey ? t(messageKey) : reason;
   };
-  const generationStageLabelKey = getGenerationStageLabelKey(generationStage);
+  const reduceMotion = useReducedMotionPreference();
+  const revealOpacity = useSharedValue(1);
+  const revealY = useSharedValue(0);
+  useEffect(() => {
+    if (generationStage === "revealing" && !reduceMotion && !interactionLocked && !isSharing) {
+      revealOpacity.value = 0;
+      revealY.value = 6;
+      revealOpacity.value = withTiming(1, { duration: 250 });
+      revealY.value = withTiming(0, { duration: 250 });
+    } else { revealOpacity.value = 1; revealY.value = 0; }
+  }, [generationStage, reduceMotion, interactionLocked, isSharing, revealOpacity, revealY]);
+  const revealStyle = useAnimatedStyle(() => ({ opacity: revealOpacity.value, transform: [{ translateY: revealY.value }] }));
   const [shellSize, setShellSize] = useState<{
     width: number;
     height: number;
@@ -174,10 +193,9 @@ export const HomeCameraSection = ({
   // change it.
   const [cameraContentHeight, setCameraContentHeight] = useState(0);
   // Controls live below the photo canvas and share its available height.
-  const showsRewriteAction = Boolean(dailyQuoteText && !hideQuote && selectedImageUri && !isGenerating && !pendingQuoteText);
   const controlsHeight = selectedImageUri === null && externalCameraControls ? 0 : selectedImageUri === null
     ? 104 + (canCreatePhotoStack && photoStackCount > 0 ? 52 : 0)
-    : dailyQuoteText && !hideQuote && !isGenerating ? 52 : 0;
+    : 56;
   // 80pt action row + 8pt top padding + 1pt border + the device's bottom inset.
   const availableCameraHeight = Math.max(
     0,
@@ -246,7 +264,6 @@ export const HomeCameraSection = ({
     }
     return "#FFFFFF";
   }, [quoteColorScheme]);
-  const isRewriteLoading = aiToolsLoading;
 
   const createdTimeLabel = useMemo(
     () =>
@@ -258,9 +275,9 @@ export const HomeCameraSection = ({
   );
 
   const showQuoteOverlay = Boolean(
-    !hideQuote && dailyQuoteText && !isGenerating && selectedImageUri,
+    !hideQuote && dailyQuoteText && (!isGenerating || generationStage === "revealing") && selectedImageUri,
   );
-  const canMoveQuote = !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto && !aiToolsLoading;
+  const canMoveQuote = !hasSavedPhoto && !interactionLocked && !watermarkForExport && !isEditingQuote && !pendingQuoteText && !isSavingPhoto && !aiToolsLoading;
   const captionControls = useCaptionEditHint(
     showQuoteOverlay && canMoveQuote && !watermarkForExport,
     selectedImageUri,
@@ -309,7 +326,7 @@ export const HomeCameraSection = ({
   }, [dailyQuoteText, isEditingQuote, onQuoteDraftChange, selectedImageUri]);
 
   const openQuoteEditor = () => {
-    if (!dailyQuoteText || isSavingPhoto || interactionLocked || isGenerating || aiToolsLoading) {
+    if (hasSavedPhoto || !dailyQuoteText || isSavingPhoto || interactionLocked || isGenerating || aiToolsLoading) {
       return;
     }
     captionControls.dismissControls();
@@ -404,21 +421,7 @@ export const HomeCameraSection = ({
                       contentFit="cover"
                       transition={0}
                     />
-                    {canDeleteImage && !interactionLocked ? (
-                      <Pressable
-                        onPress={onClearImage}
-                        className="absolute right-3 top-3 z-20 h-9 w-9 items-center justify-center rounded-full bg-black/60"
-                        style={({ pressed }) => ({
-                          opacity: pressed ? 0.8 : 1,
-                        })}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={18}
-                          color="#ffffff"
-                        />
-                      </Pressable>
-                    ) : null}
+
                   </View>
                 ) : (
                   <View style={StyleSheet.absoluteFill}>
@@ -570,6 +573,7 @@ export const HomeCameraSection = ({
                           </View>
                         </View>
                       </View>
+                      <Animated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, revealStyle]}>
                       <QuotePositionLayer
                         position={quotePosition}
                         controlsVisible={captionControls.controlsVisible && canMoveQuote && !watermarkForExport}
@@ -594,6 +598,7 @@ export const HomeCameraSection = ({
                             paddingTop: 12,
                           }}
                           disabled={
+                            !canMoveQuote ||
                             isEditingQuote ||
                             Boolean(pendingQuoteText) ||
                             isSavingPhoto
@@ -766,21 +771,9 @@ export const HomeCameraSection = ({
                         )}
                       </Pressable>
                       </QuotePositionLayer>
+                      </Animated.View>
                     </View>
                   </View>
-                ) : null}
-                {(isGenerating || generationProgress > 0) ? (
-                  <QuoteInkBloom
-                    accentColor={chrome.cornerColor}
-                    progress={generationProgress}
-                    isComplete={!isGenerating && generationProgress >= 1}
-                    quoteText={dailyQuoteText ?? undefined}
-                    statusLabel={
-                      generationStageLabelKey
-                        ? t(generationStageLabelKey)
-                        : undefined
-                    }
-                  />
                 ) : null}
                 {selectedImageUri &&
                 !dailyQuoteText &&
@@ -804,42 +797,18 @@ export const HomeCameraSection = ({
                     </Pressable>
                   </View>
                 ) : null}
-                {isRewriteLoading ? (
-                  <View className="absolute inset-0 z-[8] items-center justify-center bg-black/60 px-8">
-                    <MotiView
-                      from={{ opacity: 0.6, scale: 0.96 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: "timing", duration: 400 }}
-                      className="w-full max-w-[280px] rounded-[28px] border border-white/15 bg-slate-950/90 px-6 py-7"
-                    >
-                      <View className="mb-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
-                        <MotiView
-                          from={{ translateX: -180 }}
-                          animate={{ translateX: 180 }}
-                          transition={{
-                            type: "timing",
-                            duration: 900,
-                            loop: true,
-                          }}
-                          style={{
-                            height: "100%",
-                            width: "55%",
-                            borderRadius: 999,
-                            backgroundColor: "#8B5CF6",
-                          }}
-                        />
-                      </View>
-                      <Text className="text-center text-lg font-semibold text-white">
-                        {aiToolsLoadingLabel ?? t("home.aiTools.loadingNaturalRewrite")}
-                      </Text>
-                    </MotiView>
-                  </View>
-                ) : null}
                 <InklyShareWatermark visible={watermarkForExport} />
               </View>
             </View>
           </GestureDetector>
         </View>
+        <QuoteGenerationGlow active={Boolean(selectedImageUri && (isGenerating || aiToolsLoading) && !interactionLocked && !isSharing && !watermarkForExport)} accentColor={getHomeAmbientPillColors(cardPalette).border} width={frame.width} height={frame.height} />
+        {selectedImageUri && canDeleteImage && !interactionLocked && !isSharing ? <View pointerEvents="box-none" style={{ position: "absolute", top: 0, width: frame.width, height: frame.height, alignSelf: "center", zIndex: 20 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={t("home.ambient.discardPhoto")} onPress={onClearImage}
+            style={({ pressed }) => ({ position: "absolute", top: 8, right: 8, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.45)", opacity: pressed ? 0.75 : 1 })}>
+            <Ionicons name="trash-outline" size={19} color="#FFFFFF" />
+          </Pressable>
+        </View> : null}
       </View>
         {selectedImageUri === null && !externalCameraControls ? (
           <View
@@ -932,13 +901,12 @@ export const HomeCameraSection = ({
           </View>
         ) : null}
 
-      {showsRewriteAction ? <View style={{ marginTop: 8, alignItems: "center" }}>
-        <RewriteCaptionButton
-          onRewriteQuote={onRewriteQuote}
-          aiToolsLoading={aiToolsLoading}
-          disabled={interactionLocked || isSavingPhoto || isEditingQuote}
-        />
-      </View> : null}
+      {selectedImageUri ? <HomeDraftActions
+        onRewrite={onRewriteQuote} onSave={onSavePhoto} onShare={onSharePhoto}
+        canRewrite={Boolean(dailyQuoteText && !hideQuote && !hasSavedPhoto)} canSave={canSavePhoto} canShare={canSharePhoto}
+        hasSavedPhoto={hasSavedPhoto} loading={isGenerating || aiToolsLoading} isSaving={isSavingPhoto} isSharing={isSharing}
+        disabled={interactionLocked || isGenerating || aiToolsLoading || isSavingPhoto || isSharing || isEditingQuote || Boolean(pendingQuoteText)}
+      /> : null}
     </View>
   );
 };

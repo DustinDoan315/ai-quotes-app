@@ -103,6 +103,7 @@
     "savedToMemories": "Đã lưu vào kỷ niệm",
     "feedRefreshError": "Không thể làm mới bảng tin. Vui lòng thử lại.",
     "generating": {
+      "findingWords": "Đang tìm lời cho ảnh…",
       "label": "Đang tạo câu trích dẫn...",
       "preparing": "Đang chuẩn bị khoảnh khắc...",
       "matching": "Đang tìm điều phù hợp...",
@@ -204,6 +205,9 @@
       "color": "Màu sắc"
     },
     "ambient": {
+      "backToCamera": "Quay lại camera",
+      "discardPhoto": "Bỏ ảnh",
+      "saved": "Đã lưu",
       "profile": "Hồ sơ",
       "menu": "Menu trang chủ",
       "friendsMoments": "Khoảnh khắc bạn bè",

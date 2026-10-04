@@ -10,6 +10,8 @@ export const HOME_AMBIENT_CHROME = {
   text: '#ffffff', muted: 'rgba(255,255,255,0.72)',
   surface: 'rgba(255,255,255,0.055)', border: 'rgba(255,255,255,0.14)',
   inactiveSegment: 'rgba(255,255,255,0.27)',
+  swatchBorder: 'rgba(255,255,255,0.42)',
+  disabledOpacity: 0.45,
 } as const;
 
 function darken(hex: string, amount: number): string {
@@ -25,6 +27,16 @@ export function getHomeAmbientColors(palette: HomeBackgroundPalette) {
     secondaryWash: palette.colors[palette.colors.length - 1],
     scrim: 'rgba(0,0,0,0.42)', edge: palette.colors[1] ?? '#64748b',
   };
+}
+
+/** Keep the active vibe readable over every atmospheric background. */
+export function getHomeAmbientPillColors(palette: HomeBackgroundPalette) {
+  const accent = palette.colors[1] ?? palette.colors[0];
+  const rgb = accent.replace('#', '').match(/.{2}/g);
+  const border = rgb?.length === 3
+    ? `#${rgb.map(value => Math.round(parseInt(value, 16) * 0.6 + 255 * 0.4).toString(16).padStart(2, '0')).join('')}`
+    : '#94a3b8';
+  return { background: darken(accent, 0.3), border };
 }
 
 export type HomeAmbientTransition = {

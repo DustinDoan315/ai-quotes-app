@@ -136,3 +136,13 @@ The original Home layout change did not alter database policies. The later custo
 - Repeated rapid taps start one request. Changing/clearing the photo or leaving Home while a rewrite is pending cannot apply a stale result.
 - Error/AI limit: no quote replacement; existing toast/paywall remains and retry is possible.
 - Applying does not add a duplicate result box. Existing saved cards keep their stored size/color. Rewrite stays clear of the fixed bottom dock on small screens; pending review does not shift the card frame.
+
+
+## Quiet canvas draft editor
+
+- Take or select a photo: the full-width card starts below the header; the camera dock is replaced by Rewrite, Save, and Share. On compact screens, scroll to reach the controls.
+- While generating or rewriting, the photo stays visible with a slow theme-colored edge glow and a single status label. Reduce Motion uses a static edge.
+- Confirm that only the actual caption fades into its lower position; drag, resize, and edit it before saving.
+- Back and the top-right trash ask before discarding an unsaved photo. Cancel retains the draft; discard cancels any pending generation.
+- Saving marks the moment Saved and freezes its caption so sharing matches the stored moment.
+- Shared images include the watermark but no glow, trash, or action controls. Check all Home palettes, including Forest, Dawn, and Mist.

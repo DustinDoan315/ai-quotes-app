@@ -104,6 +104,7 @@
     "savedToMemories": "Saved to your memories",
     "feedRefreshError": "Couldn't refresh your feed. Try again.",
     "generating": {
+      "findingWords": "Finding the words…",
       "label": "Crafting your vibe...",
       "preparing": "Preparing your moment...",
       "matching": "Finding what fits...",
@@ -205,6 +206,9 @@
       "color": "Color"
     },
     "ambient": {
+      "backToCamera": "Back to camera",
+      "discardPhoto": "Discard photo",
+      "saved": "Saved",
       "profile": "Profile",
       "menu": "Home menu",
       "friendsMoments": "Friends’ moments",
