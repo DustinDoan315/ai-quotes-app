@@ -1,3 +1,5 @@
+import { useReducedMotionPreference } from "@/hooks/useReducedMotionPreference";
+import Animated, { LinearTransition } from "react-native-reanimated";
 import { QuoteMomentCardMedia } from "@/features/quotes/QuoteMomentCardMedia";
 import { useQuoteMomentShare } from "@/features/quotes/useQuoteMomentShare";
 import { QuotePhotoCard } from "@/services/media/userPhotosApi";
@@ -46,8 +48,12 @@ export const QuoteMomentCard = ({
   const guestId = useUserStore((s) => s.guestId);
   const width = frameWidth ?? frame.width;
   const isHome = presentation === "home";
-  const { captureRefView, watermarkForExport, shareMoment } =
+  const reduceMotion = useReducedMotionPreference();
+  const { captureRefView, watermarkForExport, isSharing, shareMoment } =
     useQuoteMomentShare(onSharingChange);
+  const layoutTransition = isHome
+    ? LinearTransition.duration(reduceMotion || isSharing || watermarkForExport ? 0 : 300)
+    : undefined;
   const bgPalette = item.homeVibeKey
     ? getHomeBackgroundPaletteByKey(item.homeVibeKey)
     : null;
@@ -107,9 +113,9 @@ export const QuoteMomentCard = ({
 
   const cardInner =
     isHome ? (
-      <View style={{ width, borderRadius: HOME_AMBIENT_LAYOUT.radius, overflow: "hidden", borderWidth: 1, borderColor: homeColors.edge, shadowColor: homeColors.edge, shadowOpacity: 0.35, shadowRadius: 12, backgroundColor: "#09090b" }}>
+      <Animated.View layout={layoutTransition} style={{ width, borderRadius: HOME_AMBIENT_LAYOUT.radius, overflow: "hidden", borderWidth: 1, borderColor: homeColors.edge, shadowColor: homeColors.edge, shadowOpacity: 0.35, shadowRadius: 12, backgroundColor: "#09090b" }}>
         {mediaBlock}
-      </View>
+      </Animated.View>
     ) : chrome && bgPalette ? (
       <View
         className="w-full overflow-hidden rounded-[28px]"
@@ -131,7 +137,7 @@ export const QuoteMomentCard = ({
       style={{ height: screenHeight, ...(contentTop != null ? { justifyContent: 'flex-start', paddingTop: contentTop, paddingBottom: Math.max(0, screenHeight - contentTop - (contentHeight ?? width)) } : {}) }}
       className="items-center justify-center"
     >
-      <View className="relative items-center" style={{ width }}>
+      <Animated.View layout={layoutTransition} className="relative items-center" style={{ width }}>
         <View ref={captureRefView} collapsable={false} className="w-full">
           {cardInner}
         </View>
@@ -164,7 +170,7 @@ export const QuoteMomentCard = ({
             {dotsContent}
           </View>
         ) : null}
-      </View>
+      </Animated.View>
     </View>
   );
 };

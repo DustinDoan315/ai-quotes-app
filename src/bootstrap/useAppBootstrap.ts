@@ -18,7 +18,6 @@ import {
   initializeRevenueCat,
   isRevenueCatInitialized,
 } from "@/services/paywall/nativeRevenueCat";
-import { revenuecatClient } from "@/services/paywall/revenuecatClient";
 import { checkSupabaseReachable } from "@/config/supabase";
 import type { Session } from "@supabase/supabase-js";
 import { useEffect } from "react";
@@ -73,9 +72,6 @@ function syncReminderOnBoot(): (() => void) | undefined {
 async function bootstrapRevenueCat(session: Session | null): Promise<void> {
   await initializeRevenueCat(session?.user?.id);
   if (isRevenueCatInitialized()) {
-    if (session?.user) {
-      await revenuecatClient.logIn(session.user.id);
-    }
     await useSubscriptionStore.getState().initSubscription();
   }
 }

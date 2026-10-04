@@ -36,6 +36,7 @@ import {
 import { GestureDetector } from "react-native-gesture-handler";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import Animated, {
+  LinearTransition,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -162,6 +163,9 @@ export const HomeCameraSection = ({
     return messageKey ? t(messageKey) : reason;
   };
   const reduceMotion = useReducedMotionPreference();
+  const layoutTransition = LinearTransition.duration(
+    reduceMotion || interactionLocked || isSharing || isSavingPhoto || watermarkForExport ? 0 : 300,
+  );
   const revealOpacity = useSharedValue(1);
   const revealY = useSharedValue(0);
   useLayoutEffect(() => {
@@ -380,13 +384,15 @@ export const HomeCameraSection = ({
         );
       }}
     >
-      <View
+      <Animated.View
+        layout={layoutTransition}
         className="w-full items-center justify-center"
         style={{ height: frame.height, marginTop: cameraTopOffset }}
       >
         <View ref={captureRefView} collapsable={false}>
           <GestureDetector gesture={pinchGesture}>
-            <View
+            <Animated.View
+              layout={layoutTransition}
               className="overflow-hidden rounded-[24px]"
               style={[
                 { ...chrome.outerShell, shadowOpacity: 0.22, shadowRadius: 14 },
@@ -798,7 +804,7 @@ export const HomeCameraSection = ({
                 ) : null}
                 <InklyShareWatermark visible={watermarkForExport} />
               </View>
-            </View>
+            </Animated.View>
           </GestureDetector>
         </View>
         <QuoteGenerationGlow active={Boolean(selectedImageUri && (generationActive || aiToolsLoading) && !interactionLocked && !isSharing && !watermarkForExport)} accentColor={getHomeAmbientPillColors(cardPalette).border} width={frame.width} height={frame.height} />
@@ -808,7 +814,7 @@ export const HomeCameraSection = ({
             <Ionicons name="trash-outline" size={19} color="#FFFFFF" />
           </Pressable>
         </View> : null}
-      </View>
+      </Animated.View>
         {selectedImageUri === null && !externalCameraControls ? (
           <View
             className="w-full items-center px-4"

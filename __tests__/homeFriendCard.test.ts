@@ -7,6 +7,7 @@ jest.mock('react', () => ({ ...jest.requireActual('react'), useEffect: (fn: () =
 jest.mock('@/features/quotes/QuoteMomentCardMedia', () => ({ QuoteMomentCardMedia: mockMedia }));
 jest.mock('@/features/quotes/useQuoteMomentShare', () => ({ useQuoteMomentShare: () => ({ captureRefView: { current: {} }, watermarkForExport: false, shareMoment: jest.fn() }) }));
 jest.mock('@/features/quotes/useQuoteCardFrame', () => ({ useQuoteCardFrame: () => ({ width: 390 }) }));
+jest.mock('@/hooks/useReducedMotionPreference', () => ({ useReducedMotionPreference: () => true }));
 jest.mock('@/appState', () => ({ useUserStore: (fn: any) => fn({ authUserId: 'viewer', guestId: null }) }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ i18n: { language: 'vi' }, t: (key: string, options: any) => options?.defaultValue ?? (key === 'home.ambient.friendAuthorFallback' ? 'Friend' : 'Share') }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));

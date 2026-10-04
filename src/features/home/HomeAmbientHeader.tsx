@@ -4,18 +4,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { HomeBackgroundPalette } from '@/types/homeBackground';
 import { getHomeAmbientPillColors, HOME_AMBIENT_CHROME as C, HOME_AMBIENT_LAYOUT as L } from '@/theme/homeAmbient';
+import { MotiView } from 'moti';
+import { useReducedMotionPreference } from '@/hooks/useReducedMotionPreference';
 
 export function HomeAmbientHeader({ palette, avatarUrl, onProfile, onMenu, onBack, disabled = false }: {
   palette: HomeBackgroundPalette; avatarUrl: string | null; onProfile: () => void; onMenu: () => void; onBack?: () => void; disabled?: boolean;
 }) {
   const { t } = useTranslation();
   const pillColors = getHomeAmbientPillColors(palette);
+  const reduceMotion = useReducedMotionPreference();
+  const colorTransition = { type: 'timing' as const, duration: reduceMotion ? 0 : L.crossfadeDuration };
   const { width, fontScale } = useWindowDimensions();
   const stackedPill = width < 360 || fontScale > 1.2;
-  const vibePill = <View style={[styles.pill, { backgroundColor: pillColors.background, borderColor: pillColors.border }]} accessible accessibilityLabel={t(`home.vibes.${palette.vibeKey}`)}>
-    <View style={styles.swatches}>{palette.colors.slice(0, 3).map((color, index) => <View key={index} style={[styles.swatch, { backgroundColor: color }]} />)}</View>
+  const vibePill = <MotiView style={styles.pill} animate={{ backgroundColor: pillColors.background, borderColor: pillColors.border }} transition={colorTransition} accessible accessibilityLabel={t(`home.vibes.${palette.vibeKey}`)}>
+    <View style={styles.swatches}>{palette.colors.slice(0, 3).map((color, index) => <MotiView key={index} style={styles.swatch} animate={{ backgroundColor: color }} transition={colorTransition} />)}</View>
     <Text numberOfLines={stackedPill ? undefined : 1} maxFontSizeMultiplier={stackedPill ? undefined : 1.3} style={styles.vibe}>{t(`home.vibes.${palette.vibeKey}`)}</Text>
-  </View>;
+  </MotiView>;
   return <View style={styles.header}>
     <View style={styles.row}>
       <View style={styles.sideSlot}>
@@ -44,6 +48,6 @@ const styles = StyleSheet.create({
   wordmark: { color: C.text, fontSize: 32, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', flexShrink: 1 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 10, borderRadius: 24, borderWidth: 1.25, maxWidth: '100%' },
   pillSlot: { maxWidth: '100%', alignItems: 'flex-end' },
-  swatches: { flexDirection: 'row' }, swatch: { width: 12, height: 12, borderRadius: 6, marginRight: -2, borderWidth: 1, borderColor: C.swatchBorder },
+  swatches: { flexDirection: 'row', flexShrink: 0 }, swatch: { width: 12, height: 12, borderRadius: 6, marginRight: -2, borderWidth: 1, borderColor: C.swatchBorder },
   vibe: { color: C.text, fontSize: 12, fontWeight: '600', flexShrink: 1 },
 });

@@ -493,7 +493,11 @@ export default function HomeScreen() {
           onGallery={handleOpenGalleryPress} onMemories={handleOpenMemories}
           onPrimary={() => { if (busy) return; if (selectedImageUri && !isOnFeed) void handleSavePhoto(quoteDraftForSave); else handleCameraButtonPress(); }} />
       </View> : null}
-      {draftPresentation.focused ? <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => { if (!exportLocked) setDraftFooterHeight(current => Math.max(current, e.nativeEvent.layout.height)); }}>
+      {draftPresentation.focused ? <View style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + HOME_AMBIENT_LAYOUT.dockClearance, zIndex: 10 }} onLayout={e => {
+        if (exportLocked) return;
+        const height = e.nativeEvent.layout.height;
+        setDraftFooterHeight(current => Math.max(current, height));
+      }}>
         <HomeDraftActions minHeight={draftFooterHeight} palette={draftPalette} onRewrite={handleRewriteQuote}
           onSave={() => { if (!busy) void handleSavePhoto(quoteDraftForSave); }} onShare={() => { if (!busy) void shareMoment(); }}
           canRewrite={Boolean(dailyQuoteText && !hideQuote && !hasSavedCurrentPhoto)} canSave={canSaveDraft && !busy && quoteDraftForSave === null}
